@@ -1,6 +1,6 @@
-# Frontend-Memory
+# Frontend-Vue-Memory
 
-> 来源于Architect架构设计完成后发布任务的Prompt。
+> 来源于 Architect 架构设计完成后发布任务的 Prompt。
 
 ## 角色定位
 
@@ -37,7 +37,10 @@ ProjectHub 是一款现代化项目管理系统，融合敏捷开发理念与现
    - 优先级标注 (P0/P1/P2)
    - 依赖关系
    - 交付物说明
-
+   - 每完成一个任务后，必须执行如下内容：
+     - git 提交到本地，comment 使用任务的描述信息。
+     - 进行一次单元测试和验证。
+     - 测试完成将此任务`done`字段的值修改为`true`
 ---
 
 ## 技术栈要求
@@ -46,17 +49,17 @@ ProjectHub 是一款现代化项目管理系统，融合敏捷开发理念与现
 
 | 技术 | 选型 | 版本要求 |
 | ---- | ---- | -------- |
-| 框架 | React | 18.x |
-| 元框架 | Next.js | 14.x (App Router) |
+| 框架 | Vue | 3.4+ (Composition API) |
+| 元框架 | Nuxt | 3.x |
 | 语言 | TypeScript | 5.x |
-| UI 库 | Ant Design | 5.x |
-| 状态管理 | Zustand + TanStack Query | 最新 |
+| UI 库 | Element Plus / Ant Design Vue | 2.x / 3.x |
+| 状态管理 | Pinia | 2.x |
 | 样式 | Tailwind CSS | 3.x |
 | HTTP 客户端 | Axios | 1.x |
-| 表单处理 | React Hook Form | 7.x |
-| 数据验证 | Zod | 3.x |
-| 拖拽库 | @dnd-kit | 6.x |
-| 图表库 | Recharts | 2.x |
+| 表单处理 | VeeValidate | 4.x |
+| 数据验证 | Zod / Yup | 3.x / 1.x |
+| 拖拽库 | Vue Draggable Plus | 0.4.x |
+| 图表库 | ECharts / Chart.js | 5.x / 4.x |
 
 ---
 
@@ -68,59 +71,72 @@ ProjectHub 是一款现代化项目管理系统，融合敏捷开发理念与现
 
 ```
 src/
-├── app/                    # Next.js App Router 路由
-│   ├── (auth)/             # 认证相关路由组
-│   ├── (dashboard)/        # 需要认证的路由组
-│   ├── layout.tsx
-│   └── page.tsx
-├── components/             # 组件
-│   ├── ui/                 # 基础 UI 组件
-│   ├── layout/             # 布局组件
-│   ├── common/             # 公共业务组件
-│   └── features/           # 业务功能组件
-├── lib/                    # 工具库
-│   ├── api/                # API 客户端
-│   ├── utils/              # 工具函数
-│   ├── hooks/              # 自定义 Hooks
-│   └── constants/          # 常量定义
-├── stores/                 # Zustand Stores
-├── types/                  # TypeScript 类型定义
-└── config/                 # 配置文件
+├── pages/                    # Nuxt 路由 (或 app/ 使用 Nuxt 4)
+│   ├── auth/                 # 认证相关路由
+│   │   ├── login.vue
+│   │   └── register.vue
+│   ├── dashboard/            # 仪表盘路由
+│   └── index.vue
+├── components/               # 组件
+│   ├── ui/                   # 基础 UI 组件
+│   ├── layout/               # 布局组件
+│   ├── common/               # 公共业务组件
+│   └── features/             # 业务功能组件
+├── composables/              # Composables (可复用逻辑)
+│   ├── useAuth.ts
+│   ├── useProject.ts
+│   └── useTask.ts
+├── stores/                   # Pinia Stores
+│   ├── auth.ts
+│   ├── project.ts
+│   └── task.ts
+├── lib/                      # 工具库
+│   ├── api/                  # API 客户端
+│   ├── utils/                # 工具函数
+│   └── constants/            # 常量定义
+├── types/                    # TypeScript 类型定义
+└── config/                   # 配置文件
 ```
 
 ### 2. 命名规范
 
-- **文件命名**: PascalCase (组件), camelCase (工具/配置)
+- **文件命名**: PascalCase (组件), camelCase (工具/配置/Composables)
 - **组件命名**: PascalCase (如 `TaskCard`, `ProjectForm`)
-- **Hooks 命名**: camelCase 且以 `use` 开头 (如 `useAuth`, `useProject`)
+- **Composables 命名**: camelCase 且以 `use` 开头 (如 `useAuth`, `useProject`)
 - **类型命名**: PascalCase (如 `User`, `Project`, `Task`)
 - **常量命名**: UPPER_SNAKE_CASE (如 `API_BASE_URL`, `TASK_STATUS`)
+- **Props 命名**: camelCase (如 `taskData`, `onStatusChange`)
 
 ### 3. 代码规范
 
 ```typescript
-// ✅ 好的示例 - 使用 TypeScript 严格模式
+// ✅ 好的示例 - 使用 TypeScript 严格模式 + Composition API
+<script setup lang="ts">
 interface TaskProps {
   task: Task;
-  onStatusChange: (taskId: string, status: TaskStatus) => void;
+  onStatusChange?: (taskId: string, status: TaskStatus) => void;
   onClick?: (task: Task) => void;
 }
 
-export const TaskCard: React.FC<TaskProps> = ({ task, onStatusChange, onClick }) => {
-  // 组件逻辑
-};
+const props = defineProps<TaskProps>();
+const emit = defineEmits<{
+  (e: 'status-change', taskId: string, status: TaskStatus): void;
+  (e: 'click', task: Task): void;
+}>();
+</script>
 
-// ✅ 使用自定义 Hooks 处理业务逻辑
+// ✅ 使用 Composables 处理业务逻辑
+// composables/useProjects.ts
 export const useProjects = () => {
-  const { data, isLoading, error } = useQuery({
-    queryKey: ['projects'],
-    queryFn: fetchProjects,
-  });
+  const { data: projects, isLoading, error, refresh } = useFetch('/api/projects');
 
-  return { projects: data, isLoading, error };
+  return { projects, isLoading, error, refresh };
 };
 
-// ✅ 使用 Zustand 处理全局状态
+// ✅ 使用 Pinia 管理全局状态
+// stores/auth.ts
+import { defineStore } from 'pinia';
+
 interface AuthState {
   user: User | null;
   token: string | null;
@@ -128,21 +144,29 @@ interface AuthState {
   logout: () => void;
 }
 
-export const useAuthStore = create<AuthState>((set) => ({
-  user: null,
-  token: null,
-  login: async (credentials) => {
-    // 登录逻辑
+export const useAuthStore = defineStore('auth', {
+  state: (): AuthState => ({
+    user: null,
+    token: null,
+  }),
+  actions: {
+    async login(credentials: LoginCredentials) {
+      // 登录逻辑
+    },
+    logout() {
+      this.user = null;
+      this.token = null;
+    },
   },
-  logout: () => set({ user: null, token: null }),
-}));
+});
 ```
 
 ### 4. 组件开发规范
 
-- 所有组件必须是函数组件
-- 使用 TypeScript 定义 Props 类型
-- 复杂组件需要编写 Storybook 文档
+- 优先使用 `<script setup>` 语法糖
+- 使用 TypeScript 定义 Props 和 Emits 类型
+- 使用 `ref`、`computed`、`watch` 等响应式 API
+- 复杂组件需要编写文档或 Storybook
 - 组件需要支持无障碍访问 (ARIA)
 - 导出时使用具名导出
 
@@ -153,7 +177,7 @@ export const useAuthStore = create<AuthState>((set) => ({
 import axios from 'axios';
 
 export const apiClient = axios.create({
-  baseURL: process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080/api/v1',
+  baseURL: process.env.NUXT_PUBLIC_API_URL || 'http://localhost:8080/api/v1',
   timeout: 10000,
   headers: {
     'Content-Type': 'application/json',
@@ -162,7 +186,7 @@ export const apiClient = axios.create({
 
 // 请求拦截器 - 自动注入 Token
 apiClient.interceptors.request.use((config) => {
-  const token = localStorage.getItem('access_token');
+  const token = useCookie('access_token').value;
   if (token) {
     config.headers.Authorization = `Bearer ${token}`;
   }
@@ -175,7 +199,7 @@ apiClient.interceptors.response.use(
   (error) => {
     if (error.response?.status === 401) {
       // Token 过期，跳转到登录页
-      window.location.href = '/login';
+      navigateTo('/login');
     }
     return Promise.reject(error);
   }
@@ -184,32 +208,51 @@ apiClient.interceptors.response.use(
 
 ### 6. 错误处理规范
 
-```typescript
-// 使用 ErrorBoundary 包裹组件
-import { ErrorBoundary } from '@/components/common/ErrorBoundary';
+```vue
+<!-- 使用 Nuxt 错误处理 -->
+<script setup lang="ts">
+const { data, error } = await useFetch('/api/projects');
 
-<ErrorBoundary fallback={<ErrorFallback />}>
-  <Dashboard />
-</ErrorBoundary>
+if (error.value) {
+  throw createError({
+    statusCode: 500,
+    message: '加载项目失败',
+  });
+}
+</script>
 
-// 使用 Toast 提示用户
-import { toast } from 'react-hot-toast';
+<template>
+  <NuxtErrorBoundary>
+    <Dashboard />
+    <template #error="{ error }">
+      <ErrorFallback :error="error" />
+    </template>
+  </NuxtErrorBoundary>
+</template>
+
+<!-- 使用 Toast 提示用户 -->
+<script setup lang="ts">
+import { useToast } from 'vue-toast-notification';
+
+const $toast = useToast();
 
 try {
   await createProject(data);
-  toast.success('项目创建成功');
+  $toast.success('项目创建成功');
 } catch (error) {
-  toast.error('项目创建失败');
+  $toast.error('项目创建失败');
 }
+</script>
 ```
 
 ### 7. 性能优化规范
 
-- 使用 `React.lazy` 和 `Next.js dynamic` 进行代码分割
-- 使用 `React.memo` 优化重复渲染的组件
-- 使用 `useMemo` 和 `useCallback` 优化计算和函数
-- 大数据列表使用虚拟滚动 (`@tanstack/react-virtual`)
-- 图片使用 `next/image` 组件
+- 使用 Nuxt 的懒加载组件 (`defineAsyncComponent`)
+- 使用 `v-memo` 优化重复渲染的组件
+- 使用 `computed` 缓存计算结果
+- 大数据列表使用虚拟滚动 (`vue-virtual-scroller`)
+- 图片使用 Nuxt 的 `<NuxtImg>` 组件
+- 路由使用 Nuxt 的 `definePageMeta` 配置预加载
 
 ---
 
@@ -340,45 +383,45 @@ try {
 node >= 18.0.0
 
 # 包管理器
-yarn >= 1.22.0 或 npm >= 9.0.0
+pnpm >= 8.0.0 或 npm >= 9.0.0
 ```
 
 ### 环境变量
 
-创建 `.env.local` 文件：
+创建 `.env` 文件：
 
 ```bash
 # 应用配置
-NEXT_PUBLIC_APP_NAME=ProjectHub
-NEXT_PUBLIC_APP_URL=http://localhost:3000
+NUXT_PUBLIC_APP_NAME=ProjectHub
+NUXT_PUBLIC_APP_URL=http://localhost:3000
 
 # API 配置
-NEXT_PUBLIC_API_URL=http://localhost:8080/api/v1
+NUXT_PUBLIC_API_URL=http://localhost:8080/api/v1
 
 # 监控配置 (可选)
-NEXT_PUBLIC_SENTRY_DSN=
+NUXT_PUBLIC_SENTRY_DSN=
 ```
 
 ### 安装依赖
 
 ```bash
 # 安装依赖
-yarn install
+pnpm install
 
 # 启动开发服务器
-yarn dev
+pnpm dev
 
 # 运行测试
-yarn test
+pnpm test
 
 # 构建
-yarn build
+pnpm build
 
 # 代码格式化
-yarn format
+pnpm format
 
 # 代码检查
-yarn lint
+pnpm lint
 ```
 
 ---
@@ -394,7 +437,7 @@ Request: { email, password }
 Response: { accessToken, refreshToken, expiresIn }
 
 // 2. 存储 Token
-localStorage.setItem('access_token', accessToken);
+useCookie('access_token').value = accessToken;
 
 // 3. 后续请求自动携带 Token (通过 Axios 拦截器)
 
@@ -453,7 +496,7 @@ interface Result<T> {
 ### Q1: 遇到技术难题怎么办？
 
 **A**:
-1. 首先查阅相关文档 (Next.js, React, Ant Design 等官方文档)
+1. 首先查阅相关文档 (Nuxt, Vue, Element Plus 等官方文档)
 2. 在团队内部寻求支持
 3. 记录问题和解决方案
 
