@@ -164,7 +164,7 @@
     "priority": "P1",
     "estimatedDays": 1,
     "dependencies": ["BE-007"],
-    "done": false,
+    "done": true,
     "deliverables": [
       "密码重置请求接口",
       "重置 Token 生成",
@@ -399,7 +399,7 @@
     "priority": "P1",
     "estimatedDays": 1,
     "dependencies": ["BE-012"],
-    "done": false,
+    "done": true,
     "deliverables": [
       "Epic 实体类",
       "EpicRepository 仓储",
@@ -417,7 +417,7 @@
     "priority": "P1",
     "estimatedDays": 2,
     "dependencies": ["BE-023"],
-    "done": false,
+    "done": true,
     "deliverables": [
       "UserStory 实体类",
       "UserStoryRepository 仓储",
@@ -439,7 +439,7 @@
     "priority": "P1",
     "estimatedDays": 2,
     "dependencies": ["BE-012"],
-    "done": false,
+    "done": true,
     "deliverables": [
       "Issue 实体类",
       "IssueRepository 仓储",
@@ -462,7 +462,7 @@
     "priority": "P1",
     "estimatedDays": 2,
     "dependencies": ["BE-012"],
-    "done": false,
+    "done": true,
     "deliverables": [
       "WikiDocument 实体类",
       "WikiHistory 实体类",
@@ -485,7 +485,7 @@
     "priority": "P1",
     "estimatedDays": 1,
     "dependencies": ["BE-014"],
-    "done": false,
+    "done": true,
     "deliverables": [
       "ReportService 报表服务",
       "燃尽图数据接口 (GET /api/v1/projects/{id}/reports/burndown)",
@@ -501,7 +501,7 @@
     "priority": "P2",
     "estimatedDays": 1,
     "dependencies": ["BE-014"],
-    "done": false,
+    "done": true,
     "deliverables": [
       "累积流图数据接口 (GET /api/v1/projects/{id}/reports/cumulative-flow)",
       "各状态任务数量按日期聚合",
@@ -516,7 +516,7 @@
     "priority": "P2",
     "estimatedDays": 1,
     "dependencies": ["BE-014"],
-    "done": false,
+    "done": true,
     "deliverables": [
       "速度图数据接口 (GET /api/v1/projects/{id}/reports/velocity)",
       "按迭代周期聚合完成的故事点",
@@ -531,7 +531,7 @@
     "priority": "P1",
     "estimatedDays": 2,
     "dependencies": ["BE-006"],
-    "done": false,
+    "done": true,
     "deliverables": [
       "Notification 实体类",
       "NotificationRepository 仓储",
@@ -552,7 +552,7 @@
     "priority": "P1",
     "estimatedDays": 2,
     "dependencies": ["BE-002"],
-    "done": false,
+    "done": true,
     "deliverables": [
       "CacheService 缓存服务",
       "CacheKeys 缓存 Key 常量类",
@@ -571,7 +571,7 @@
     "priority": "P1",
     "estimatedDays": 1,
     "dependencies": ["BE-002"],
-    "done": false,
+    "done": true,
     "deliverables": [
       "StorageService 存储服务接口",
       "MinIO 配置",
@@ -589,7 +589,7 @@
     "priority": "P1",
     "estimatedDays": 1,
     "dependencies": ["BE-001"],
-    "done": false,
+    "done": true,
     "deliverables": [
       "AsyncConfig 异步配置",
       "ApplicationEvent 事件定义",
@@ -607,7 +607,7 @@
     "priority": "P1",
     "estimatedDays": 1,
     "dependencies": ["BE-012"],
-    "done": false,
+    "done": true,
     "deliverables": [
       "LogAspect 日志切面",
       "OperationLog 实体类",
@@ -641,7 +641,7 @@
     "priority": "P1",
     "estimatedDays": 2,
     "dependencies": ["BE-009"],
-    "done": false,
+    "done": true,
     "deliverables": [
       "AuthService 测试",
       "AuthController 测试",
@@ -657,7 +657,7 @@
     "priority": "P1",
     "estimatedDays": 2,
     "dependencies": ["BE-016"],
-    "done": false,
+    "done": true,
     "deliverables": [
       "ProjectService 测试",
       "ProjectController 测试",
@@ -674,7 +674,7 @@
     "priority": "P1",
     "estimatedDays": 2,
     "dependencies": ["BE-022"],
-    "done": false,
+    "done": true,
     "deliverables": [
       "TaskService 测试",
       "TaskController 测试",
@@ -691,7 +691,7 @@
     "priority": "P1",
     "estimatedDays": 2,
     "dependencies": ["BE-036", "BE-037"],
-    "done": false,
+    "done": true,
     "deliverables": [
       "SpringBootTest 配置",
       "Testcontainers 容器化测试",
@@ -708,7 +708,7 @@
     "priority": "P1",
     "estimatedDays": 1,
     "dependencies": ["BE-001"],
-    "done": false,
+    "done": true,
     "deliverables": [
       "Dockerfile",
       "docker-compose.yml",
@@ -725,7 +725,7 @@
     "priority": "P2",
     "estimatedDays": 2,
     "dependencies": ["BE-031"],
-    "done": false,
+    "done": true,
     "deliverables": [
       "慢查询分析和优化",
       "索引优化",
@@ -743,7 +743,7 @@
     "priority": "P1",
     "estimatedDays": 1,
     "dependencies": [],
-    "done": false,
+    "done": true,
     "deliverables": [
       "README.md",
       "API.md API 使用说明",

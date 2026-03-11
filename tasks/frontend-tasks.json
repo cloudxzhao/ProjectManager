@@ -109,7 +109,7 @@
     "priority": "P1",
     "estimatedDays": 2,
     "dependencies": ["FE-002"],
-    "done": false,
+    "done": true,
     "deliverables": [
       "Button 组件",
       "Input 组件",
