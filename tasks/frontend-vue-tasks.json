@@ -1,0 +1,674 @@
+[
+  {
+    "id": "FE-001",
+    "title": "项目初始化和基础配置",
+    "description": "初始化 Next.js 项目，配置 TypeScript、ESLint、Prettier、Tailwind CSS 等基础工具链",
+    "module": "基础设施",
+    "priority": "P0",
+    "estimatedDays": 1,
+    "dependencies": [],
+    "done": false,
+    "deliverables": [
+      "Next.js 项目脚手架",
+      "TypeScript 配置 (tsconfig.json)",
+      "ESLint + Prettier 配置",
+      "Tailwind CSS 配置",
+      "项目目录结构"
+    ]
+  },
+  {
+    "id": "FE-002",
+    "title": "UI 组件库集成和主题配置",
+    "description": "集成 Ant Design 组件库，配置主题色、暗黑模式等全局样式",
+    "module": "基础设施",
+    "priority": "P0",
+    "estimatedDays": 1,
+    "dependencies": ["FE-001"],
+    "done": false,
+    "deliverables": [
+      "Ant Design 安装配置",
+      "主题配置文件",
+      "全局样式文件 (globals.css)",
+      "主题色配置 (主色、辅助色)",
+      "暗黑模式支持"
+    ]
+  },
+  {
+    "id": "FE-003",
+    "title": "HTTP 客户端和 API 层封装",
+    "description": "封装 Axios 客户端，实现请求/响应拦截器、错误处理、Token 刷新机制",
+    "module": "基础设施",
+    "priority": "P0",
+    "estimatedDays": 1,
+    "dependencies": ["FE-001"],
+    "done": false,
+    "deliverables": [
+      "Axios 实例配置 (axios.ts)",
+      "请求拦截器 (Token 注入)",
+      "响应拦截器 (错误处理)",
+      "API 端点常量 (endpoints.ts)",
+      "统一响应类型定义"
+    ]
+  },
+  {
+    "id": "FE-004",
+    "title": "状态管理方案搭建",
+    "description": "配置 Zustand 和 React Query，实现全局状态和服务端状态管理",
+    "module": "基础设施",
+    "priority": "P0",
+    "estimatedDays": 1,
+    "dependencies": ["FE-001"],
+    "done": false,
+    "deliverables": [
+      "Zustand 配置",
+      "React Query 配置",
+      "认证 Store (auth.store.ts)",
+      "UI Store (ui.store.ts)",
+      "通用 Hooks (useAuth, useLocalStorage 等)"
+    ]
+  },
+  {
+    "id": "FE-005",
+    "title": "类型定义文件编写",
+    "description": "编写 TypeScript 类型定义，包括用户、项目、任务等核心实体的类型",
+    "module": "基础设施",
+    "priority": "P0",
+    "estimatedDays": 1,
+    "dependencies": ["FE-001"],
+    "done": false,
+    "deliverables": [
+      "用户类型定义 (user.ts)",
+      "项目类型定义 (project.ts)",
+      "任务类型定义 (task.ts)",
+      "API 类型定义 (api.ts)",
+      "通用类型定义 (common.ts)"
+    ]
+  },
+  {
+    "id": "FE-006",
+    "title": "布局组件开发",
+    "description": "开发全局布局组件，包括侧边栏、顶部导航、主内容区等",
+    "module": "公共组件",
+    "priority": "P0",
+    "estimatedDays": 2,
+    "dependencies": ["FE-002"],
+    "done": false,
+    "deliverables": [
+      "MainLayout 组件 (主布局)",
+      "AuthLayout 组件 (认证页布局)",
+      "Header 组件 (顶部导航)",
+      "Sidebar 组件 (侧边栏)",
+      "响应式布局支持"
+    ]
+  },
+  {
+    "id": "FE-007",
+    "title": "基础 UI 组件封装",
+    "description": "封装常用基础 UI 组件，统一样式和交互",
+    "module": "公共组件",
+    "priority": "P1",
+    "estimatedDays": 2,
+    "dependencies": ["FE-002"],
+    "done": false,
+    "deliverables": [
+      "Button 组件",
+      "Input 组件",
+      "Modal 组件",
+      "Table 组件",
+      "Card 组件",
+      "Badge 组件",
+      "Avatar 组件",
+      "Dropdown 组件"
+    ]
+  },
+  {
+    "id": "FE-008",
+    "title": "认证页面开发 - 登录",
+    "description": "开发用户登录页面，支持邮箱密码登录、记住我、密码可见性切换",
+    "module": "认证模块",
+    "priority": "P0",
+    "estimatedDays": 2,
+    "dependencies": ["FE-003", "FE-004", "FE-006"],
+    "done": false,
+    "deliverables": [
+      "登录页面 (login/page.tsx)",
+      "LoginForm 组件",
+      "表单验证逻辑",
+      "登录接口调用",
+      "Token 存储和跳转逻辑",
+      "响应式布局"
+    ]
+  },
+  {
+    "id": "FE-009",
+    "title": "认证页面开发 - 注册",
+    "description": "开发用户注册页面，支持用户名、邮箱、密码输入和验证",
+    "module": "认证模块",
+    "priority": "P0",
+    "estimatedDays": 2,
+    "dependencies": ["FE-008"],
+    "done": false,
+    "deliverables": [
+      "注册页面 (register/page.tsx)",
+      "RegisterForm 组件",
+      "表单验证逻辑 (用户名、邮箱、密码强度)",
+      "注册接口调用",
+      "注册成功跳转"
+    ]
+  },
+  {
+    "id": "FE-010",
+    "title": "认证页面开发 - 密码找回",
+    "description": "开发密码找回页面，支持通过邮箱发送重置链接",
+    "module": "认证模块",
+    "priority": "P1",
+    "estimatedDays": 1,
+    "dependencies": ["FE-008"],
+    "done": false,
+    "deliverables": [
+      "密码找回页面",
+      "邮箱输入表单",
+      "发送重置邮件接口",
+      "成功提示信息"
+    ]
+  },
+  {
+    "id": "FE-011",
+    "title": "路由守卫和中间件开发",
+    "description": "实现路由守卫和 Next.js 中间件，处理认证校验和权限控制",
+    "module": "认证模块",
+    "priority": "P0",
+    "estimatedDays": 1,
+    "dependencies": ["FE-004", "FE-008"],
+    "done": false,
+    "deliverables": [
+      "Next.js Middleware (middleware.ts)",
+      "路由守卫逻辑",
+      "Token 验证",
+      "未登录重定向",
+      "权限校验逻辑"
+    ]
+  },
+  {
+    "id": "FE-012",
+    "title": "仪表盘页面开发",
+    "description": "开发个人工作台/仪表盘页面，展示核心指标和 Bento Grid 布局",
+    "module": "仪表盘模块",
+    "priority": "P0",
+    "estimatedDays": 3,
+    "dependencies": ["FE-006", "FE-007"],
+    "done": false,
+    "deliverables": [
+      "仪表盘页面 (dashboard/page.tsx)",
+      "核心指标卡片组件",
+      "Bento Grid 布局组件",
+      "进行中项目卡片",
+      "待处理任务列表",
+      "最近活动Feed",
+      "快速创建入口"
+    ]
+  },
+  {
+    "id": "FE-013",
+    "title": "项目列表页面开发",
+    "description": "开发项目列表页面，支持筛选、搜索、项目卡片展示",
+    "module": "项目管理",
+    "priority": "P0",
+    "estimatedDays": 2,
+    "dependencies": ["FE-006", "FE-007"],
+    "done": false,
+    "deliverables": [
+      "项目列表页面 (projects/page.tsx)",
+      "ProjectCard 组件",
+      "ProjectList 组件",
+      "筛选标签栏 (全部/进行中/已完成/已归档)",
+      "搜索功能",
+      "创建项目按钮"
+    ]
+  },
+  {
+    "id": "FE-014",
+    "title": "项目创建功能开发",
+    "description": "开发项目创建表单，支持项目名称、描述、日期、成员选择等",
+    "module": "项目管理",
+    "priority": "P0",
+    "estimatedDays": 2,
+    "dependencies": ["FE-013"],
+    "done": false,
+    "deliverables": [
+      "新建项目页面 (projects/new/page.tsx)",
+      "ProjectForm 组件",
+      "表单验证逻辑",
+      "成员选择器组件",
+      "日期选择器",
+      "图标选择器",
+      "颜色选择器",
+      "创建接口调用"
+    ]
+  },
+  {
+    "id": "FE-015",
+    "title": "项目详情页面开发",
+    "description": "开发项目详情页面，包括项目信息展示和页签导航",
+    "module": "项目管理",
+    "priority": "P0",
+    "estimatedDays": 2,
+    "dependencies": ["FE-013"],
+    "done": false,
+    "deliverables": [
+      "项目详情页面 (projects/[id]/page.tsx)",
+      "项目信息展示区",
+      "页签导航组件 (任务看板/用户故事/问题追踪/Wiki/报表/成员)",
+      "项目进度展示",
+      "成员列表展示"
+    ]
+  },
+  {
+    "id": "FE-016",
+    "title": "项目编辑和删除功能",
+    "description": "实现项目编辑和删除功能，包括确认对话框和接口调用",
+    "module": "项目管理",
+    "priority": "P1",
+    "estimatedDays": 1,
+    "dependencies": ["FE-015"],
+    "done": false,
+    "deliverables": [
+      "编辑项目弹窗/页面",
+      "删除确认对话框",
+      "更新项目接口",
+      "删除项目接口",
+      "成功/失败提示"
+    ]
+  },
+  {
+    "id": "FE-017",
+    "title": "项目成员管理功能",
+    "description": "开发项目成员管理页面，支持添加/移除成员、修改角色",
+    "module": "项目管理",
+    "priority": "P1",
+    "estimatedDays": 2,
+    "dependencies": ["FE-015"],
+    "done": false,
+    "deliverables": [
+      "成员管理页面 (projects/[id]/members/page.tsx)",
+      "成员列表展示",
+      "添加成员功能",
+      "移除成员功能",
+      "角色修改功能",
+      "用户搜索选择"
+    ]
+  },
+  {
+    "id": "FE-018",
+    "title": "任务看板 (Kanban) 开发",
+    "description": "开发任务看板，支持列展示、任务卡片、拖拽移动",
+    "module": "任务管理",
+    "priority": "P0",
+    "estimatedDays": 3,
+    "dependencies": ["FE-007", "FE-015"],
+    "done": false,
+    "deliverables": [
+      "任务看板页面 (projects/[id]/tasks/page.tsx)",
+      "KanbanBoard 组件",
+      "KanbanColumn 组件 (待办/进行中/测试中/已完成)",
+      "KanbanCard 组件",
+      "拖拽功能 (@dnd-kit)",
+      "任务状态更新接口",
+      "列内排序"
+    ]
+  },
+  {
+    "id": "FE-019",
+    "title": "任务卡片功能开发",
+    "description": "开发任务卡片，展示任务信息、负责人、优先级等",
+    "module": "任务管理",
+    "priority": "P0",
+    "estimatedDays": 1,
+    "dependencies": ["FE-018"],
+    "done": false,
+    "deliverables": [
+      "TaskCard 组件",
+      "任务 ID 展示",
+      "优先级标签",
+      "负责人头像",
+      "截止日期展示",
+      "故事点展示",
+      "点击打开详情"
+    ]
+  },
+  {
+    "id": "FE-020",
+    "title": "任务创建功能开发",
+    "description": "开发任务创建表单，支持快速创建和详细创建两种模式",
+    "module": "任务管理",
+    "priority": "P0",
+    "estimatedDays": 2,
+    "dependencies": ["FE-018"],
+    "done": false,
+    "deliverables": [
+      "快速创建任务输入框",
+      "任务创建弹窗",
+      "TaskForm 组件",
+      "标题、描述、优先级、截止日期等字段",
+      "负责人选择",
+      "创建接口调用"
+    ]
+  },
+  {
+    "id": "FE-021",
+    "title": "任务详情页面开发",
+    "description": "开发任务详情页面/弹窗，展示任务完整信息和评论",
+    "module": "任务管理",
+    "priority": "P0",
+    "estimatedDays": 2,
+    "dependencies": ["FE-018"],
+    "done": false,
+    "deliverables": [
+      "任务详情页面/弹窗 (tasks/[id]/page.tsx)",
+      "任务属性编辑区",
+      "任务描述区 (Markdown)",
+      "子任务列表",
+      "评论区",
+      "活动历史记录",
+      "任务操作按钮 (状态修改、删除等)"
+    ]
+  },
+  {
+    "id": "FE-022",
+    "title": "子任务功能开发",
+    "description": "实现子任务的创建、完成、删除等功能",
+    "module": "任务管理",
+    "priority": "P1",
+    "estimatedDays": 1,
+    "dependencies": ["FE-021"],
+    "done": false,
+    "deliverables": [
+      "SubTaskList 组件",
+      "添加子任务功能",
+      "完成/取消完成子任务",
+      "删除子任务",
+      "子任务进度展示"
+    ]
+  },
+  {
+    "id": "FE-023",
+    "title": "任务评论功能开发",
+    "description": "实现任务评论的创建、编辑、删除和回复功能",
+    "module": "任务管理",
+    "priority": "P1",
+    "estimatedDays": 2,
+    "dependencies": ["FE-021"],
+    "done": false,
+    "deliverables": [
+      "评论列表展示",
+      "发表评论功能",
+      "评论编辑功能",
+      "评论删除功能",
+      "评论回复功能",
+      "Markdown 支持"
+    ]
+  },
+  {
+    "id": "FE-024",
+    "title": "用户故事页面开发",
+    "description": "开发用户故事管理页面，支持 Epic 和用户故事的 CRUD",
+    "module": "用户故事",
+    "priority": "P1",
+    "estimatedDays": 2,
+    "dependencies": ["FE-015"],
+    "done": false,
+    "deliverables": [
+      "用户故事页面 (projects/[id]/stories/page.tsx)",
+      "Epic 列表组件",
+      "UserStory 列表组件",
+      "创建 Epic 功能",
+      "创建用户故事功能",
+      "故事点选择器",
+      "验收标准输入"
+    ]
+  },
+  {
+    "id": "FE-025",
+    "title": "问题追踪页面开发",
+    "description": "开发问题追踪页面，支持 Bug/Issue 的创建和管理",
+    "module": "问题追踪",
+    "priority": "P1",
+    "estimatedDays": 2,
+    "dependencies": ["FE-015"],
+    "done": false,
+    "deliverables": [
+      "问题追踪页面 (projects/[id]/issues/page.tsx)",
+      "IssueList 组件",
+      "创建问题功能",
+      "问题类型选择 (Bug/Issue/改进/技术债)",
+      "严重程度选择",
+      "问题状态管理",
+      "问题筛选功能"
+    ]
+  },
+  {
+    "id": "FE-026",
+    "title": "Wiki 页面开发",
+    "description": "开发 Wiki 文档管理页面，支持 Markdown 编辑和版本历史",
+    "module": "Wiki",
+    "priority": "P1",
+    "estimatedDays": 2,
+    "dependencies": ["FE-015"],
+    "done": false,
+    "deliverables": [
+      "Wiki 页面 (projects/[id]/wiki/page.tsx)",
+      "WikiTree 组件 (目录树)",
+      "WikiEditor 组件 (Markdown 编辑器)",
+      "MarkdownViewer 组件",
+      "文档创建/编辑功能",
+      "版本历史查看"
+    ]
+  },
+  {
+    "id": "FE-027",
+    "title": "数据报表页面开发",
+    "description": "开发数据报表页面，展示燃尽图、累积流图、速度图等",
+    "module": "报表",
+    "priority": "P2",
+    "estimatedDays": 2,
+    "dependencies": ["FE-015"],
+    "done": false,
+    "deliverables": [
+      "报表页面 (projects/[id]/reports/page.tsx)",
+      "BurndownChart 组件 (燃尽图)",
+      "CumulativeFlow 组件 (累积流图)",
+      "VelocityChart 组件 (速度图)",
+      "TaskDistribution 组件 (任务分布)",
+      "图表数据接口调用"
+    ]
+  },
+  {
+    "id": "FE-028",
+    "title": "通知功能开发",
+    "description": "开发消息通知功能，包括通知列表、未读数展示、标记已读等",
+    "module": "通知",
+    "priority": "P1",
+    "estimatedDays": 1,
+    "dependencies": ["FE-006"],
+    "done": false,
+    "deliverables": [
+      "通知中心页面",
+      "通知列表组件",
+      "未读消息数展示 (顶部导航)",
+      "标记已读功能",
+      "全部已读功能",
+      "通知类型图标"
+    ]
+  },
+  {
+    "id": "FE-029",
+    "title": "全局搜索功能",
+    "description": "实现全局搜索功能，支持搜索项目、任务、文档",
+    "module": "公共功能",
+    "priority": "P2",
+    "estimatedDays": 2,
+    "dependencies": ["FE-006"],
+    "done": false,
+    "deliverables": [
+      "全局搜索框组件",
+      "搜索结果下拉",
+      "搜索结果页面",
+      "防抖搜索逻辑",
+      "项目/任务/文档搜索结果分类展示"
+    ]
+  },
+  {
+    "id": "FE-030",
+    "title": "个人设置页面开发",
+    "description": "开发个人设置页面，支持修改资料、更换头像、修改密码等",
+    "module": "用户",
+    "priority": "P1",
+    "estimatedDays": 1,
+    "dependencies": ["FE-006"],
+    "done": false,
+    "deliverables": [
+      "个人设置页面 (settings/page.tsx)",
+      "修改资料表单",
+      "上传头像功能",
+      "修改密码表单",
+      "主题偏好设置"
+    ]
+  },
+  {
+    "id": "FE-031",
+    "title": "空状态和错误页面开发",
+    "description": "开发空状态组件和错误页面 (404, 403, 500)",
+    "module": "公共组件",
+    "priority": "P1",
+    "estimatedDays": 1,
+    "dependencies": ["FE-006"],
+    "done": false,
+    "deliverables": [
+      "空状态组件 (Empty)",
+      "404 页面 (not-found.tsx)",
+      "403 页面",
+      "500 页面",
+      "加载骨架屏 (Skeleton)"
+    ]
+  },
+  {
+    "id": "FE-032",
+    "title": "响应式布局优化",
+    "description": "优化移动端适配，确保在手机和平板上的可用性",
+    "module": "公共功能",
+    "priority": "P1",
+    "estimatedDays": 2,
+    "dependencies": ["FE-006"],
+    "done": false,
+    "deliverables": [
+      "侧边栏移动端适配 (抽屉式)",
+      "项目卡片响应式",
+      "任务看板移动端适配",
+      "表单响应式",
+      "移动端触摸优化"
+    ]
+  },
+  {
+    "id": "FE-033",
+    "title": "无障碍访问优化",
+    "description": "实现无障碍访问功能，符合 WCAG 2.1 AA 标准",
+    "module": "公共功能",
+    "priority": "P2",
+    "estimatedDays": 2,
+    "dependencies": ["FE-007"],
+    "done": false,
+    "deliverables": [
+      "键盘导航支持",
+      "焦点可见样式",
+      "ARIA 标签添加",
+      "颜色对比度优化",
+      "屏幕阅读器支持"
+    ]
+  },
+  {
+    "id": "FE-034",
+    "title": "单元测试编写",
+    "description": "为核心组件和工具函数编写单元测试",
+    "module": "测试",
+    "priority": "P1",
+    "estimatedDays": 3,
+    "dependencies": ["FE-007", "FE-008"],
+    "done": false,
+    "deliverables": [
+      "Vitest 配置",
+      "UI 组件测试",
+      "工具函数测试",
+      "Hooks 测试",
+      "测试覆盖率报告 (≥80%)"
+    ]
+  },
+  {
+    "id": "FE-035",
+    "title": "E2E 测试编写",
+    "description": "为核心用户流程编写 E2E 测试",
+    "module": "测试",
+    "priority": "P1",
+    "estimatedDays": 2,
+    "dependencies": ["FE-034"],
+    "done": false,
+    "deliverables": [
+      "Playwright 配置",
+      "登录注册流程测试",
+      "项目管理流程测试",
+      "任务管理流程测试",
+      "E2E 测试报告"
+    ]
+  },
+  {
+    "id": "FE-036",
+    "title": "性能优化",
+    "description": "进行性能优化，包括代码分割、图片优化、缓存等",
+    "module": "性能优化",
+    "priority": "P2",
+    "estimatedDays": 2,
+    "dependencies": ["FE-012", "FE-013"],
+    "done": false,
+    "deliverables": [
+      "路由级别代码分割",
+      "组件懒加载",
+      "图片懒加载和优化",
+      "React Query 缓存配置",
+      "虚拟列表 (大数据)",
+      "Lighthouse 性能报告 (≥80)"
+    ]
+  },
+  {
+    "id": "FE-037",
+    "title": "Docker 化和部署配置",
+    "description": "编写 Docker 配置文件，配置部署流程",
+    "module": "部署",
+    "priority": "P1",
+    "estimatedDays": 1,
+    "dependencies": ["FE-001"],
+    "done": false,
+    "deliverables": [
+      "Dockerfile",
+      "docker-compose.yml",
+      "环境变量配置",
+      "部署文档",
+      "CI/CD 配置 (可选)"
+    ]
+  },
+  {
+    "id": "FE-038",
+    "title": "项目文档编写",
+    "description": "编写项目文档，包括 README、开发文档、组件文档等",
+    "module": "文档",
+    "priority": "P1",
+    "estimatedDays": 1,
+    "dependencies": [],
+    "done": false,
+    "deliverables": [
+      "README.md",
+      "开发文档",
+      "组件使用文档",
+      "部署文档",
+      "API 对接文档"
+    ]
+  }
+]
