@@ -1,7 +1,8 @@
 'use client';
 
 import { useState } from 'react';
-import { Card, List, Button, Tag, Avatar, Input, Space, Popconfirm, message, Empty, Dropdown, MenuProps } from 'antd';
+import { Card, List, Button, Tag, Avatar, Input, Space, Popconfirm, message as antdMessage, Empty as AntEmpty, Dropdown, MenuProps } from 'antd';
+import { Empty as AppEmpty } from '@/components/common';
 import {
   BellOutlined,
   SearchOutlined,
@@ -10,7 +11,7 @@ import {
   ProjectOutlined,
   MessageOutlined,
   UserOutlined,
-  SystemOutlined,
+  SettingOutlined,
   ClockCircleOutlined,
   StarOutlined,
 } from '@ant-design/icons';
@@ -113,7 +114,7 @@ const typeConfig: Record<string, { icon: React.ReactNode; color: string; bgClass
     bgClass: 'bg-purple-500/20',
   },
   system: {
-    icon: <SystemOutlined />,
+    icon: <SettingOutlined />,
     color: '#6b7280',
     bgClass: 'bg-gray-500/20',
   },
@@ -151,13 +152,13 @@ export default function MessagesPage() {
     setNotifications(
       notifications.map((n) => (n.id === id ? { ...n, isRead: true } : n))
     );
-    message.success('已标记为已读');
+    antdMessage.success('已标记为已读');
   };
 
   // 全部标记为已读
   const markAllAsRead = () => {
     setNotifications(notifications.map((n) => ({ ...n, isRead: true })));
-    message.success('全部标记为已读');
+    antdMessage.success('全部标记为已读');
   };
 
   // 切换收藏状态
@@ -172,7 +173,7 @@ export default function MessagesPage() {
   // 删除通知
   const deleteNotification = (id: string) => {
     setNotifications(notifications.filter((n) => n.id !== id));
-    message.success('通知已删除');
+    antdMessage.success('通知已删除');
   };
 
   // 批量操作菜单
@@ -355,7 +356,7 @@ export default function MessagesPage() {
           />
         ) : (
           <div className="py-16">
-            <Empty
+            <AppEmpty
               description={
                 filter === 'unread'
                   ? '太棒了！没有未读消息'

@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { Card, Form, Input, Button, Avatar, Upload, message, Tabs, TabsProps, Space, Tag } from 'antd';
+import { Card, Form, Input, Button, Avatar, Upload, message, Tabs, Space, Tag } from 'antd';
 import {
   UserOutlined,
   LockOutlined,
@@ -89,7 +89,7 @@ export default function SettingsPage() {
   };
 
   // 个人资料 Tab
-  const profileTab: TabsProps['items'][0] = {
+  const profileTab = {
     key: 'profile',
     label: (
       <span className="flex items-center gap-2">
@@ -253,7 +253,7 @@ export default function SettingsPage() {
   };
 
   // 修改密码 Tab
-  const passwordTab: TabsProps['items'][0] = {
+  const passwordTab = {
     key: 'password',
     label: (
       <span className="flex items-center gap-2">
@@ -350,7 +350,7 @@ export default function SettingsPage() {
   };
 
   // 通知设置 Tab
-  const notificationTab: TabsProps['items'][0] = {
+  const notificationTab = {
     key: 'notifications',
     label: (
       <span className="flex items-center gap-2">
@@ -428,7 +428,7 @@ export default function SettingsPage() {
     ),
   };
 
-  const tabItems: TabsProps['items'] = [profileTab, passwordTab, notificationTab];
+  const tabItems = [profileTab, passwordTab, notificationTab];
 
   return (
     <div className="max-w-5xl mx-auto space-y-6">

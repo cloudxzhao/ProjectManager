@@ -18,7 +18,7 @@ export const Skeleton: React.FC<SkeletonProps> = ({
       <div className={`space-y-4 ${className}`}>
         {Array.from({ length: count }).map((_, i) => (
           <div key={i} className="p-4 bg-gray-800/50 border border-gray-700 rounded-lg">
-            <AntSkeleton.Avatar active rounded size={40} className="mb-3" />
+            <AntSkeleton.Avatar active size={40} className="mb-3" />
             <AntSkeleton.Input active className="mb-2" style={{ width: '60%' }} />
             <AntSkeleton.Input active className="mb-2" />
             <AntSkeleton.Input active style={{ width: '80%' }} />
@@ -33,7 +33,7 @@ export const Skeleton: React.FC<SkeletonProps> = ({
       <div className={`space-y-3 ${className}`}>
         {Array.from({ length: count }).map((_, i) => (
           <div key={i} className="flex items-center gap-3 p-3 bg-gray-800/50 border border-gray-700 rounded-lg">
-            <AntSkeleton.Avatar active rounded size={36} />
+            <AntSkeleton.Avatar active size={36} />
             <div className="flex-1 space-y-2">
               <AntSkeleton.Input active style={{ width: '40%' }} />
               <AntSkeleton.Input active style={{ width: '70%' }} />
@@ -70,7 +70,7 @@ export const Skeleton: React.FC<SkeletonProps> = ({
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
           {Array.from({ length: 4 }).map((_, i) => (
             <div key={i} className="p-4 bg-gray-800/50 border border-gray-700 rounded-lg">
-              <AntSkeleton.Avatar active rounded size={32} className="mb-3" />
+              <AntSkeleton.Avatar active size={32} className="mb-3" />
               <AntSkeleton.Input active className="mb-2" style={{ width: '50%' }} />
               <AntSkeleton.Input active style={{ width: '70%' }} />
             </div>

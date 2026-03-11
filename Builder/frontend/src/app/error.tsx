@@ -1,6 +1,5 @@
 'use client';
 
-import { ErrorBoundary } from 'react';
 import { ErrorFallback } from '@/components/common/ErrorFallback';
 
 interface GlobalErrorProps {
