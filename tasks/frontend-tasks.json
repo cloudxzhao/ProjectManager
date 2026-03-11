@@ -271,7 +271,7 @@
     "priority": "P1",
     "estimatedDays": 1,
     "dependencies": ["FE-015"],
-    "done": true,
+    "done": false,
     "deliverables": [
       "编辑项目弹窗/页面",
       "删除确认对话框",
@@ -288,7 +288,7 @@
     "priority": "P1",
     "estimatedDays": 2,
     "dependencies": ["FE-015"],
-    "done": true,
+    "done": false,
     "deliverables": [
       "成员管理页面 (projects/[id]/members/page.tsx)",
       "成员列表展示",
