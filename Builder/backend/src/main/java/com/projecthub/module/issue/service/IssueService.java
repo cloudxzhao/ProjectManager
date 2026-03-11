@@ -136,7 +136,8 @@ public class IssueService {
   public IssueVO updateIssue(Long issueId, IssueVO.UpdateRequest request) {
     Long userId = getCurrentUserId();
 
-    Issue issue = issueRepository.findById(issueId).orElseThrow(() -> new BusinessException("问题不存在"));
+    Issue issue =
+        issueRepository.findById(issueId).orElseThrow(() -> new BusinessException("问题不存在"));
 
     // 权限校验
     if (!permissionService.hasPermission(userId, issue.getProjectId(), "ISSUE_EDIT")) {
@@ -180,7 +181,8 @@ public class IssueService {
   public void deleteIssue(Long issueId) {
     Long userId = getCurrentUserId();
 
-    Issue issue = issueRepository.findById(issueId).orElseThrow(() -> new BusinessException("问题不存在"));
+    Issue issue =
+        issueRepository.findById(issueId).orElseThrow(() -> new BusinessException("问题不存在"));
 
     // 权限校验
     if (!permissionService.hasPermission(userId, issue.getProjectId(), "ISSUE_DELETE")) {

@@ -58,7 +58,8 @@ public class UserStoryController {
             .keyword(keyword)
             .build();
 
-    PageResult<UserStoryVO> result = userStoryService.listUserStories(projectId, filter, page, size);
+    PageResult<UserStoryVO> result =
+        userStoryService.listUserStories(projectId, filter, page, size);
     return Result.success(result);
   }
 

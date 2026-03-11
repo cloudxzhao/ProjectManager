@@ -15,15 +15,18 @@ import org.springframework.stereotype.Repository;
 public interface NotificationRepository extends JpaRepository<Notification, Long> {
 
   /** 查询用户的通知列表 */
-  @Query("SELECT n FROM Notification n WHERE n.userId = :userId AND n.deletedAt IS NULL ORDER BY n.createdAt DESC")
+  @Query(
+      "SELECT n FROM Notification n WHERE n.userId = :userId AND n.deletedAt IS NULL ORDER BY n.createdAt DESC")
   Page<Notification> findByUserId(@Param("userId") Long userId, Pageable pageable);
 
   /** 查询用户的未读通知列表 */
-  @Query("SELECT n FROM Notification n WHERE n.userId = :userId AND n.isRead = false AND n.deletedAt IS NULL ORDER BY n.createdAt DESC")
+  @Query(
+      "SELECT n FROM Notification n WHERE n.userId = :userId AND n.isRead = false AND n.deletedAt IS NULL ORDER BY n.createdAt DESC")
   List<Notification> findUnreadByUserId(@Param("userId") Long userId);
 
   /** 统计用户的未读通知数量 */
-  @Query("SELECT COUNT(n) FROM Notification n WHERE n.userId = :userId AND n.isRead = false AND n.deletedAt IS NULL")
+  @Query(
+      "SELECT COUNT(n) FROM Notification n WHERE n.userId = :userId AND n.isRead = false AND n.deletedAt IS NULL")
   Long countUnreadByUserId(@Param("userId") Long userId);
 
   /** 标记用户所有通知为已读 */

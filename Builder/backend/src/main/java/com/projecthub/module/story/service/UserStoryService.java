@@ -13,8 +13,6 @@ import jakarta.persistence.criteria.Predicate;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
-import lombok.Builder;
-import lombok.Data;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
@@ -128,9 +126,7 @@ public class UserStoryService {
     Page<UserStory> storyPage = userStoryRepository.findAll(spec, pageable);
 
     List<UserStoryVO> content =
-        storyPage.getContent().stream()
-            .map(this::buildUserStoryVO)
-            .collect(Collectors.toList());
+        storyPage.getContent().stream().map(this::buildUserStoryVO).collect(Collectors.toList());
 
     return PageResult.of(content, storyPage.getTotalElements(), page, size);
   }

@@ -9,7 +9,6 @@ import com.projecthub.module.wiki.entity.WikiHistory;
 import com.projecthub.module.wiki.repository.WikiHistoryRepository;
 import com.projecthub.module.wiki.repository.WikiRepository;
 import com.projecthub.security.UserDetailsImpl;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
@@ -40,27 +39,30 @@ public class WikiService {
 
     // 检查父文档是否存在
     if (request.getParentId() != null) {
-      wikiRepository.findById(request.getParentId())
+      wikiRepository
+          .findById(request.getParentId())
           .orElseThrow(() -> new BusinessException("父文档不存在"));
     }
 
     // 创建文档
-    WikiDocument document = WikiDocument.builder()
-        .projectId(projectId)
-        .parentId(request.getParentId())
-        .title(request.getTitle())
-        .content(request.getContent())
-        .position(0)
-        .build();
+    WikiDocument document =
+        WikiDocument.builder()
+            .projectId(projectId)
+            .parentId(request.getParentId())
+            .title(request.getTitle())
+            .content(request.getContent())
+            .position(0)
+            .build();
 
     wikiRepository.save(document);
 
     // 保存历史记录
-    WikiHistory history = WikiHistory.builder()
-        .documentId(document.getId())
-        .userId(userId)
-        .content(document.getContent())
-        .build();
+    WikiHistory history =
+        WikiHistory.builder()
+            .documentId(document.getId())
+            .userId(userId)
+            .content(document.getContent())
+            .build();
     wikiHistoryRepository.save(history);
 
     log.info("创建 Wiki 文档成功：documentId={}", document.getId());
@@ -80,9 +82,7 @@ public class WikiService {
     List<WikiDocument> rootDocuments = wikiRepository.findRootDocumentsByProjectId(projectId);
 
     // 构建树形结构
-    return rootDocuments.stream()
-        .map(this::buildDocumentTree)
-        .collect(Collectors.toList());
+    return rootDocuments.stream().map(this::buildDocumentTree).collect(Collectors.toList());
   }
 
   /** 构建文档树 */
@@ -93,9 +93,7 @@ public class WikiService {
     List<WikiDocument> children = wikiRepository.findByParentIdOrderByPositionAsc(document.getId());
 
     if (children != null && !children.isEmpty()) {
-      vo.setChildren(children.stream()
-          .map(this::buildDocumentTree)
-          .collect(Collectors.toList()));
+      vo.setChildren(children.stream().map(this::buildDocumentTree).collect(Collectors.toList()));
     }
 
     return vo;
@@ -106,8 +104,8 @@ public class WikiService {
   public WikiVO updateDocument(Long documentId, WikiVO.UpdateRequest request) {
     Long userId = getCurrentUserId();
 
-    WikiDocument document = wikiRepository.findById(documentId)
-        .orElseThrow(() -> new BusinessException("文档不存在"));
+    WikiDocument document =
+        wikiRepository.findById(documentId).orElseThrow(() -> new BusinessException("文档不存在"));
 
     // 权限校验
     if (!permissionService.hasPermission(userId, document.getProjectId(), "WIKI_EDIT")) {
@@ -115,11 +113,12 @@ public class WikiService {
     }
 
     // 保存旧版本到历史记录
-    WikiHistory history = WikiHistory.builder()
-        .documentId(documentId)
-        .userId(userId)
-        .content(document.getContent())
-        .build();
+    WikiHistory history =
+        WikiHistory.builder()
+            .documentId(documentId)
+            .userId(userId)
+            .content(document.getContent())
+            .build();
     wikiHistoryRepository.save(history);
 
     // 更新文档
@@ -139,8 +138,8 @@ public class WikiService {
   /** 获取文档详情 */
   @Transactional(readOnly = true)
   public WikiVO getDocument(Long documentId) {
-    WikiDocument document = wikiRepository.findById(documentId)
-        .orElseThrow(() -> new BusinessException("文档不存在"));
+    WikiDocument document =
+        wikiRepository.findById(documentId).orElseThrow(() -> new BusinessException("文档不存在"));
 
     return BeanCopyUtil.copyProperties(document, WikiVO.class);
   }
@@ -150,8 +149,8 @@ public class WikiService {
   public void deleteDocument(Long documentId) {
     Long userId = getCurrentUserId();
 
-    WikiDocument document = wikiRepository.findById(documentId)
-        .orElseThrow(() -> new BusinessException("文档不存在"));
+    WikiDocument document =
+        wikiRepository.findById(documentId).orElseThrow(() -> new BusinessException("文档不存在"));
 
     // 权限校验
     if (!permissionService.hasPermission(userId, document.getProjectId(), "WIKI_DELETE")) {
@@ -165,8 +164,7 @@ public class WikiService {
   /** 获取文档历史记录 */
   @Transactional(readOnly = true)
   public List<WikiHistory> getDocumentHistory(Long documentId) {
-    wikiRepository.findById(documentId)
-        .orElseThrow(() -> new BusinessException("文档不存在"));
+    wikiRepository.findById(documentId).orElseThrow(() -> new BusinessException("文档不存在"));
 
     return wikiHistoryRepository.findByDocumentIdOrderByCreatedAtDesc(documentId);
   }

@@ -50,8 +50,13 @@ public class CommentService {
     }
 
     // 创建评论
-    Comment comment = Comment.builder().taskId(taskId).userId(userId).content(request.getContent())
-        .parentId(request.getParentId()).build();
+    Comment comment =
+        Comment.builder()
+            .taskId(taskId)
+            .userId(userId)
+            .content(request.getContent())
+            .parentId(request.getParentId())
+            .build();
 
     commentRepository.save(comment);
     log.info("添加评论成功：commentId={}, taskId={}", comment.getId(), taskId);
@@ -112,7 +117,9 @@ public class CommentService {
     CommentVO vo = BeanCopyUtil.copyProperties(comment, CommentVO.class);
 
     // 查询用户名
-    userRepository.findById(comment.getUserId()).ifPresent(user -> vo.setUsername(user.getUsername()));
+    userRepository
+        .findById(comment.getUserId())
+        .ifPresent(user -> vo.setUsername(user.getUsername()));
 
     return vo;
   }

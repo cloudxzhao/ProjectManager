@@ -24,8 +24,8 @@ public class EventListenerHandler {
     // 如果有负责人，发送通知
     if (event.getAssigneeId() != null) {
       String title = "新任务分配";
-      String content = String.format("您有一个新任务：%s（创建者：%s）",
-          event.getTaskTitle(), event.getCreatorName());
+      String content =
+          String.format("您有一个新任务：%s（创建者：%s）", event.getTaskTitle(), event.getCreatorName());
       notificationService.createNotification(
           event.getAssigneeId(), title, content, "TASK_CREATED", event.getTaskId(), "TASK");
     }
@@ -50,11 +50,13 @@ public class EventListenerHandler {
     log.info("处理评论事件：taskId={}", event.getTaskId());
 
     String title = "新评论通知";
-    String content = String.format("%s 评论了任务：%s",
-        event.getCommentatorName(),
-        event.getCommentContent().length() > 50
-            ? event.getCommentContent().substring(0, 50) + "..."
-            : event.getCommentContent());
+    String content =
+        String.format(
+            "%s 评论了任务：%s",
+            event.getCommentatorName(),
+            event.getCommentContent().length() > 50
+                ? event.getCommentContent().substring(0, 50) + "..."
+                : event.getCommentContent());
 
     notificationService.createNotification(
         event.getReceiverId(), title, content, "COMMENT", event.getTaskId(), "TASK");

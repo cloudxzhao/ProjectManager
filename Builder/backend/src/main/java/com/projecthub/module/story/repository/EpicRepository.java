@@ -12,7 +12,8 @@ import org.springframework.stereotype.Repository;
 public interface EpicRepository extends JpaRepository<Epic, Long> {
 
   /** 查询项目下的史诗列表（按位置排序） */
-  @Query("SELECT e FROM Epic e WHERE e.projectId = :projectId AND e.deletedAt IS NULL ORDER BY e.position ASC")
+  @Query(
+      "SELECT e FROM Epic e WHERE e.projectId = :projectId AND e.deletedAt IS NULL ORDER BY e.position ASC")
   List<Epic> findByProjectIdOrderByPositionAsc(@Param("projectId") Long projectId);
 
   /** 统计项目下的史诗数量 */

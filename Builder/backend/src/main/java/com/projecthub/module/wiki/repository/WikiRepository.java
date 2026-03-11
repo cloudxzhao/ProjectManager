@@ -22,6 +22,7 @@ public interface WikiRepository extends JpaRepository<WikiDocument, Long> {
   List<WikiDocument> findByParentIdOrderByPositionAsc(@Param("parentId") Long parentId);
 
   /** 统计项目下的文档数量 */
-  @Query("SELECT COUNT(w) FROM WikiDocument w WHERE w.projectId = :projectId AND w.deletedAt IS NULL")
+  @Query(
+      "SELECT COUNT(w) FROM WikiDocument w WHERE w.projectId = :projectId AND w.deletedAt IS NULL")
   Long countByProjectId(@Param("projectId") Long projectId);
 }

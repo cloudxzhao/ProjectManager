@@ -56,8 +56,7 @@ public class EpicService {
   /** 获取史诗详情 */
   @Transactional(readOnly = true)
   public EpicVO getEpic(Long epicId) {
-    Epic epic =
-        epicRepository.findById(epicId).orElseThrow(() -> new BusinessException("史诗不存在"));
+    Epic epic = epicRepository.findById(epicId).orElseThrow(() -> new BusinessException("史诗不存在"));
 
     return BeanCopyUtil.copyProperties(epic, EpicVO.class);
   }

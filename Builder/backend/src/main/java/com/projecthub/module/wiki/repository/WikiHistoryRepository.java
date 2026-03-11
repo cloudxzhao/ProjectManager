@@ -12,7 +12,6 @@ import org.springframework.stereotype.Repository;
 public interface WikiHistoryRepository extends JpaRepository<WikiHistory, Long> {
 
   /** 查询文档的历史记录（按创建时间倒序） */
-  @Query(
-      "SELECT h FROM WikiHistory h WHERE h.documentId = :documentId ORDER BY h.createdAt DESC")
+  @Query("SELECT h FROM WikiHistory h WHERE h.documentId = :documentId ORDER BY h.createdAt DESC")
   List<WikiHistory> findByDocumentIdOrderByCreatedAtDesc(@Param("documentId") Long documentId);
 }

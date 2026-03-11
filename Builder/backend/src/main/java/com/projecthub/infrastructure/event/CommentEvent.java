@@ -13,8 +13,13 @@ public class CommentEvent extends ApplicationEvent {
   private final String commentContent;
   private final String commentatorName;
 
-  public CommentEvent(Object source, Long taskId, Long projectId, Long receiverId,
-      String commentContent, String commentatorName) {
+  public CommentEvent(
+      Object source,
+      Long taskId,
+      Long projectId,
+      Long receiverId,
+      String commentContent,
+      String commentatorName) {
     super(source);
     this.taskId = taskId;
     this.projectId = projectId;

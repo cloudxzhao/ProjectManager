@@ -25,7 +25,7 @@ public class IssueController {
   public Result<IssueVO> createIssue(
       @PathVariable Long projectId, @Valid @RequestBody IssueVO.CreateRequest request) {
     IssueVO issue = issueService.createIssue(projectId, request);
-    return Result.success("问题创建成功", issue);
+    return Result.success(issue);
   }
 
   /** 获取问题详情 */
@@ -68,7 +68,7 @@ public class IssueController {
   public Result<IssueVO> updateIssue(
       @PathVariable Long id, @Valid @RequestBody IssueVO.UpdateRequest request) {
     IssueVO issue = issueService.updateIssue(id, request);
-    return Result.success("问题更新成功", issue);
+    return Result.success(issue);
   }
 
   /** 删除问题 */
@@ -76,6 +76,6 @@ public class IssueController {
   @Operation(summary = "删除问题", description = "删除指定问题")
   public Result<Void> deleteIssue(@PathVariable Long id) {
     issueService.deleteIssue(id);
-    return Result.success("问题删除成功");
+    return Result.success();
   }
 }

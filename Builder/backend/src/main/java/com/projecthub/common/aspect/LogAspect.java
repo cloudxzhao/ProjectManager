@@ -1,7 +1,6 @@
 package com.projecthub.common.aspect;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.projecthub.module.log.entity.OperationLog;
 import com.projecthub.module.log.repository.OperationLogRepository;
 import com.projecthub.security.UserDetailsImpl;
 import jakarta.servlet.http.HttpServletRequest;
@@ -27,12 +26,12 @@ public class LogAspect {
   private final ObjectMapper objectMapper;
 
   /** 切入点：所有带 @OperationLog 注解的方法 */
-  @Pointcut("@annotation(operationLog)")
-  public void logPointcut(OperationLog operationLog) {}
+  @Pointcut("@annotation(opLog)")
+  public void logPointcut() {}
 
   /** 环绕通知 */
-  @Around("@annotation(operationLog)")
-  public Object around(ProceedingJoinPoint pjp, OperationLog operationLog) throws Throwable {
+  @Around("@annotation(opLog)")
+  public Object around(ProceedingJoinPoint pjp, OperationLog opLog) throws Throwable {
     long startTime = System.currentTimeMillis();
 
     // 获取请求信息
@@ -66,30 +65,47 @@ public class LogAspect {
       long duration = System.currentTimeMillis() - startTime;
 
       // 保存操作日志
-      saveOperationLog(userId, username, operationLog.module(), operationLog.operationType(),
-          method, params, resultStr, ipAddress, duration);
+      saveOperationLog(
+          userId,
+          username,
+          opLog.module(),
+          opLog.operationType(),
+          method,
+          params,
+          resultStr,
+          ipAddress,
+          duration);
     }
 
     return result;
   }
 
   /** 保存操作日志 */
-  private void saveOperationLog(Long userId, String username, String module, String operation,
-      String method, String params, String result, String ipAddress, Long duration) {
+  private void saveOperationLog(
+      Long userId,
+      String username,
+      String module,
+      String operation,
+      String method,
+      String params,
+      String result,
+      String ipAddress,
+      Long duration) {
     try {
-      OperationLog log = OperationLog.builder()
-          .userId(userId)
-          .username(username)
-          .module(module)
-          .operation(operation)
-          .method(method)
-          .params(params)
-          .result(result)
-          .ipAddress(ipAddress)
-          .duration(duration)
-          .build();
+      com.projecthub.module.log.entity.OperationLog operationLogEntity =
+          com.projecthub.module.log.entity.OperationLog.builder()
+              .userId(userId)
+              .username(username)
+              .module(module)
+              .operation(operation)
+              .method(method)
+              .params(params)
+              .result(result)
+              .ipAddress(ipAddress)
+              .duration(duration)
+              .build();
 
-      operationLogRepository.save(log);
+      operationLogRepository.save(operationLogEntity);
       log.info("保存操作日志：module={}, operation={}, duration={}ms", module, operation, duration);
     } catch (Exception e) {
       log.error("保存操作日志失败", e);

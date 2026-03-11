@@ -98,7 +98,7 @@ public class GlobalExceptionHandler {
   @ResponseStatus(HttpStatus.BAD_REQUEST)
   public Result<Void> handleIllegalArgumentException(IllegalArgumentException e) {
     log.warn("非法参数：{}", e.getMessage());
-    return Result.error(ErrorCode.BAD_REQUEST, e.getMessage());
+    return Result.error(ErrorCode.BAD_REQUEST.getCode(), e.getMessage());
   }
 
   /** 处理其他未知异常 */

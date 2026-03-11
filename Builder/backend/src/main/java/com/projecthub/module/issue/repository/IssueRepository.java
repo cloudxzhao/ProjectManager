@@ -12,7 +12,8 @@ import org.springframework.stereotype.Repository;
 
 /** 问题 Repository 接口 */
 @Repository
-public interface IssueRepository extends JpaRepository<Issue, Long>, JpaSpecificationExecutor<Issue> {
+public interface IssueRepository
+    extends JpaRepository<Issue, Long>, JpaSpecificationExecutor<Issue> {
 
   /** 查询项目下的问题列表 */
   @Query(

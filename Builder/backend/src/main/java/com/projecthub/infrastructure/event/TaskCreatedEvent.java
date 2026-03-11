@@ -13,8 +13,13 @@ public class TaskCreatedEvent extends ApplicationEvent {
   private final String taskTitle;
   private final String creatorName;
 
-  public TaskCreatedEvent(Object source, Long taskId, Long projectId, Long assigneeId,
-      String taskTitle, String creatorName) {
+  public TaskCreatedEvent(
+      Object source,
+      Long taskId,
+      Long projectId,
+      Long assigneeId,
+      String taskTitle,
+      String creatorName) {
     super(source);
     this.taskId = taskId;
     this.projectId = projectId;

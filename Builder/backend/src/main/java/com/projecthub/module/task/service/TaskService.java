@@ -222,7 +222,8 @@ public class TaskService {
   /** 获取任务的子任务列表 */
   @Transactional(readOnly = true)
   public List<TaskVO> getSubTasks(Long parentId) {
-    Task parentTask = taskRepository.findById(parentId).orElseThrow(() -> new BusinessException("父任务不存在"));
+    Task parentTask =
+        taskRepository.findById(parentId).orElseThrow(() -> new BusinessException("父任务不存在"));
 
     // 权限校验
     checkTaskPermission(parentTask.getProjectId(), "TASK_VIEW");

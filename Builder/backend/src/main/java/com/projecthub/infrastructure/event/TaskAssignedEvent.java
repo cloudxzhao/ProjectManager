@@ -12,8 +12,8 @@ public class TaskAssignedEvent extends ApplicationEvent {
   private final Long assigneeId;
   private final String taskTitle;
 
-  public TaskAssignedEvent(Object source, Long taskId, Long projectId, Long assigneeId,
-      String taskTitle) {
+  public TaskAssignedEvent(
+      Object source, Long taskId, Long projectId, Long assigneeId, String taskTitle) {
     super(source);
     this.taskId = taskId;
     this.projectId = projectId;

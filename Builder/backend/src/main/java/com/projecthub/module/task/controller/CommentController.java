@@ -33,7 +33,7 @@ public class CommentController {
   public Result<CommentVO> addComment(
       @PathVariable Long taskId, @Valid @RequestBody CommentVO.CreateRequest request) {
     CommentVO comment = commentService.addComment(taskId, request);
-    return Result.success("评论添加成功", comment);
+    return Result.success(comment);
   }
 
   /** 更新评论 */
@@ -44,7 +44,7 @@ public class CommentController {
       @PathVariable Long id,
       @Valid @RequestBody CommentVO.UpdateRequest request) {
     CommentVO comment = commentService.updateComment(id, request);
-    return Result.success("评论更新成功", comment);
+    return Result.success(comment);
   }
 
   /** 删除评论 */
@@ -52,6 +52,6 @@ public class CommentController {
   @Operation(summary = "删除评论", description = "删除指定评论")
   public Result<Void> deleteComment(@PathVariable Long taskId, @PathVariable Long id) {
     commentService.deleteComment(id);
-    return Result.success("评论删除成功");
+    return Result.success();
   }
 }

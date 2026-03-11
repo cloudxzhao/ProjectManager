@@ -56,7 +56,8 @@ public class NotificationService {
     Long userId = getCurrentUserId();
 
     Notification notification =
-        notificationRepository.findById(notificationId)
+        notificationRepository
+            .findById(notificationId)
             .orElseThrow(() -> new BusinessException("通知不存在"));
 
     // 检查是否是该用户的通知
