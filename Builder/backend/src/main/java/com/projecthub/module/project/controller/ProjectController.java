@@ -1,0 +1,119 @@
+package com.projecthub.module.project.controller;
+
+import com.projecthub.common.aspect.RequirePermission;
+import com.projecthub.common.response.Result;
+import com.projecthub.common.response.PageResult;
+import com.projecthub.module.project.dto.CreateProjectRequest;
+import com.projecthub.module.project.dto.UpdateProjectRequest;
+import com.projecthub.module.project.dto.ProjectMemberDTO;
+import com.projecthub.module.project.dto.ProjectVO;
+import com.projecthub.module.project.entity.ProjectMember;
+import com.projecthub.module.project.service.ProjectService;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.validation.Valid;
+import lombok.RequiredArgsConstructor;
+import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
+
+/**
+ * 项目控制器
+ */
+@RestController
+@RequestMapping("/api/v1/projects")
+@RequiredArgsConstructor
+@Tag(name = "项目管理", description = "项目相关接口")
+public class ProjectController {
+
+    private final ProjectService projectService;
+
+    /**
+     * 创建项目
+     */
+    @PostMapping
+    @Operation(summary = "创建项目", description = "创建一个新的项目")
+    public Result<ProjectVO> createProject(@Valid @RequestBody CreateProjectRequest request) {
+        ProjectVO project = projectService.createProject(request);
+        return Result.success(project);
+    }
+
+    /**
+     * 获取项目详情
+     */
+    @GetMapping("/{id}")
+    @Operation(summary = "获取项目详情", description = "根据项目 ID 获取详细信息")
+    public Result<ProjectVO> getProject(@PathVariable Long id) {
+        ProjectVO project = projectService.getProject(id);
+        return Result.success(project);
+    }
+
+    /**
+     * 更新项目
+     */
+    @PutMapping("/{id}")
+    @Operation(summary = "更新项目", description = "更新项目信息")
+    public Result<ProjectVO> updateProject(
+            @PathVariable Long id,
+            @Valid @RequestBody UpdateProjectRequest request) {
+        ProjectVO project = projectService.updateProject(id, request);
+        return Result.success(project);
+    }
+
+    /**
+     * 删除项目
+     */
+    @DeleteMapping("/{id}")
+    @Operation(summary = "删除项目", description = "删除指定项目")
+    public Result<Void> deleteProject(@PathVariable Long id) {
+        projectService.deleteProject(id);
+        return Result.success();
+    }
+
+    /**
+     * 获取项目列表
+     */
+    @GetMapping
+    @Operation(summary = "获取项目列表", description = "获取当前用户参与的项目列表")
+    public Result<PageResult<ProjectVO>> listProjects(
+            @RequestParam(defaultValue = "1") Integer page,
+            @RequestParam(defaultValue = "20") Integer size,
+            @RequestParam(required = false) String keyword) {
+        PageResult<ProjectVO> result = projectService.getUserProjects(page, size, keyword);
+        return Result.success(result);
+    }
+
+    /**
+     * 添加项目成员
+     */
+    @PostMapping("/{id}/members")
+    @Operation(summary = "添加项目成员", description = "添加用户到项目中")
+    public Result<Void> addProjectMember(
+            @PathVariable Long id,
+            @Valid @RequestBody ProjectMemberDTO request) {
+        projectService.addProjectMember(id, request);
+        return Result.success();
+    }
+
+    /**
+     * 移除项目成员
+     */
+    @DeleteMapping("/{id}/members/{userId}")
+    @Operation(summary = "移除项目成员", description = "从项目中移除指定用户")
+    public Result<Void> removeProjectMember(
+            @PathVariable Long id,
+            @PathVariable Long userId) {
+        projectService.removeProjectMember(id, userId);
+        return Result.success();
+    }
+
+    /**
+     * 获取项目成员列表
+     */
+    @GetMapping("/{id}/members")
+    @Operation(summary = "获取项目成员列表", description = "获取项目下的所有成员")
+    public Result<List<ProjectMember>> getProjectMembers(@PathVariable Long id) {
+        List<ProjectMember> members = projectService.getProjectMembers(id);
+        return Result.success(members);
+    }
+}
