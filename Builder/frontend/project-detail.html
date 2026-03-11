@@ -1,0 +1,1869 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>全球电商平台重构 - 项目详情</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@300;400;500;700&family=Outfit:wght@400;600;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary: #0f172a;
+            --primary-light: #1e293b;
+            --primary-dark: #020617;
+            --accent: #f97316;
+            --accent-glow: rgba(249, 115, 22, 0.4);
+            --accent-cyan: #06b6d4;
+            --accent-cyan-glow: rgba(6, 182, 212, 0.4);
+            --accent-purple: #8b5cf6;
+            --accent-purple-glow: rgba(139, 92, 246, 0.4);
+            --accent-lime: #84cc16;
+            --accent-lime-glow: rgba(132, 204, 22, 0.4);
+            --accent-pink: #ec4899;
+            --accent-pink-glow: rgba(236, 72, 153, 0.4);
+            --accent-blue: #3b82f6;
+            --accent-blue-glow: rgba(59, 130, 246, 0.4);
+            --accent-emerald: #10b981;
+            --accent-emerald-glow: rgba(16, 185, 129, 0.4);
+            --surface: rgba(255, 255, 255, 0.03);
+            --surface-hover: rgba(255, 255, 255, 0.06);
+            --text-light: #f8fafc;
+            --text-muted: #94a3b8;
+            --border: rgba(255, 255, 255, 0.08);
+            --border-light: rgba(255, 255, 255, 0.15);
+            --success: #10b981;
+            --warning: #f59e0b;
+            --danger: #ef4444;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        html {
+            font-size: 16px;
+        }
+
+        body {
+            min-height: 100vh;
+            font-family: 'Noto Sans SC', -apple-system, BlinkMacSystemFont, sans-serif;
+            background: var(--primary);
+            color: var(--text-light);
+            overflow-x: hidden;
+        }
+
+        /* 背景图层 */
+        .bg-layer {
+            position: fixed;
+            inset: 0;
+            z-index: 0;
+            pointer-events: none;
+        }
+
+        .bg-overlay {
+            position: absolute;
+            inset: 0;
+            background:
+                radial-gradient(ellipse at 15% 30%, rgba(249, 115, 22, 0.06) 0%, transparent 50%),
+                radial-gradient(ellipse at 85% 70%, rgba(139, 92, 246, 0.06) 0%, transparent 50%);
+        }
+
+        .grid-pattern {
+            position: absolute;
+            inset: 0;
+            background-image:
+                linear-gradient(rgba(255, 255, 255, 0.02) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(255, 255, 255, 0.02) 1px, transparent 1px);
+            background-size: 50px 50px;
+            opacity: 0.4;
+        }
+
+        /* 侧边栏 */
+        .sidebar {
+            position: fixed;
+            left: 0;
+            top: 0;
+            bottom: 0;
+            width: 260px;
+            background: rgba(15, 23, 42, 0.95);
+            backdrop-filter: blur(20px);
+            border-right: 1px solid var(--border);
+            z-index: 100;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .sidebar-header {
+            padding: 1.5rem;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .logo-section {
+            display: flex;
+            align-items: center;
+            gap: 0.875rem;
+        }
+
+        .logo-icon {
+            width: 40px;
+            height: 40px;
+            background: linear-gradient(135deg, var(--accent) 0%, #ea580c 100%);
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 6px 12px -2px var(--accent-glow);
+        }
+
+        .logo-icon svg {
+            width: 22px;
+            height: 22px;
+            color: white;
+        }
+
+        .logo-text {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .logo-title {
+            font-family: 'Outfit', sans-serif;
+            font-size: 1.1rem;
+            font-weight: 800;
+            color: var(--text-light);
+            letter-spacing: -0.02em;
+        }
+
+        .logo-subtitle {
+            font-size: 0.7rem;
+            color: var(--text-muted);
+        }
+
+        .sidebar-nav {
+            flex: 1;
+            padding: 1rem 0.75rem;
+            overflow-y: auto;
+        }
+
+        .nav-section {
+            margin-bottom: 1.5rem;
+        }
+
+        .nav-section-title {
+            font-size: 0.7rem;
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+            color: var(--text-muted);
+            font-weight: 600;
+            padding: 0 0.75rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .nav-list {
+            list-style: none;
+        }
+
+        .nav-item {
+            margin-bottom: 0.25rem;
+        }
+
+        .nav-link {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            padding: 0.75rem;
+            border-radius: 10px;
+            color: var(--text-muted);
+            text-decoration: none;
+            font-size: 0.9rem;
+            font-weight: 500;
+            transition: all 0.2s ease;
+        }
+
+        .nav-link:hover {
+            background: var(--surface);
+            color: var(--text-light);
+        }
+
+        .nav-link.active {
+            background: rgba(249, 115, 22, 0.1);
+            color: var(--accent);
+        }
+
+        .nav-icon {
+            width: 20px;
+            height: 20px;
+        }
+
+        .sidebar-footer {
+            padding: 1rem 0.75rem;
+            border-top: 1px solid var(--border);
+        }
+
+        .user-profile {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            padding: 0.75rem;
+            border-radius: 12px;
+            background: var(--surface);
+            cursor: pointer;
+        }
+
+        .user-profile:hover {
+            background: var(--surface-hover);
+        }
+
+        .user-avatar {
+            width: 36px;
+            height: 36px;
+            border-radius: 10px;
+            background: linear-gradient(135deg, var(--accent-purple) 0%, var(--accent-pink) 100%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 600;
+            font-size: 0.9rem;
+            color: white;
+        }
+
+        .user-info {
+            flex: 1;
+        }
+
+        .user-name {
+            font-weight: 600;
+            font-size: 0.9rem;
+            color: var(--text-light);
+        }
+
+        .user-role {
+            font-size: 0.75rem;
+            color: var(--text-muted);
+        }
+
+        /* 主内容区 */
+        .main-content {
+            margin-left: 260px;
+            min-height: 100vh;
+            position: relative;
+            z-index: 1;
+        }
+
+        /* 顶部导航栏 */
+        .topbar {
+            position: sticky;
+            top: 0;
+            z-index: 50;
+            background: rgba(15, 23, 42, 0.8);
+            backdrop-filter: blur(20px);
+            border-bottom: 1px solid var(--border);
+            padding: 1rem 2rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .breadcrumb {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            font-size: 0.875rem;
+            color: var(--text-muted);
+        }
+
+        .breadcrumb-link {
+            color: var(--text-muted);
+            text-decoration: none;
+            transition: color 0.2s ease;
+        }
+
+        .breadcrumb-link:hover {
+            color: var(--accent);
+        }
+
+        .breadcrumb-separator {
+            color: var(--border);
+        }
+
+        .breadcrumb-current {
+            color: var(--text-light);
+            font-weight: 500;
+        }
+
+        .topbar-actions {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .icon-btn {
+            width: 40px;
+            height: 40px;
+            border-radius: 10px;
+            background: var(--surface);
+            border: 1px solid var(--border);
+            color: var(--text-muted);
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.2s ease;
+        }
+
+        .icon-btn:hover {
+            background: var(--surface-hover);
+            color: var(--text-light);
+        }
+
+        /* 页面内容 */
+        .page-content {
+            padding: 2rem;
+        }
+
+        /* 项目头部 */
+        .project-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 2rem;
+            padding: 2rem;
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 16px;
+        }
+
+        .project-info {
+            display: flex;
+            gap: 1.5rem;
+        }
+
+        .project-icon-large {
+            width: 72px;
+            height: 72px;
+            border-radius: 16px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: linear-gradient(135deg, var(--accent) 0%, #ea580c 100%);
+            box-shadow: 0 12px 24px -4px var(--accent-glow);
+            flex-shrink: 0;
+        }
+
+        .project-icon-large svg {
+            width: 36px;
+            height: 36px;
+            color: white;
+        }
+
+        .project-details h1 {
+            font-family: 'Outfit', sans-serif;
+            font-size: 1.75rem;
+            font-weight: 700;
+            margin-bottom: 0.5rem;
+            color: var(--text-light);
+        }
+
+        .project-description {
+            color: var(--text-muted);
+            font-size: 0.95rem;
+            line-height: 1.6;
+            margin-bottom: 1rem;
+            max-width: 600px;
+        }
+
+        .project-meta-inline {
+            display: flex;
+            gap: 1.5rem;
+            flex-wrap: wrap;
+        }
+
+        .meta-badge {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            font-size: 0.85rem;
+            color: var(--text-muted);
+        }
+
+        .meta-badge svg {
+            width: 16px;
+            height: 16px;
+            color: var(--accent);
+        }
+
+        .project-actions {
+            display: flex;
+            gap: 0.75rem;
+        }
+
+        .btn {
+            padding: 0.75rem 1.25rem;
+            border-radius: 10px;
+            font-family: inherit;
+            font-size: 0.9rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            border: none;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .btn svg {
+            width: 18px;
+            height: 18px;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, var(--accent) 0%, #ea580c 100%);
+            color: white;
+            box-shadow: 0 6px 12px -4px var(--accent-glow);
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 16px -4px var(--accent-glow);
+        }
+
+        .btn-secondary {
+            background: var(--surface);
+            color: var(--text-light);
+            border: 1px solid var(--border);
+        }
+
+        .btn-secondary:hover {
+            border-color: var(--border-light);
+            background: var(--surface-hover);
+        }
+
+        /* 页签导航 */
+        .tabs-container {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 14px;
+            overflow: hidden;
+        }
+
+        .tabs-header {
+            display: flex;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .tab-btn {
+            padding: 1rem 2rem;
+            background: transparent;
+            border: none;
+            color: var(--text-muted);
+            font-family: inherit;
+            font-size: 0.95rem;
+            font-weight: 600;
+            cursor: pointer;
+            position: relative;
+            transition: all 0.2s ease;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .tab-btn svg {
+            width: 18px;
+            height: 18px;
+        }
+
+        .tab-btn:hover {
+            color: var(--text-light);
+            background: var(--surface-hover);
+        }
+
+        .tab-btn.active {
+            color: var(--accent);
+        }
+
+        .tab-btn.active::after {
+            content: '';
+            position: absolute;
+            bottom: -1px;
+            left: 0;
+            right: 0;
+            height: 2px;
+            background: var(--accent);
+        }
+
+        .tab-count {
+            padding: 0.125rem 0.5rem;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 50px;
+            font-size: 0.75rem;
+            font-weight: 600;
+            color: var(--text-muted);
+        }
+
+        .tab-btn.active .tab-count {
+            background: var(--accent);
+            color: white;
+        }
+
+        /* 页签内容 */
+        .tab-content {
+            display: none;
+            padding: 2rem;
+        }
+
+        .tab-content.active {
+            display: block;
+            animation: fadeIn 0.3s ease-out;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* 用户故事样式 */
+        .stories-grid {
+            display: grid;
+            gap: 1rem;
+        }
+
+        .story-card {
+            background: rgba(255, 255, 255, 0.02);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 1.5rem;
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+
+        .story-card:hover {
+            background: var(--surface-hover);
+            border-color: var(--border-light);
+            transform: translateX(4px);
+        }
+
+        .story-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 1rem;
+        }
+
+        .story-id {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.8rem;
+            color: var(--accent);
+            font-weight: 600;
+        }
+
+        .story-title {
+            font-family: 'Outfit', sans-serif;
+            font-size: 1.1rem;
+            font-weight: 600;
+            color: var(--text-light);
+            margin-bottom: 0.5rem;
+        }
+
+        .story-description {
+            color: var(--text-muted);
+            font-size: 0.9rem;
+            line-height: 1.7;
+            margin-bottom: 1rem;
+        }
+
+        .story-meta {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .story-points {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .points-badge {
+            width: 32px;
+            height: 32px;
+            border-radius: 8px;
+            background: linear-gradient(135deg, var(--accent-purple) 0%, #7c3aed 100%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-family: 'JetBrains Mono', monospace;
+            font-weight: 700;
+            font-size: 0.9rem;
+            color: white;
+        }
+
+        .story-tags {
+            display: flex;
+            gap: 0.5rem;
+        }
+
+        .story-tag {
+            padding: 0.375rem 0.75rem;
+            border-radius: 6px;
+            font-size: 0.75rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+
+        .tag-feature {
+            background: rgba(16, 185, 129, 0.15);
+            color: var(--success);
+        }
+
+        .tag-bug {
+            background: rgba(239, 68, 68, 0.15);
+            color: var(--danger);
+        }
+
+        .tag-epic {
+            background: rgba(139, 92, 246, 0.15);
+            color: var(--accent-purple);
+        }
+
+        /* 看板样式 */
+        .kanban-board {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 1.25rem;
+            overflow-x: auto;
+            padding-bottom: 1rem;
+        }
+
+        .kanban-column {
+            background: rgba(255, 255, 255, 0.02);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            min-width: 300px;
+        }
+
+        .column-header {
+            padding: 1rem 1.25rem;
+            border-bottom: 1px solid var(--border);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .column-title {
+            font-weight: 600;
+            font-size: 0.9rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .column-title svg {
+            width: 16px;
+            height: 16px;
+        }
+
+        .column-count {
+            padding: 0.125rem 0.5rem;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 50px;
+            font-size: 0.75rem;
+            font-weight: 600;
+            color: var(--text-muted);
+        }
+
+        .column-content {
+            padding: 1rem;
+            display: flex;
+            flex-direction: column;
+            gap: 0.75rem;
+            min-height: 200px;
+        }
+
+        .task-card {
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            padding: 1rem;
+            cursor: grab;
+            transition: all 0.2s ease;
+        }
+
+        .task-card:hover {
+            background: rgba(255, 255, 255, 0.05);
+            border-color: var(--border-light);
+            transform: translateY(-2px);
+            box-shadow: 0 8px 16px -4px rgba(0, 0, 0, 0.2);
+        }
+
+        .task-card:active {
+            cursor: grabbing;
+        }
+
+        .task-card.dragging {
+            opacity: 0.5;
+            transform: rotate(3deg);
+        }
+
+        .task-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 0.75rem;
+        }
+
+        .task-id {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.75rem;
+            color: var(--text-muted);
+        }
+
+        .task-priority {
+            padding: 0.25rem 0.5rem;
+            border-radius: 4px;
+            font-size: 0.7rem;
+            font-weight: 700;
+            text-transform: uppercase;
+        }
+
+        .priority-critical {
+            background: rgba(239, 68, 68, 0.2);
+            color: var(--danger);
+        }
+
+        .priority-high {
+            background: rgba(245, 158, 11, 0.2);
+            color: var(--warning);
+        }
+
+        .priority-medium {
+            background: rgba(59, 130, 246, 0.2);
+            color: var(--accent-blue);
+        }
+
+        .priority-low {
+            background: rgba(16, 185, 129, 0.2);
+            color: var(--success);
+        }
+
+        .task-title {
+            font-weight: 500;
+            font-size: 0.9rem;
+            color: var(--text-light);
+            margin-bottom: 0.75rem;
+            line-height: 1.5;
+        }
+
+        .task-footer {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .task-assignee {
+            width: 28px;
+            height: 28px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, var(--assignee-gradient));
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.7rem;
+            font-weight: 600;
+            color: white;
+        }
+
+        .task-comments {
+            display: flex;
+            align-items: center;
+            gap: 0.375rem;
+            font-size: 0.8rem;
+            color: var(--text-muted);
+        }
+
+        .task-comments svg {
+            width: 14px;
+            height: 14px;
+        }
+
+        /* 列颜色标识 */
+        .kanban-column[data-status="analysis"] .column-title svg {
+            color: var(--accent-cyan);
+        }
+
+        .kanban-column[data-status="development"] .column-title svg {
+            color: var(--accent-purple);
+        }
+
+        .kanban-column[data-status="testing"] .column-title svg {
+            color: var(--warning);
+        }
+
+        .kanban-column[data-status="completed"] .column-title svg {
+            color: var(--success);
+        }
+
+        /* 问题追踪样式 */
+        .issues-list {
+            display: flex;
+            flex-direction: column;
+            gap: 0.75rem;
+        }
+
+        .issue-item {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            padding: 1.25rem;
+            background: rgba(255, 255, 255, 0.02);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            transition: all 0.2s ease;
+            cursor: pointer;
+        }
+
+        .issue-item:hover {
+            background: var(--surface-hover);
+            border-color: var(--border-light);
+            transform: translateX(4px);
+        }
+
+        .issue-type-icon {
+            width: 40px;
+            height: 40px;
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+        }
+
+        .issue-type-icon.bug {
+            background: rgba(239, 68, 68, 0.15);
+            color: var(--danger);
+        }
+
+        .issue-type-icon.feature {
+            background: rgba(16, 185, 129, 0.15);
+            color: var(--success);
+        }
+
+        .issue-type-icon.improvement {
+            background: rgba(59, 130, 246, 0.15);
+            color: var(--accent-blue);
+        }
+
+        .issue-type-icon svg {
+            width: 20px;
+            height: 20px;
+        }
+
+        .issue-content {
+            flex: 1;
+            min-width: 0;
+        }
+
+        .issue-header {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            margin-bottom: 0.375rem;
+        }
+
+        .issue-id {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.8rem;
+            color: var(--text-muted);
+        }
+
+        .issue-title {
+            font-weight: 500;
+            font-size: 0.95rem;
+            color: var(--text-light);
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .issue-meta {
+            display: flex;
+            align-items: center;
+            gap: 1.5rem;
+            font-size: 0.8rem;
+            color: var(--text-muted);
+        }
+
+        .issue-meta-item {
+            display: flex;
+            align-items: center;
+            gap: 0.375rem;
+        }
+
+        .issue-meta-item svg {
+            width: 14px;
+            height: 14px;
+        }
+
+        .issue-actions {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+        }
+
+        .status-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: var(--status-color);
+        }
+
+        .issue-severity {
+            padding: 0.375rem 0.75rem;
+            border-radius: 6px;
+            font-size: 0.75rem;
+            font-weight: 600;
+            text-transform: uppercase;
+        }
+
+        .severity-critical {
+            background: rgba(239, 68, 68, 0.15);
+            color: var(--danger);
+        }
+
+        .severity-high {
+            background: rgba(245, 158, 11, 0.15);
+            color: var(--warning);
+        }
+
+        .severity-medium {
+            background: rgba(59, 130, 246, 0.15);
+            color: var(--accent-blue);
+        }
+
+        .severity-low {
+            background: rgba(16, 185, 129, 0.15);
+            color: var(--success);
+        }
+
+        /* 空状态 */
+        .empty-state {
+            text-align: center;
+            padding: 4rem 2rem;
+            color: var(--text-muted);
+        }
+
+        .empty-state svg {
+            width: 64px;
+            height: 64px;
+            margin-bottom: 1rem;
+            opacity: 0.5;
+        }
+
+        .empty-state h3 {
+            font-family: 'Outfit', sans-serif;
+            font-size: 1.25rem;
+            font-weight: 600;
+            color: var(--text-light);
+            margin-bottom: 0.5rem;
+        }
+
+        .empty-state p {
+            font-size: 0.9rem;
+        }
+
+        /* 响应式 */
+        @media (max-width: 1200px) {
+            .kanban-board {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .sidebar {
+                transform: translateX(-100%);
+            }
+            .main-content {
+                margin-left: 0;
+            }
+            .project-header {
+                flex-direction: column;
+                gap: 1.5rem;
+            }
+            .tabs-header {
+                overflow-x: auto;
+            }
+            .kanban-column {
+                min-width: 280px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- 背景图层 -->
+    <div class="bg-layer">
+        <div class="bg-overlay"></div>
+        <div class="grid-pattern"></div>
+    </div>
+
+    <!-- 侧边栏 -->
+    <aside class="sidebar">
+        <div class="sidebar-header">
+            <div class="logo-section">
+                <div class="logo-icon">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path>
+                        <polyline points="9 22 9 12 15 12 15 22"></polyline>
+                    </svg>
+                </div>
+                <div class="logo-text">
+                    <span class="logo-title">ProjectHub</span>
+                    <span class="logo-subtitle">Dashboard</span>
+                </div>
+            </div>
+        </div>
+
+        <nav class="sidebar-nav">
+            <div class="nav-section">
+                <div class="nav-section-title">主菜单</div>
+                <ul class="nav-list">
+                    <li class="nav-item">
+                        <a href="dashboard.html" class="nav-link">
+                            <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <rect x="3" y="3" width="7" height="7"></rect>
+                                <rect x="14" y="3" width="7" height="7"></rect>
+                                <rect x="14" y="14" width="7" height="7"></rect>
+                                <rect x="3" y="14" width="7" height="7"></rect>
+                            </svg>
+                            仪表盘
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a href="projects.html" class="nav-link">
+                            <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"></path>
+                            </svg>
+                            项目
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a href="#" class="nav-link">
+                            <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <path d="M12 20h9"></path>
+                                <path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"></path>
+                            </svg>
+                            任务
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a href="#" class="nav-link">
+                            <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
+                                <circle cx="9" cy="7" r="4"></circle>
+                            </svg>
+                            权限管理
+                        </a>
+                    </li>
+                </ul>
+            </div>
+
+            <div class="nav-section">
+                <div class="nav-section-title">协作</div>
+                <ul class="nav-list">
+                    <li class="nav-item">
+                        <a href="#" class="nav-link">
+                            <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+                                <polyline points="14 2 14 8 20 8"></polyline>
+                            </svg>
+                            Wiki 知识库
+                        </a>
+                    </li>
+                </ul>
+            </div>
+        </nav>
+
+        <div class="sidebar-footer">
+            <div class="user-profile">
+                <div class="user-avatar">张</div>
+                <div class="user-info">
+                    <div class="user-name">张三丰</div>
+                    <div class="user-role">项目经理</div>
+                </div>
+            </div>
+        </div>
+    </aside>
+
+    <!-- 主内容区 -->
+    <main class="main-content">
+        <!-- 顶部导航栏 -->
+        <header class="topbar">
+            <div class="breadcrumb">
+                <a href="dashboard.html" class="breadcrumb-link">仪表盘</a>
+                <span class="breadcrumb-separator">/</span>
+                <a href="projects.html" class="breadcrumb-link">项目列表</a>
+                <span class="breadcrumb-separator">/</span>
+                <span class="breadcrumb-current">项目详情</span>
+            </div>
+
+            <div class="topbar-actions">
+                <button class="icon-btn">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <circle cx="11" cy="11" r="8"></circle>
+                        <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+                    </svg>
+                </button>
+                <button class="icon-btn">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"></path>
+                        <path d="M13.73 21a2 2 0 0 1-3.46 0"></path>
+                    </svg>
+                    <span style="position:absolute;top:8px;right:8px;width:8px;height:8px;background:var(--danger);border-radius:50%;border:2px solid var(--primary);"></span>
+                </button>
+            </div>
+        </header>
+
+        <!-- 页面内容 -->
+        <div class="page-content">
+            <!-- 项目头部 -->
+            <div class="project-header">
+                <div class="project-info">
+                    <div class="project-icon-large">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <circle cx="12" cy="12" r="10"></circle>
+                            <line x1="2" y1="12" x2="22" y2="12"></line>
+                            <path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"></path>
+                        </svg>
+                    </div>
+                    <div class="project-details">
+                        <h1>全球电商平台重构</h1>
+                        <p class="project-description">新一代电商平台架构升级，支持千万级并发，提升用户体验和系统稳定性。采用微服务架构，实现前后端分离，构建高可用的电商基础设施。</p>
+                        <div class="project-meta-inline">
+                            <span class="meta-badge">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect>
+                                    <line x1="16" y1="2" x2="16" y2="6"></line>
+                                    <line x1="8" y1="2" x2="8" y2="6"></line>
+                                </svg>
+                                截止：2026-04-15
+                            </span>
+                            <span class="meta-badge">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <path d="M12 20h9"></path>
+                                    <path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"></path>
+                                </svg>
+                                12 个任务进行中
+                            </span>
+                            <span class="meta-badge">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <circle cx="12" cy="12" r="10"></circle>
+                                    <line x1="12" y1="8" x2="12" y2="12"></line>
+                                    <line x1="12" y1="16" x2="12.01" y2="16"></line>
+                                </svg>
+                                3 个问题待处理
+                            </span>
+                        </div>
+                    </div>
+                </div>
+                <div class="project-actions">
+                    <button class="btn btn-secondary">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M1 4v6h6"></path>
+                            <path d="M3.51 15a9 9 0 1 0 2.13-9.36L1 10"></path>
+                        </svg>
+                        同步
+                    </button>
+                    <button class="btn btn-secondary">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"></path>
+                            <path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"></path>
+                        </svg>
+                        导出
+                    </button>
+                    <button class="btn btn-primary">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <line x1="12" y1="5" x2="12" y2="19"></line>
+                            <line x1="5" y1="12" x2="19" y2="12"></line>
+                        </svg>
+                        新建
+                    </button>
+                </div>
+            </div>
+
+            <!-- 页签导航 -->
+            <div class="tabs-container">
+                <div class="tabs-header">
+                    <button class="tab-btn active" data-tab="stories" onclick="switchTab('stories')">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M12 20h9"></path>
+                            <path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"></path>
+                        </svg>
+                        用户故事
+                        <span class="tab-count">8</span>
+                    </button>
+                    <button class="tab-btn" data-tab="kanban" onclick="switchTab('kanban')">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect>
+                            <line x1="9" y1="3" x2="9" y2="21"></line>
+                        </svg>
+                        任务看板
+                        <span class="tab-count">24</span>
+                    </button>
+                    <button class="tab-btn" data-tab="issues" onclick="switchTab('issues')">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <circle cx="12" cy="12" r="10"></circle>
+                            <line x1="12" y1="8" x2="12" y2="12"></line>
+                            <line x1="12" y1="16" x2="12.01" y2="16"></line>
+                        </svg>
+                        问题追踪
+                        <span class="tab-count">5</span>
+                    </button>
+                </div>
+
+                <!-- 用户故事页签 -->
+                <div class="tab-content active" id="stories-tab">
+                    <div class="stories-grid">
+                        <div class="story-card">
+                            <div class="story-header">
+                                <div>
+                                    <span class="story-id">US-001</span>
+                                    <h3 class="story-title">作为用户，我希望能够使用多种支付方式完成购物</h3>
+                                </div>
+                                <span class="story-tag tag-epic">Epic</span>
+                            </div>
+                            <p class="story-description">支持支付宝、微信支付、银联卡、花呗等多种支付方式，让用户可以选择最方便的支付渠道。需要确保支付安全性和交易记录的完整性。</p>
+                            <div class="story-meta">
+                                <div class="story-points">
+                                    <span class="points-badge">13</span>
+                                    <span style="color: var(--text-muted); font-size: 0.85rem;">故事点</span>
+                                </div>
+                                <div class="story-tags">
+                                    <span class="story-tag tag-feature">核心功能</span>
+                                    <span class="story-tag" style="background: rgba(249, 115, 22, 0.15); color: var(--accent);">Sprint 3</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="story-card">
+                            <div class="story-header">
+                                <div>
+                                    <span class="story-id">US-002</span>
+                                    <h3 class="story-title">作为买家，我希望能够快速搜索和筛选商品</h3>
+                                </div>
+                                <span class="story-tag tag-feature">Feature</span>
+                            </div>
+                            <p class="story-description">实现全文搜索功能，支持按价格、销量、评价、品牌等多维度筛选。搜索结果需要智能排序，优先展示相关性高且质量好的商品。</p>
+                            <div class="story-meta">
+                                <div class="story-points">
+                                    <span class="points-badge">8</span>
+                                    <span style="color: var(--text-muted); font-size: 0.85rem;">故事点</span>
+                                </div>
+                                <div class="story-tags">
+                                    <span class="story-tag tag-feature">核心功能</span>
+                                    <span class="story-tag" style="background: rgba(249, 115, 22, 0.15); color: var(--accent);">Sprint 2</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="story-card">
+                            <div class="story-header">
+                                <div>
+                                    <span class="story-id">US-003</span>
+                                    <h3 class="story-title">作为卖家，我希望能够管理商品库存和价格</h3>
+                                </div>
+                                <span class="story-tag tag-feature">Feature</span>
+                            </div>
+                            <p class="story-description">提供商品管理后台，支持批量上下架、库存预警、价格调整等功能。需要实时同步库存数据，避免超卖情况发生。</p>
+                            <div class="story-meta">
+                                <div class="story-points">
+                                    <span class="points-badge">5</span>
+                                    <span style="color: var(--text-muted); font-size: 0.85rem;">故事点</span>
+                                </div>
+                                <div class="story-tags">
+                                    <span class="story-tag tag-feature">商家端</span>
+                                    <span class="story-tag" style="background: rgba(249, 115, 22, 0.15); color: var(--accent);">Sprint 2</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="story-card">
+                            <div class="story-header">
+                                <div>
+                                    <span class="story-id">US-004</span>
+                                    <h3 class="story-title">作为用户，我希望能够查看订单状态和物流信息</h3>
+                                </div>
+                                <span class="story-tag tag-feature">Feature</span>
+                            </div>
+                            <p class="story-description">整合物流 API，实时展示订单配送状态。支持物流轨迹查询，预计送达时间提醒，以及签收确认功能。</p>
+                            <div class="story-meta">
+                                <div class="story-points">
+                                    <span class="points-badge">5</span>
+                                    <span style="color: var(--text-muted); font-size: 0.85rem;">故事点</span>
+                                </div>
+                                <div class="story-tags">
+                                    <span class="story-tag tag-feature">订单中心</span>
+                                    <span class="story-tag" style="background: rgba(249, 115, 22, 0.15); color: var(--accent);">Sprint 4</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="story-card">
+                            <div class="story-header">
+                                <div>
+                                    <span class="story-id">US-005</span>
+                                    <h3 class="story-title">作为管理员，我希望能够配置促销活动和优惠券</h3>
+                                </div>
+                                <span class="story-tag tag-epic">Epic</span>
+                            </div>
+                            <p class="story-description">建立营销活动管理系统，支持满减、折扣、秒杀、拼团等多种促销形式。优惠券系统需要支持发放、领取、使用、核销全流程。</p>
+                            <div class="story-meta">
+                                <div class="story-points">
+                                    <span class="points-badge">21</span>
+                                    <span style="color: var(--text-muted); font-size: 0.85rem;">故事点</span>
+                                </div>
+                                <div class="story-tags">
+                                    <span class="story-tag tag-feature">营销中心</span>
+                                    <span class="story-tag" style="background: rgba(249, 115, 22, 0.15); color: var(--accent);">Sprint 5</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 任务看板页签 -->
+                <div class="tab-content" id="kanban-tab">
+                    <div class="kanban-board">
+                        <!-- 分析列 -->
+                        <div class="kanban-column" data-status="analysis">
+                            <div class="column-header">
+                                <span class="column-title">
+                                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                        <circle cx="12" cy="12" r="10"></circle>
+                                        <line x1="12" y1="16" x2="12" y2="12"></line>
+                                        <line x1="12" y1="8" x2="12.01" y2="8"></line>
+                                    </svg>
+                                    分析中
+                                </span>
+                                <span class="column-count">6</span>
+                            </div>
+                            <div class="column-content">
+                                <div class="task-card" draggable="true">
+                                    <div class="task-header">
+                                        <span class="task-id">TASK-101</span>
+                                        <span class="task-priority priority-high">高</span>
+                                    </div>
+                                    <h4 class="task-title">商品搜索方案选型 - Elasticsearch vs Algolia</h4>
+                                    <div class="task-footer">
+                                        <div class="task-assignee" style="--assignee-gradient: linear-gradient(135deg, #8b5cf6 0%, #7c3aed 100%);">李</div>
+                                        <span class="task-comments">
+                                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                                <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path>
+                                            </svg>
+                                            3
+                                        </span>
+                                    </div>
+                                </div>
+
+                                <div class="task-card" draggable="true">
+                                    <div class="task-header">
+                                        <span class="task-id">TASK-102</span>
+                                        <span class="task-priority priority-medium">中</span>
+                                    </div>
+                                    <h4 class="task-title">支付流程需求分析</h4>
+                                    <div class="task-footer">
+                                        <div class="task-assignee" style="--assignee-gradient: linear-gradient(135deg, #06b6d4 0%, #0891b2 100%);">王</div>
+                                        <span class="task-comments">
+                                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                                <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path>
+                                            </svg>
+                                            1
+                                        </span>
+                                    </div>
+                                </div>
+
+                                <div class="task-card" draggable="true">
+                                    <div class="task-header">
+                                        <span class="task-id">TASK-108</span>
+                                        <span class="task-priority priority-low">低</span>
+                                    </div>
+                                    <h4 class="task-title">竞品分析报告整理</h4>
+                                    <div class="task-footer">
+                                        <div class="task-assignee" style="--assignee-gradient: linear-gradient(135deg, #10b981 0%, #059669 100%);">赵</div>
+                                        <span class="task-comments">
+                                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                                <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path>
+                                            </svg>
+                                            0
+                                        </span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- 开发列 -->
+                        <div class="kanban-column" data-status="development">
+                            <div class="column-header">
+                                <span class="column-title">
+                                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                        <polyline points="16 18 22 12 16 6"></polyline>
+                                        <polyline points="8 6 2 12 8 18"></polyline>
+                                    </svg>
+                                    开发中
+                                </span>
+                                <span class="column-count">10</span>
+                            </div>
+                            <div class="column-content">
+                                <div class="task-card" draggable="true">
+                                    <div class="task-header">
+                                        <span class="task-id">TASK-089</span>
+                                        <span class="task-priority priority-critical">紧急</span>
+                                    </div>
+                                    <h4 class="task-title">用户中心 API 开发 - 登录注册模块</h4>
+                                    <div class="task-footer">
+                                        <div class="task-assignee" style="--assignee-gradient: linear-gradient(135deg, #f97316 0%, #ea580c 100%);">陈</div>
+                                        <span class="task-comments">
+                                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                                <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path>
+                                            </svg>
+                                            8
+                                        </span>
+                                    </div>
+                                </div>
+
+                                <div class="task-card" draggable="true">
+                                    <div class="task-header">
+                                        <span class="task-id">TASK-092</span>
+                                        <span class="task-priority priority-high">高</span>
+                                    </div>
+                                    <h4 class="task-title">商品详情页前端组件开发</h4>
+                                    <div class="task-footer">
+                                        <div class="task-assignee" style="--assignee-gradient: linear-gradient(135deg, #ec4899 0%, #db2777 100%);">刘</div>
+                                        <span class="task-comments">
+                                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                                <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path>
+                                            </svg>
+                                            5
+                                        </span>
+                                    </div>
+                                </div>
+
+                                <div class="task-card" draggable="true">
+                                    <div class="task-header">
+                                        <span class="task-id">TASK-095</span>
+                                        <span class="task-priority priority-medium">中</span>
+                                    </div>
+                                    <h4 class="task-title">购物车 Redis 缓存设计</h4>
+                                    <div class="task-footer">
+                                        <div class="task-assignee" style="--assignee-gradient: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);">孙</div>
+                                        <span class="task-comments">
+                                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                                <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path>
+                                            </svg>
+                                            2
+                                        </span>
+                                    </div>
+                                </div>
+
+                                <div class="task-card" draggable="true">
+                                    <div class="task-header">
+                                        <span class="task-id">TASK-098</span>
+                                        <span class="task-priority priority-medium">中</span>
+                                    </div>
+                                    <h4 class="task-title">订单数据库表结构设计</h4>
+                                    <div class="task-footer">
+                                        <div class="task-assignee" style="--assignee-gradient: linear-gradient(135deg, #84cc16 0%, #65a30d 100%);">周</div>
+                                        <span class="task-comments">
+                                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                                <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path>
+                                            </svg>
+                                            4
+                                        </span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- 测试列 -->
+                        <div class="kanban-column" data-status="testing">
+                            <div class="column-header">
+                                <span class="column-title">
+                                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                        <path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"></path>
+                                    </svg>
+                                    测试中
+                                </span>
+                                <span class="column-count">5</span>
+                            </div>
+                            <div class="column-content">
+                                <div class="task-card" draggable="true">
+                                    <div class="task-header">
+                                        <span class="task-id">TASK-078</span>
+                                        <span class="task-priority priority-high">高</span>
+                                    </div>
+                                    <h4 class="task-title">用户模块单元测试编写</h4>
+                                    <div class="task-footer">
+                                        <div class="task-assignee" style="--assignee-gradient: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);">吴</div>
+                                        <span class="task-comments">
+                                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                                <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path>
+                                            </svg>
+                                            2
+                                        </span>
+                                    </div>
+                                </div>
+
+                                <div class="task-card" draggable="true">
+                                    <div class="task-header">
+                                        <span class="task-id">TASK-082</span>
+                                        <span class="task-priority priority-medium">中</span>
+                                    </div>
+                                    <h4 class="task-title">接口性能压力测试</h4>
+                                    <div class="task-footer">
+                                        <div class="task-assignee" style="--assignee-gradient: linear-gradient(135deg, #8b5cf6 0%, #7c3aed 100%);">郑</div>
+                                        <span class="task-comments">
+                                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                                <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path>
+                                            </svg>
+                                            6
+                                        </span>
+                                    </div>
+                                </div>
+
+                                <div class="task-card" draggable="true">
+                                    <div class="task-header">
+                                        <span class="task-id">TASK-085</span>
+                                        <span class="task-priority priority-medium">中</span>
+                                    </div>
+                                    <h4 class="task-title">购物车功能集成测试</h4>
+                                    <div class="task-footer">
+                                        <div class="task-assignee" style="--assignee-gradient: linear-gradient(135deg, #06b6d4 0%, #0891b2 100%);">冯</div>
+                                        <span class="task-comments">
+                                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                                <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path>
+                                            </svg>
+                                            1
+                                        </span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- 已完成列 -->
+                        <div class="kanban-column" data-status="completed">
+                            <div class="column-header">
+                                <span class="column-title">
+                                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                        <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path>
+                                        <polyline points="22 4 12 14.01 9 11.01"></polyline>
+                                    </svg>
+                                    已完成
+                                </span>
+                                <span class="column-count">3</span>
+                            </div>
+                            <div class="column-content">
+                                <div class="task-card" draggable="true">
+                                    <div class="task-header">
+                                        <span class="task-id">TASK-001</span>
+                                        <span class="task-priority priority-low">低</span>
+                                    </div>
+                                    <h4 class="task-title">项目脚手架搭建</h4>
+                                    <div class="task-footer">
+                                        <div class="task-assignee" style="--assignee-gradient: linear-gradient(135deg, #10b981 0%, #059669 100%);">张</div>
+                                        <span class="task-comments">
+                                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                                <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path>
+                                            </svg>
+                                            12
+                                        </span>
+                                    </div>
+                                </div>
+
+                                <div class="task-card" draggable="true">
+                                    <div class="task-header">
+                                        <span class="task-id">TASK-015</span>
+                                        <span class="task-priority priority-medium">中</span>
+                                    </div>
+                                    <h4 class="task-title">CI/CD流水线配置</h4>
+                                    <div class="task-footer">
+                                        <div class="task-assignee" style="--assignee-gradient: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);">李</div>
+                                        <span class="task-comments">
+                                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                                <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path>
+                                            </svg>
+                                            3
+                                        </span>
+                                    </div>
+                                </div>
+
+                                <div class="task-card" draggable="true">
+                                    <div class="task-header">
+                                        <span class="task-id">TASK-023</span>
+                                        <span class="task-priority priority-low">低</span>
+                                    </div>
+                                    <h4 class="task-title">开发环境容器化</h4>
+                                    <div class="task-footer">
+                                        <div class="task-assignee" style="--assignee-gradient: linear-gradient(135deg, #8b5cf6 0%, #7c3aed 100%);">王</div>
+                                        <span class="task-comments">
+                                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                                <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path>
+                                            </svg>
+                                            0
+                                        </span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 问题追踪页签 -->
+                <div class="tab-content" id="issues-tab">
+                    <div class="issues-list">
+                        <div class="issue-item">
+                            <div class="issue-type-icon bug">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <circle cx="12" cy="12" r="10"></circle>
+                                    <line x1="12" y1="8" x2="12" y2="12"></line>
+                                    <line x1="12" y1="16" x2="12.01" y2="16"></line>
+                                </svg>
+                            </div>
+                            <div class="issue-content">
+                                <div class="issue-header">
+                                    <span class="issue-id">BUG-042</span>
+                                    <h4 class="issue-title">购物车结算时库存扣减异常，存在超卖风险</h4>
+                                    <span class="status-dot" style="--status-color: var(--danger);"></span>
+                                </div>
+                                <div class="issue-meta">
+                                    <span class="issue-meta-item">
+                                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                            <circle cx="12" cy="12" r="10"></circle>
+                                            <polyline points="12 6 12 12 16 14"></polyline>
+                                        </svg>
+                                        2 天前
+                                    </span>
+                                    <span class="issue-meta-item">
+                                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                            <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
+                                            <circle cx="9" cy="7" r="4"></circle>
+                                        </svg>
+                                        陈伟
+                                    </span>
+                                    <span class="issue-meta-item">
+                                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                            <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path>
+                                        </svg>
+                                        8 条评论
+                                    </span>
+                                </div>
+                            </div>
+                            <span class="issue-severity severity-critical">严重</span>
+                        </div>
+
+                        <div class="issue-item">
+                            <div class="issue-type-icon feature">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <path d="M12 20h9"></path>
+                                    <path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"></path>
+                                </svg>
+                            </div>
+                            <div class="issue-content">
+                                <div class="issue-header">
+                                    <span class="issue-id">FEAT-018</span>
+                                    <h4 class="issue-title">商品详情页加载速度过慢，需要优化图片和评论懒加载</h4>
+                                    <span class="status-dot" style="--status-color: var(--warning);"></span>
+                                </div>
+                                <div class="issue-meta">
+                                    <span class="issue-meta-item">
+                                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                            <circle cx="12" cy="12" r="10"></circle>
+                                            <polyline points="12 6 12 12 16 14"></polyline>
+                                        </svg>
+                                        5 天前
+                                    </span>
+                                    <span class="issue-meta-item">
+                                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                            <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
+                                            <circle cx="9" cy="7" r="4"></circle>
+                                        </svg>
+                                        刘芳
+                                    </span>
+                                    <span class="issue-meta-item">
+                                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                            <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path>
+                                        </svg>
+                                        3 条评论
+                                    </span>
+                                </div>
+                            </div>
+                            <span class="issue-severity severity-high">高</span>
+                        </div>
+
+                        <div class="issue-item">
+                            <div class="issue-type-icon bug">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <circle cx="12" cy="12" r="10"></circle>
+                                    <line x1="12" y1="8" x2="12" y2="12"></line>
+                                    <line x1="12" y1="16" x2="12.01" y2="16"></line>
+                                </svg>
+                            </div>
+                            <div class="issue-content">
+                                <div class="issue-header">
+                                    <span class="issue-id">BUG-038</span>
+                                    <h4 class="issue-title">移动端 Safari 浏览器下，搜索框输入时页面抖动</h4>
+                                    <span class="status-dot" style="--status-color: var(--accent-blue);"></span>
+                                </div>
+                                <div class="issue-meta">
+                                    <span class="issue-meta-item">
+                                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                            <circle cx="12" cy="12" r="10"></circle>
+                                            <polyline points="12 6 12 12 16 14"></polyline>
+                                        </svg>
+                                        1 周前
+                                    </span>
+                                    <span class="issue-meta-item">
+                                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                            <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
+                                            <circle cx="9" cy="7" r="4"></circle>
+                                        </svg>
+                                        赵敏
+                                    </span>
+                                    <span class="issue-meta-item">
+                                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                            <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path>
+                                        </svg>
+                                        5 条评论
+                                    </span>
+                                </div>
+                            </div>
+                            <span class="issue-severity severity-medium">中</span>
+                        </div>
+
+                        <div class="issue-item">
+                            <div class="issue-type-icon improvement">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <polyline points="23 6 13.5 15.5 8.5 10.5 1 18"></polyline>
+                                    <polyline points="17 6 23 6 23 12"></polyline>
+                                </svg>
+                            </div>
+                            <div class="issue-content">
+                                <div class="issue-header">
+                                    <span class="issue-id">IMP-012</span>
+                                    <h4 class="issue-title">建议优化订单列表查询 SQL，增加复合索引提升性能</h4>
+                                    <span class="status-dot" style="--status-color: var(--success);"></span>
+                                </div>
+                                <div class="issue-meta">
+                                    <span class="issue-meta-item">
+                                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                            <circle cx="12" cy="12" r="10"></circle>
+                                            <polyline points="12 6 12 12 16 14"></polyline>
+                                        </svg>
+                                        3 天前
+                                    </span>
+                                    <span class="issue-meta-item">
+                                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                            <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
+                                            <circle cx="9" cy="7" r="4"></circle>
+                                        </svg>
+                                        周杰
+                                    </span>
+                                    <span class="issue-meta-item">
+                                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                            <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path>
+                                        </svg>
+                                        2 条评论
+                                    </span>
+                                </div>
+                            </div>
+                            <span class="issue-severity severity-low">低</span>
+                        </div>
+
+                        <div class="issue-item">
+                            <div class="issue-type-icon feature">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <path d="M12 20h9"></path>
+                                    <path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"></path>
+                                </svg>
+                            </div>
+                            <div class="issue-content">
+                                <div class="issue-header">
+                                    <span class="issue-id">FEAT-022</span>
+                                    <h4 class="issue-title">需要增加订单导出功能，支持按时间范围筛选</h4>
+                                    <span class="status-dot" style="--status-color: var(--text-muted);"></span>
+                                </div>
+                                <div class="issue-meta">
+                                    <span class="issue-meta-item">
+                                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                            <circle cx="12" cy="12" r="10"></circle>
+                                            <polyline points="12 6 12 12 16 14"></polyline>
+                                        </svg>
+                                        今天
+                                    </span>
+                                    <span class="issue-meta-item">
+                                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                            <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
+                                            <circle cx="9" cy="7" r="4"></circle>
+                                        </svg>
+                                        孙丽
+                                    </span>
+                                    <span class="issue-meta-item">
+                                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                            <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path>
+                                        </svg>
+                                        0 条评论
+                                    </span>
+                                </div>
+                            </div>
+                            <span class="issue-severity severity-low">低</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <script>
+        // 页签切换
+        function switchTab(tabName) {
+            // 更新按钮状态
+            document.querySelectorAll('.tab-btn').forEach(btn => {
+                btn.classList.remove('active');
+                if (btn.dataset.tab === tabName) {
+                    btn.classList.add('active');
+                }
+            });
+
+            // 更新内容显示
+            document.querySelectorAll('.tab-content').forEach(content => {
+                content.classList.remove('active');
+            });
+            document.getElementById(tabName + '-tab').classList.add('active');
+        }
+
+        // 拖拽功能
+        const taskCards = document.querySelectorAll('.task-card');
+        const columns = document.querySelectorAll('.kanban-column .column-content');
+
+        taskCards.forEach(card => {
+            card.addEventListener('dragstart', () => {
+                card.classList.add('dragging');
+            });
+
+            card.addEventListener('dragend', () => {
+                card.classList.remove('dragging');
+            });
+        });
+
+        columns.forEach(column => {
+            column.addEventListener('dragover', (e) => {
+                e.preventDefault();
+                const dragging = document.querySelector('.dragging');
+                if (dragging) {
+                    column.appendChild(dragging);
+                }
+            });
+        });
+    </script>
+</body>
+</html>

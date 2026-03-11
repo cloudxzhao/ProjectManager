@@ -1,0 +1,713 @@
+[
+  {
+    "id": "BE-001",
+    "title": "项目初始化和基础配置",
+    "description": "初始化 Spring Boot 项目，配置 Maven、Java 21、Spring Boot 3.x 等基础环境",
+    "module": "基础设施",
+    "priority": "P0",
+    "estimatedDays": 1,
+    "dependencies": [],
+    "deliverables": [
+      "Maven 项目脚手架 (pom.xml)",
+      "Spring Boot 3.x 配置",
+      "Java 21 配置",
+      "项目目录结构",
+      "启动类 (ProjectHubApplication.java)"
+    ]
+  },
+  {
+    "id": "BE-002",
+    "title": "数据库和环境配置",
+    "description": "配置 PostgreSQL 数据库连接、Redis 缓存、Flyway 迁移等",
+    "module": "基础设施",
+    "priority": "P0",
+    "estimatedDays": 1,
+    "dependencies": ["BE-001"],
+    "deliverables": [
+      "application.yml 配置",
+      "application-dev.yml 开发环境配置",
+      "application-prod.yml 生产环境配置",
+      "PostgreSQL 数据源配置",
+      "Redis 配置",
+      "Flyway 配置"
+    ]
+  },
+  {
+    "id": "BE-003",
+    "title": "数据库 Schema 和初始数据",
+    "description": "编写数据库迁移脚本，创建表结构和初始数据",
+    "module": "基础设施",
+    "priority": "P0",
+    "estimatedDays": 1,
+    "dependencies": ["BE-002"],
+    "deliverables": [
+      "Flyway 迁移脚本 (V1__init_schema.sql)",
+      "枚举类型定义",
+      "所有表结构创建",
+      "索引创建",
+      "初始角色和权限数据",
+      "默认管理员用户"
+    ]
+  },
+  {
+    "id": "BE-004",
+    "title": "公共模块开发 - 统一响应",
+    "description": "开发统一响应格式、错误码定义、异常处理等公共组件",
+    "module": "基础设施",
+    "priority": "P0",
+    "estimatedDays": 1,
+    "dependencies": ["BE-001"],
+    "deliverables": [
+      "Result<T> 统一响应类",
+      "PageResult<T> 分页响应类",
+      "ErrorCode 枚举定义",
+      "BusinessException 业务异常类",
+      "GlobalExceptionHandler 全局异常处理器"
+    ]
+  },
+  {
+    "id": "BE-005",
+    "title": "公共模块开发 - 工具类",
+    "description": "开发常用工具类，包括 JWT、密码加密、Bean 拷贝等",
+    "module": "基础设施",
+    "priority": "P0",
+    "estimatedDays": 1,
+    "dependencies": ["BE-001"],
+    "deliverables": [
+      "JwtUtil JWT 工具类",
+      "PasswordUtil 密码加密工具 (bcrypt)",
+      "BeanCopyUtil Bean 拷贝工具 (MapStruct)",
+      "DateUtil 日期工具类",
+      "FileUtil 文件处理工具"
+    ]
+  },
+  {
+    "id": "BE-006",
+    "title": "Spring Security 和 JWT 认证配置",
+    "description": "配置 Spring Security 和 JWT 认证机制",
+    "module": "认证模块",
+    "priority": "P0",
+    "estimatedDays": 2,
+    "dependencies": ["BE-004", "BE-005"],
+    "deliverables": [
+      "SecurityConfig 安全配置类",
+      "JwtAuthenticationFilter JWT 认证过滤器",
+      "UserDetailsImpl 用户详情实现",
+      "AuthenticationEntryPoint 认证入口",
+      "AccessDeniedHandler 访问拒绝处理器"
+    ]
+  },
+  {
+    "id": "BE-007",
+    "title": "认证模块 - 登录功能",
+    "description": "实现用户登录功能，支持邮箱密码登录、JWT 生成",
+    "module": "认证模块",
+    "priority": "P0",
+    "estimatedDays": 2,
+    "dependencies": ["BE-006"],
+    "deliverables": [
+      "AuthController 认证控制器",
+      "AuthService 认证服务接口",
+      "AuthServiceImpl 认证服务实现",
+      "LoginRequest DTO",
+      "JwtResponse DTO",
+      "登录接口 (POST /api/v1/auth/login)",
+      "密码验证逻辑"
+    ]
+  },
+  {
+    "id": "BE-008",
+    "title": "认证模块 - 注册功能",
+    "description": "实现用户注册功能，支持用户名、邮箱唯一性校验",
+    "module": "认证模块",
+    "priority": "P0",
+    "estimatedDays": 2,
+    "dependencies": ["BE-007"],
+    "deliverables": [
+      "RegisterRequest DTO",
+      "注册接口 (POST /api/v1/auth/register)",
+      "用户名唯一性校验",
+      "邮箱唯一性校验",
+      "密码加密存储",
+      "默认角色分配"
+    ]
+  },
+  {
+    "id": "BE-009",
+    "title": "认证模块 - Token 刷新和登出",
+    "description": "实现 Token 刷新和用户登出功能",
+    "module": "认证模块",
+    "priority": "P0",
+    "estimatedDays": 1,
+    "dependencies": ["BE-007"],
+    "deliverables": [
+      "刷新 Token 接口 (POST /api/v1/auth/refresh)",
+      "登出接口 (POST /api/v1/auth/logout)",
+      "Refresh Token 存储 (Redis)",
+      "Token 黑名单机制"
+    ]
+  },
+  {
+    "id": "BE-010",
+    "title": "认证模块 - 密码找回",
+    "description": "实现密码找回功能，支持发送重置邮件",
+    "module": "认证模块",
+    "priority": "P1",
+    "estimatedDays": 1,
+    "dependencies": ["BE-007"],
+    "deliverables": [
+      "密码重置请求接口",
+      "重置 Token 生成",
+      "邮件发送服务",
+      "重置密码接口"
+    ]
+  },
+  {
+    "id": "BE-011",
+    "title": "用户模块 - 用户资料管理",
+    "description": "实现用户资料查询、修改、头像上传等功能",
+    "module": "用户模块",
+    "priority": "P0",
+    "estimatedDays": 2,
+    "dependencies": ["BE-006"],
+    "deliverables": [
+      "UserController 用户控制器",
+      "UserService 用户服务接口",
+      "UserServiceImpl 用户服务实现",
+      "UserRepository 用户仓储",
+      "UserVO DTO",
+      "获取用户资料接口 (GET /api/v1/user/profile)",
+      "更新用户资料接口 (PUT /api/v1/user/profile)",
+      "上传头像接口 (POST /api/v1/user/avatar)"
+    ]
+  },
+  {
+    "id": "BE-012",
+    "title": "权限模块 - 权限校验切面",
+    "description": "实现基于 AOP 的权限校验机制",
+    "module": "基础设施",
+    "priority": "P0",
+    "estimatedDays": 2,
+    "dependencies": ["BE-006"],
+    "deliverables": [
+      "RequirePermission 注解",
+      "PermissionAspect 权限切面",
+      "PermissionEvaluatorImpl 权限评估器",
+      "角色和权限加载逻辑",
+      "接口权限校验"
+    ]
+  },
+  {
+    "id": "BE-013",
+    "title": "项目模块 - 项目 CRUD",
+    "description": "实现项目的创建、查询、更新、删除功能",
+    "module": "项目模块",
+    "priority": "P0",
+    "estimatedDays": 3,
+    "dependencies": ["BE-012"],
+    "deliverables": [
+      "ProjectController 项目控制器",
+      "ProjectService 项目服务接口",
+      "ProjectServiceImpl 项目服务实现",
+      "ProjectRepository 项目仓储",
+      "Project 实体类",
+      "CreateProjectDTO DTO",
+      "UpdateProjectDTO DTO",
+      "ProjectVO DTO",
+      "项目 CRUD 接口"
+    ]
+  },
+  {
+    "id": "BE-014",
+    "title": "项目模块 - 项目列表和筛选",
+    "description": "实现项目列表查询，支持状态筛选、关键词搜索、分页",
+    "module": "项目模块",
+    "priority": "P0",
+    "estimatedDays": 1,
+    "dependencies": ["BE-013"],
+    "deliverables": [
+      "项目列表接口 (GET /api/v1/projects)",
+      "状态筛选功能",
+      "关键词搜索功能",
+      "分页功能",
+      "项目统计数据 (成员数、任务数、进度)"
+    ]
+  },
+  {
+    "id": "BE-015",
+    "title": "项目模块 - 项目成员管理",
+    "description": "实现项目成员的添加、移除、角色修改功能",
+    "module": "项目模块",
+    "priority": "P0",
+    "estimatedDays": 2,
+    "dependencies": ["BE-013"],
+    "deliverables": [
+      "ProjectMember 实体类",
+      "ProjectMemberRepository 仓储",
+      "获取成员列表接口 (GET /api/v1/projects/{id}/members)",
+      "添加成员接口 (POST /api/v1/projects/{id}/members)",
+      "移除成员接口 (DELETE /api/v1/projects/{id}/members/{userId})",
+      "修改成员角色接口"
+    ]
+  },
+  {
+    "id": "BE-016",
+    "title": "项目模块 - 项目权限校验",
+    "description": "实现项目访问权限校验，确保只有项目成员可以访问",
+    "module": "项目模块",
+    "priority": "P0",
+    "estimatedDays": 1,
+    "dependencies": ["BE-012", "BE-013"],
+    "deliverables": [
+      "项目权限校验逻辑",
+      "ProjectPermissionAspect 项目权限切面",
+      "OWNER/MANAGER/MEMBER权限区分",
+      "无权限时 403 响应"
+    ]
+  },
+  {
+    "id": "BE-017",
+    "title": "任务模块 - 任务 CRUD",
+    "description": "实现任务的创建、查询、更新、删除功能",
+    "module": "任务模块",
+    "priority": "P0",
+    "estimatedDays": 3,
+    "dependencies": ["BE-012"],
+    "deliverables": [
+      "TaskController 任务控制器",
+      "TaskService 任务服务接口",
+      "TaskServiceImpl 任务服务实现",
+      "TaskRepository 任务仓储",
+      "Task 实体类",
+      "CreateTaskDTO DTO",
+      "UpdateTaskDTO DTO",
+      "TaskVO DTO",
+      "任务 CRUD 接口"
+    ]
+  },
+  {
+    "id": "BE-018",
+    "title": "任务模块 - 任务列表和筛选",
+    "description": "实现任务列表查询，支持多维度筛选、分页",
+    "module": "任务模块",
+    "priority": "P0",
+    "estimatedDays": 2,
+    "dependencies": ["BE-017"],
+    "deliverables": [
+      "任务列表接口 (GET /api/v1/tasks)",
+      "按项目筛选",
+      "按状态筛选",
+      "按负责人筛选",
+      "按优先级筛选",
+      "关键词搜索",
+      "分页功能"
+    ]
+  },
+  {
+    "id": "BE-019",
+    "title": "任务模块 - 任务状态移动",
+    "description": "实现任务状态变更和位置移动功能",
+    "module": "任务模块",
+    "priority": "P0",
+    "estimatedDays": 1,
+    "dependencies": ["BE-017"],
+    "deliverables": [
+      "移动任务接口 (POST /api/v1/tasks/{id}/move)",
+      "状态变更逻辑",
+      "位置更新逻辑",
+      "同列拖拽排序",
+      "跨列拖拽处理"
+    ]
+  },
+  {
+    "id": "BE-020",
+    "title": "任务模块 - 子任务功能",
+    "description": "实现子任务的 CRUD 功能",
+    "module": "任务模块",
+    "priority": "P1",
+    "estimatedDays": 1,
+    "dependencies": ["BE-017"],
+    "deliverables": [
+      "SubTask 实体类",
+      "SubTaskRepository 仓储",
+      "创建子任务接口",
+      "更新子任务接口",
+      "删除子任务接口",
+      "子任务完成状态切换"
+    ]
+  },
+  {
+    "id": "BE-021",
+    "title": "任务模块 - 任务评论",
+    "description": "实现任务评论的 CRUD 功能，支持回复",
+    "module": "任务模块",
+    "priority": "P1",
+    "estimatedDays": 2,
+    "dependencies": ["BE-017"],
+    "deliverables": [
+      "Comment 实体类",
+      "CommentRepository 评论仓储",
+      "获取评论列表接口 (GET /api/v1/tasks/{id}/comments)",
+      "添加评论接口 (POST /api/v1/tasks/{id}/comments)",
+      "更新评论接口",
+      "删除评论接口",
+      "评论回复功能 (parent_id)"
+    ]
+  },
+  {
+    "id": "BE-022",
+    "title": "任务模块 - 任务权限校验",
+    "description": "实现任务访问权限校验",
+    "module": "任务模块",
+    "priority": "P0",
+    "estimatedDays": 1,
+    "dependencies": ["BE-016", "BE-017"],
+    "deliverables": [
+      "任务权限校验逻辑",
+      "项目成员可访问任务",
+      "创建人/负责人特殊权限",
+      "无权限时 403 响应"
+    ]
+  },
+  {
+    "id": "BE-023",
+    "title": "用户故事模块 - 史诗管理",
+    "description": "实现史诗 (Epic) 的 CRUD 功能",
+    "module": "用户故事",
+    "priority": "P1",
+    "estimatedDays": 1,
+    "dependencies": ["BE-012"],
+    "deliverables": [
+      "Epic 实体类",
+      "EpicRepository 仓储",
+      "创建史诗接口",
+      "更新史诗接口",
+      "删除史诗接口",
+      "史诗列表接口"
+    ]
+  },
+  {
+    "id": "BE-024",
+    "title": "用户故事模块 - 用户故事管理",
+    "description": "实现用户故事的 CRUD 功能",
+    "module": "用户故事",
+    "priority": "P1",
+    "estimatedDays": 2,
+    "dependencies": ["BE-023"],
+    "deliverables": [
+      "UserStory 实体类",
+      "UserStoryRepository 仓储",
+      "UserStoryController 控制器",
+      "UserStoryService 服务",
+      "创建用户故事接口",
+      "更新用户故事接口",
+      "删除用户故事接口",
+      "用户故事列表接口 (GET /api/v1/projects/{id}/stories)",
+      "故事点管理",
+      "验收标准管理"
+    ]
+  },
+  {
+    "id": "BE-025",
+    "title": "问题追踪模块 - Issue 管理",
+    "description": "实现问题 (Issue/Bug) 的 CRUD 功能",
+    "module": "问题追踪",
+    "priority": "P1",
+    "estimatedDays": 2,
+    "dependencies": ["BE-012"],
+    "deliverables": [
+      "Issue 实体类",
+      "IssueRepository 仓储",
+      "IssueController 控制器",
+      "IssueService 服务",
+      "创建问题接口",
+      "更新问题接口",
+      "删除问题接口",
+      "问题列表接口 (GET /api/v1/projects/{id}/issues)",
+      "问题类型管理 (BUG/ISSUE/IMPROVEMENT/TECH_DEBT)",
+      "严重程度管理",
+      "问题状态流转"
+    ]
+  },
+  {
+    "id": "BE-026",
+    "title": "Wiki 模块 - 文档管理",
+    "description": "实现 Wiki 文档的 CRUD 和版本管理功能",
+    "module": "Wiki",
+    "priority": "P1",
+    "estimatedDays": 2,
+    "dependencies": ["BE-012"],
+    "deliverables": [
+      "WikiDocument 实体类",
+      "WikiHistory 实体类",
+      "WikiRepository 仓储",
+      "WikiController 控制器",
+      "WikiService 服务",
+      "创建文档接口",
+      "更新文档接口 (自动创建版本历史)",
+      "删除文档接口",
+      "文档列表接口 (GET /api/v1/projects/{id}/wiki)",
+      "文档详情接口",
+      "版本历史查询"
+    ]
+  },
+  {
+    "id": "BE-027",
+    "title": "报表模块 - 燃尽图数据",
+    "description": "实现燃尽图数据接口",
+    "module": "报表",
+    "priority": "P1",
+    "estimatedDays": 1,
+    "dependencies": ["BE-014"],
+    "deliverables": [
+      "ReportService 报表服务",
+      "燃尽图数据接口 (GET /api/v1/projects/{id}/reports/burndown)",
+      "理想工作量和实际工作量计算",
+      "按日期聚合任务完成数据"
+    ]
+  },
+  {
+    "id": "BE-028",
+    "title": "报表模块 - 累积流图数据",
+    "description": "实现累积流图数据接口",
+    "module": "报表",
+    "priority": "P2",
+    "estimatedDays": 1,
+    "dependencies": ["BE-014"],
+    "deliverables": [
+      "累积流图数据接口 (GET /api/v1/projects/{id}/reports/cumulative-flow)",
+      "各状态任务数量按日期聚合",
+      "TODO/IN_PROGRESS/IN_REVIEW/DONE 趋势"
+    ]
+  },
+  {
+    "id": "BE-029",
+    "title": "报表模块 - 速度图数据",
+    "description": "实现速度图数据接口",
+    "module": "报表",
+    "priority": "P2",
+    "estimatedDays": 1,
+    "dependencies": ["BE-014"],
+    "deliverables": [
+      "速度图数据接口 (GET /api/v1/projects/{id}/reports/velocity)",
+      "按迭代周期聚合完成的故事点",
+      "承诺点数和完成点对比"
+    ]
+  },
+  {
+    "id": "BE-030",
+    "title": "通知模块 - 通知功能",
+    "description": "实现消息通知的 CRUD 功能",
+    "module": "通知",
+    "priority": "P1",
+    "estimatedDays": 2,
+    "dependencies": ["BE-006"],
+    "deliverables": [
+      "Notification 实体类",
+      "NotificationRepository 仓储",
+      "NotificationController 控制器",
+      "NotificationService 服务",
+      "通知列表接口 (GET /api/v1/notifications)",
+      "未读消息数接口 (GET /api/v1/notifications/unread-count)",
+      "标记已读接口 (POST /api/v1/notifications/{id}/read)",
+      "全部已读接口 (POST /api/v1/notifications/read-all)",
+      "通知生成逻辑 (任务分配、评论等)"
+    ]
+  },
+  {
+    "id": "BE-031",
+    "title": "缓存服务开发",
+    "description": "实现 Redis 缓存服务，优化查询性能",
+    "module": "基础设施",
+    "priority": "P1",
+    "estimatedDays": 2,
+    "dependencies": ["BE-002"],
+    "deliverables": [
+      "CacheService 缓存服务",
+      "CacheKeys 缓存 Key 常量类",
+      "用户信息缓存",
+      "项目信息缓存",
+      "任务列表缓存",
+      "统计数据缓存",
+      "缓存更新/失效策略"
+    ]
+  },
+  {
+    "id": "BE-032",
+    "title": "对象存储服务集成",
+    "description": "集成 MinIO 或本地存储，实现文件上传功能",
+    "module": "基础设施",
+    "priority": "P1",
+    "estimatedDays": 1,
+    "dependencies": ["BE-002"],
+    "deliverables": [
+      "StorageService 存储服务接口",
+      "MinIO 配置",
+      "文件上传接口",
+      "头像上传处理",
+      "文件类型校验",
+      "文件大小限制"
+    ]
+  },
+  {
+    "id": "BE-033",
+    "title": "异步事件处理",
+    "description": "实现异步事件处理机制，用于发送通知等",
+    "module": "基础设施",
+    "priority": "P1",
+    "estimatedDays": 1,
+    "dependencies": ["BE-001"],
+    "deliverables": [
+      "AsyncConfig 异步配置",
+      "ApplicationEvent 事件定义",
+      "EventListener 事件监听器",
+      "任务创建事件处理",
+      "任务分配事件处理",
+      "评论通知事件处理"
+    ]
+  },
+  {
+    "id": "BE-034",
+    "title": "操作日志记录",
+    "description": "实现操作日志记录功能，用于审计和问题追踪",
+    "module": "基础设施",
+    "priority": "P1",
+    "estimatedDays": 1,
+    "dependencies": ["BE-012"],
+    "deliverables": [
+      "LogAspect 日志切面",
+      "OperationLog 实体类",
+      "OperationLogRepository 仓储",
+      "操作记录注解 @OperationLog",
+      "日志记录 (操作人、操作类型、请求参数、执行时间)"
+    ]
+  },
+  {
+    "id": "BE-035",
+    "title": "API 文档配置",
+    "description": "配置 SpringDoc OpenAPI，自动生成 API 文档",
+    "module": "基础设施",
+    "priority": "P0",
+    "estimatedDays": 1,
+    "dependencies": ["BE-001"],
+    "deliverables": [
+      "SwaggerConfig 配置类",
+      "OpenAPI Bean 配置",
+      "API 文档访问 (GET /swagger-ui.html)",
+      "接口注解 (@Operation, @ApiResponse 等)",
+      "DTO Schema 生成"
+    ]
+  },
+  {
+    "id": "BE-036",
+    "title": "单元测试 - 认证模块",
+    "description": "为认证模块编写单元测试",
+    "module": "测试",
+    "priority": "P1",
+    "estimatedDays": 2,
+    "dependencies": ["BE-009"],
+    "deliverables": [
+      "AuthService 测试",
+      "AuthController 测试",
+      "JwtUtil 测试",
+      "测试覆盖率报告"
+    ]
+  },
+  {
+    "id": "BE-037",
+    "title": "单元测试 - 项目模块",
+    "description": "为项目模块编写单元测试",
+    "module": "测试",
+    "priority": "P1",
+    "estimatedDays": 2,
+    "dependencies": ["BE-016"],
+    "deliverables": [
+      "ProjectService 测试",
+      "ProjectController 测试",
+      "ProjectRepository 测试",
+      "权限校验测试",
+      "测试覆盖率报告"
+    ]
+  },
+  {
+    "id": "BE-038",
+    "title": "单元测试 - 任务模块",
+    "description": "为任务模块编写单元测试",
+    "module": "测试",
+    "priority": "P1",
+    "estimatedDays": 2,
+    "dependencies": ["BE-022"],
+    "deliverables": [
+      "TaskService 测试",
+      "TaskController 测试",
+      "任务状态流转测试",
+      "评论功能测试",
+      "测试覆盖率报告"
+    ]
+  },
+  {
+    "id": "BE-039",
+    "title": "集成测试",
+    "description": "编写集成测试，测试模块间交互",
+    "module": "测试",
+    "priority": "P1",
+    "estimatedDays": 2,
+    "dependencies": ["BE-036", "BE-037"],
+    "deliverables": [
+      "SpringBootTest 配置",
+      "Testcontainers 容器化测试",
+      "认证 + 项目集成测试",
+      "项目 + 任务集成测试",
+      "完整流程集成测试"
+    ]
+  },
+  {
+    "id": "BE-040",
+    "title": "Docker 化和部署配置",
+    "description": "编写 Docker 配置文件，配置部署流程",
+    "module": "部署",
+    "priority": "P1",
+    "estimatedDays": 1,
+    "dependencies": ["BE-001"],
+    "deliverables": [
+      "Dockerfile",
+      "docker-compose.yml",
+      "docker-compose-dev.yml 开发环境配置",
+      "环境变量配置",
+      "部署文档"
+    ]
+  },
+  {
+    "id": "BE-041",
+    "title": "性能优化",
+    "description": "进行性能优化，包括 SQL 优化、缓存优化等",
+    "module": "性能优化",
+    "priority": "P2",
+    "estimatedDays": 2,
+    "dependencies": ["BE-031"],
+    "deliverables": [
+      "慢查询分析和优化",
+      "索引优化",
+      "N+1 查询问题解决",
+      "分页查询优化",
+      "缓存命中率优化",
+      "接口响应时间优化"
+    ]
+  },
+  {
+    "id": "BE-042",
+    "title": "项目文档编写",
+    "description": "编写项目文档，包括 README、API 文档、部署文档等",
+    "module": "文档",
+    "priority": "P1",
+    "estimatedDays": 1,
+    "dependencies": [],
+    "deliverables": [
+      "README.md",
+      "API.md API 使用说明",
+      "开发文档",
+      "部署文档",
+      "数据库设计文档"
+    ]
+  }
+]
