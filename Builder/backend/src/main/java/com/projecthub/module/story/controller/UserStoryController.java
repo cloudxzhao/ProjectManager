@@ -25,7 +25,7 @@ public class UserStoryController {
   public Result<UserStoryVO> createUserStory(
       @PathVariable Long projectId, @Valid @RequestBody UserStoryVO.CreateRequest request) {
     UserStoryVO story = userStoryService.createUserStory(projectId, request);
-    return Result.success("用户故事创建成功", story);
+    return Result.success(story);
   }
 
   /** 获取用户故事详情 */
@@ -49,8 +49,8 @@ public class UserStoryController {
       @RequestParam(defaultValue = "1") Integer page,
       @RequestParam(defaultValue = "20") Integer size) {
 
-    UserStoryService.FilterRequest filter =
-        UserStoryService.FilterRequest.builder()
+    UserStoryVO.FilterRequest filter =
+        UserStoryVO.FilterRequest.builder()
             .epicId(epicId)
             .status(status)
             .priority(priority)
@@ -68,7 +68,7 @@ public class UserStoryController {
   public Result<UserStoryVO> updateUserStory(
       @PathVariable Long id, @Valid @RequestBody UserStoryVO.UpdateRequest request) {
     UserStoryVO story = userStoryService.updateUserStory(id, request);
-    return Result.success("用户故事更新成功", story);
+    return Result.success(story);
   }
 
   /** 删除用户故事 */
@@ -76,6 +76,6 @@ public class UserStoryController {
   @Operation(summary = "删除用户故事", description = "删除指定用户故事")
   public Result<Void> deleteUserStory(@PathVariable Long id) {
     userStoryService.deleteUserStory(id);
-    return Result.success("用户故事删除成功");
+    return Result.success();
   }
 }

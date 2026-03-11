@@ -41,7 +41,7 @@ public class NotificationController {
   @Operation(summary = "标记已读", description = "将指定通知标记为已读")
   public Result<Void> markAsRead(@PathVariable Long id) {
     notificationService.markAsRead(id);
-    return Result.success("标记成功");
+    return Result.success();
   }
 
   /** 标记所有通知为已读 */
@@ -49,6 +49,6 @@ public class NotificationController {
   @Operation(summary = "全部已读", description = "将所有通知标记为已读")
   public Result<Void> markAllAsRead() {
     notificationService.markAllAsRead();
-    return Result.success("标记成功");
+    return Result.success();
   }
 }

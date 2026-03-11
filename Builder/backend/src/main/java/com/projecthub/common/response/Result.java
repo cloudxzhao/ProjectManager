@@ -1,6 +1,7 @@
 package com.projecthub.common.response;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
+import com.projecthub.common.constant.ErrorCode;
 import java.io.Serializable;
 import lombok.*;
 

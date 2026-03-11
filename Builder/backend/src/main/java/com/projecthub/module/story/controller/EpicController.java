@@ -25,7 +25,7 @@ public class EpicController {
   public Result<EpicVO> createEpic(
       @PathVariable Long projectId, @Valid @RequestBody EpicVO.CreateRequest request) {
     EpicVO epic = epicService.createEpic(projectId, request);
-    return Result.success("史诗创建成功", epic);
+    return Result.success(epic);
   }
 
   /** 获取史诗详情 */
@@ -50,7 +50,7 @@ public class EpicController {
   public Result<EpicVO> updateEpic(
       @PathVariable Long id, @Valid @RequestBody EpicVO.UpdateRequest request) {
     EpicVO epic = epicService.updateEpic(id, request);
-    return Result.success("史诗更新成功", epic);
+    return Result.success(epic);
   }
 
   /** 删除史诗 */
@@ -58,6 +58,6 @@ public class EpicController {
   @Operation(summary = "删除史诗", description = "删除指定史诗")
   public Result<Void> deleteEpic(@PathVariable Long id) {
     epicService.deleteEpic(id);
-    return Result.success("史诗删除成功");
+    return Result.success();
   }
 }

@@ -78,7 +78,7 @@ public class GlobalExceptionHandler {
   }
 
   /** 处理资源不存在异常 */
-  @ExceptionHandler(org.springframework.web.bind.annotation.ResponseStatus.class)
+  @ExceptionHandler(org.springframework.web.servlet.resource.NoResourceFoundException.class)
   @ResponseStatus(HttpStatus.NOT_FOUND)
   public Result<Void> handleNotFoundException(Exception e) {
     log.warn("资源不存在：{}", e.getMessage());

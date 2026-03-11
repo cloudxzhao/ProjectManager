@@ -113,4 +113,26 @@ public class UserStoryVO {
     /** 状态 */
     private String status;
   }
+
+  /** 用户故事筛选请求 */
+  @Data
+  @Builder
+  @NoArgsConstructor
+  @AllArgsConstructor
+  public static class FilterRequest {
+    /** 史诗 ID */
+    private Long epicId;
+
+    /** 状态 */
+    private String status;
+
+    /** 优先级 */
+    private String priority;
+
+    /** 负责人 ID */
+    private Long assigneeId;
+
+    /** 关键字 */
+    private String keyword;
+  }
 }

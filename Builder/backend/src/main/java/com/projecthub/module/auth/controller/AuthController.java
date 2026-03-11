@@ -36,7 +36,7 @@ public class AuthController {
   @Operation(summary = "用户注册", description = "创建新用户账号")
   public Result<AuthResponse> register(@Valid @RequestBody RegisterRequest request) {
     AuthResponse response = authService.register(request);
-    return Result.success("注册成功", response);
+    return Result.success(response);
   }
 
   /** 刷新 Token */
@@ -61,7 +61,7 @@ public class AuthController {
   @Operation(summary = "忘记密码", description = "发送密码重置邮件到用户邮箱")
   public Result<Void> forgotPassword(@Valid @RequestBody ForgotPasswordRequest request) {
     authService.forgotPassword(request.getEmail());
-    return Result.success("密码重置邮件已发送，请检查邮箱");
+    return Result.success();
   }
 
   /** 重置密码 */
@@ -69,7 +69,7 @@ public class AuthController {
   @Operation(summary = "重置密码", description = "使用重置 Token 设置新密码")
   public Result<Void> resetPassword(@Valid @RequestBody ResetPasswordRequest request) {
     authService.resetPassword(request.getResetToken(), request.getNewPassword());
-    return Result.success("密码重置成功");
+    return Result.success();
   }
 
   /** 从 Authorization header 中提取 Token */

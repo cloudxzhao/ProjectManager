@@ -13,6 +13,8 @@ import jakarta.persistence.criteria.Predicate;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
+import lombok.Builder;
+import lombok.Data;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
@@ -216,27 +218,5 @@ public class UserStoryService {
       return ((UserDetailsImpl) principal).getId();
     }
     throw new BusinessException("用户未登录");
-  }
-
-  /** 用户故事筛选请求 */
-  @lombok.Data
-  @lombok.Builder
-  @lombok.NoArgsConstructor
-  @lombok.AllArgsConstructor
-  public static class FilterRequest {
-    /** 史诗 ID */
-    private Long epicId;
-
-    /** 状态 */
-    private String status;
-
-    /** 优先级 */
-    private String priority;
-
-    /** 负责人 ID */
-    private Long assigneeId;
-
-    /** 关键字 */
-    private String keyword;
   }
 }

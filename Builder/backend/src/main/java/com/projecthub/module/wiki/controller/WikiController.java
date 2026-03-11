@@ -42,7 +42,7 @@ public class WikiController {
   public Result<WikiVO> createDocument(
       @PathVariable Long projectId, @Valid @RequestBody WikiVO.CreateRequest request) {
     WikiVO document = wikiService.createDocument(projectId, request);
-    return Result.success("文档创建成功", document);
+    return Result.success(document);
   }
 
   /** 更新文档 */
@@ -51,7 +51,7 @@ public class WikiController {
   public Result<WikiVO> updateDocument(
       @PathVariable Long id, @Valid @RequestBody WikiVO.UpdateRequest request) {
     WikiVO document = wikiService.updateDocument(id, request);
-    return Result.success("文档更新成功", document);
+    return Result.success(document);
   }
 
   /** 删除文档 */
@@ -59,7 +59,7 @@ public class WikiController {
   @Operation(summary = "删除文档", description = "删除指定的 Wiki 文档")
   public Result<Void> deleteDocument(@PathVariable Long id) {
     wikiService.deleteDocument(id);
-    return Result.success("文档删除成功");
+    return Result.success();
   }
 
   /** 获取文档历史记录 */

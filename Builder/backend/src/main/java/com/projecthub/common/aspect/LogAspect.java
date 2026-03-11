@@ -66,7 +66,7 @@ public class LogAspect {
       long duration = System.currentTimeMillis() - startTime;
 
       // 保存操作日志
-      saveOperationLog(userId, username, operationLog.module(), operationLog.operation(),
+      saveOperationLog(userId, username, operationLog.module(), operationLog.operationType(),
           method, params, resultStr, ipAddress, duration);
     }
 
@@ -90,7 +90,7 @@ public class LogAspect {
           .build();
 
       operationLogRepository.save(log);
-      log.debug("保存操作日志：module={}, operation={}, duration={}ms", module, operation, duration);
+      log.info("保存操作日志：module={}, operation={}, duration={}ms", module, operation, duration);
     } catch (Exception e) {
       log.error("保存操作日志失败", e);
     }
