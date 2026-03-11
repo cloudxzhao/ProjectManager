@@ -7,6 +7,7 @@ import com.projecthub.module.task.service.TaskService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
+import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
 
@@ -84,5 +85,21 @@ public class TaskController {
 
     PageResult<TaskVO> result = taskService.listTasks(projectId, filter, page, size);
     return Result.success(result);
+  }
+
+  /** 获取子任务列表 */
+  @GetMapping("/{id}/subtasks")
+  @Operation(summary = "获取子任务列表", description = "获取指定任务的子任务列表")
+  public Result<List<TaskVO>> getSubTasks(@PathVariable Long id) {
+    List<TaskVO> subTasks = taskService.getSubTasks(id);
+    return Result.success(subTasks);
+  }
+
+  /** 切换子任务完成状态 */
+  @PostMapping("/{id}/toggle-complete")
+  @Operation(summary = "切换子任务完成状态", description = "切换子任务的完成状态（完成/未完成）")
+  public Result<TaskVO> toggleSubTaskComplete(@PathVariable Long id) {
+    TaskVO task = taskService.toggleSubTaskComplete(id);
+    return Result.success(task);
   }
 }

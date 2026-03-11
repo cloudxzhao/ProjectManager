@@ -2,17 +2,10 @@ package com.projecthub.module.project.dto;
 
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.NoArgsConstructor;
+import lombok.Data;
 
 /** 项目成员 DTO */
-@NoArgsConstructor
-@AllArgsConstructor
-@Getter
-@Setter
-@ToString
-@Builder(toBuilder = true)
+@Data
 public class ProjectMemberDTO {
 
   /** 用户 ID */

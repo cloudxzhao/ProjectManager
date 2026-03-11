@@ -218,4 +218,43 @@ public class TaskService {
     }
     throw new BusinessException("用户未登录");
   }
+
+  /** 获取任务的子任务列表 */
+  @Transactional(readOnly = true)
+  public List<TaskVO> getSubTasks(Long parentId) {
+    Task parentTask = taskRepository.findById(parentId).orElseThrow(() -> new BusinessException("父任务不存在"));
+
+    // 权限校验
+    checkTaskPermission(parentTask.getProjectId(), "TASK_VIEW");
+
+    List<Task> subTasks = taskRepository.findByParentId(parentId);
+    return subTasks.stream()
+        .map(task -> BeanCopyUtil.copyProperties(task, TaskVO.class))
+        .collect(Collectors.toList());
+  }
+
+  /** 切换子任务完成状态 */
+  @Transactional
+  public TaskVO toggleSubTaskComplete(Long taskId) {
+    Task task = taskRepository.findById(taskId).orElseThrow(() -> new BusinessException("子任务不存在"));
+
+    if (task.getParentId() == null) {
+      throw new BusinessException("只有子任务才能切换完成状态");
+    }
+
+    // 权限校验
+    checkTaskPermission(task.getProjectId(), "TASK_EDIT");
+
+    // 切换状态：如果当前是 DONE，则改为 TODO，否则改为 DONE
+    if (task.getStatus() == Task.TaskStatus.DONE) {
+      task.setStatus(Task.TaskStatus.TODO);
+    } else {
+      task.setStatus(Task.TaskStatus.DONE);
+    }
+
+    taskRepository.save(task);
+    log.info("切换子任务完成状态：taskId={}, status={}", taskId, task.getStatus());
+
+    return BeanCopyUtil.copyProperties(task, TaskVO.class);
+  }
 }

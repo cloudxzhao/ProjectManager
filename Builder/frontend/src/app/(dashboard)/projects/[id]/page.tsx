@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import { useParams, useRouter } from 'next/navigation';
-import { Card, Tabs, TabsProps, Avatar, Tag, Progress, Button, Skeleton, Empty, Dropdown, MenuProps, message, Modal } from 'antd';
+import { Card, Tabs, TabsProps, Avatar, Tag, Progress, Button, Empty, Dropdown, MenuProps, message, Modal, Form, Input, DatePicker, Select, ColorPicker, Drawer } from 'antd';
 import {
   EditOutlined,
   DeleteOutlined,
@@ -10,8 +10,16 @@ import {
   ClockCircleOutlined,
   CheckCircleOutlined,
   ProjectOutlined,
+  CloseOutlined,
+  UserAddOutlined,
 } from '@ant-design/icons';
 import Link from 'next/link';
+import dayjs from 'dayjs';
+import { api } from '@/lib/api/axios';
+import { endpoints } from '@/lib/api/endpoints';
+
+const { Option } = Select;
+const { TextArea } = Input;
 
 // Mock 数据
 const mockProject = {
@@ -57,6 +65,18 @@ const roleTextMap: Record<string, string> = {
   member: '成员',
 };
 
+const projectIcons = ['🛒', '📱', '📊', '🤝', '🌐', '🔧', '💼', '🎯', '🚀', '💡'];
+
+interface EditProjectFormValues {
+  name: string;
+  description: string;
+  status: string;
+  startDate?: dayjs.Dayjs;
+  endDate?: dayjs.Dayjs;
+  color?: string;
+  icon?: string;
+}
+
 export default function ProjectDetailPage() {
   const params = useParams();
   const router = useRouter();
@@ -65,6 +85,9 @@ export default function ProjectDetailPage() {
   const [loading, setLoading] = useState(false);
   const [project, setProject] = useState(mockProject);
   const [deleteModalOpen, setDeleteModalOpen] = useState(false);
+  const [editDrawerOpen, setEditDrawerOpen] = useState(false);
+  const [selectedIcon, setSelectedIcon] = useState(project.icon);
+  const [form] = Form.useForm();
 
   // 项目操作菜单
   const projectMenuItems: MenuProps['items'] = [
@@ -72,7 +95,19 @@ export default function ProjectDetailPage() {
       key: 'edit',
       icon: <EditOutlined />,
       label: '编辑项目',
-      onClick: () => message.info('编辑项目功能开发中'),
+      onClick: () => {
+        setEditDrawerOpen(true);
+        form.setFieldsValue({
+          name: project.name,
+          description: project.description,
+          status: project.status,
+          startDate: dayjs(project.startDate),
+          endDate: dayjs(project.endDate),
+          color: project.color,
+          icon: project.icon,
+        });
+        setSelectedIcon(project.icon);
+      },
     },
     {
       key: 'delete',
@@ -82,6 +117,58 @@ export default function ProjectDetailPage() {
       danger: true,
     },
   ];
+
+  // 处理编辑提交
+  const handleEditSubmit = async (values: EditProjectFormValues) => {
+    setLoading(true);
+    try {
+      await api.put(endpoints.project.update(projectId), {
+        name: values.name,
+        description: values.description,
+        status: values.status,
+        startDate: values.startDate?.format('YYYY-MM-DD'),
+        endDate: values.endDate?.format('YYYY-MM-DD'),
+        color: values.color,
+        icon: values.icon || selectedIcon,
+      });
+
+      // 更新本地状态
+      setProject({
+        ...project,
+        name: values.name,
+        description: values.description,
+        status: values.status,
+        startDate: values.startDate?.format('YYYY-MM-DD') || project.startDate,
+        endDate: values.endDate?.format('YYYY-MM-DD') || project.endDate,
+        color: values.color || project.color,
+        icon: values.icon || selectedIcon,
+      });
+
+      message.success('项目更新成功');
+      setEditDrawerOpen(false);
+    } catch (error: unknown) {
+      const errorMessage = error instanceof Error ? error.message : '更新失败，请稍后重试';
+      message.error(errorMessage);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // 处理删除
+  const handleDelete = async () => {
+    setLoading(true);
+    try {
+      await api.delete(endpoints.project.delete(projectId));
+      message.success('项目删除成功');
+      router.push('/projects');
+    } catch (error: unknown) {
+      const errorMessage = error instanceof Error ? error.message : '删除失败，请稍后重试';
+      message.error(errorMessage);
+    } finally {
+      setLoading(false);
+      setDeleteModalOpen(false);
+    }
+  };
 
   // 页签内容
   const tabItems: TabsProps['items'] = [
@@ -122,54 +209,16 @@ export default function ProjectDetailPage() {
       key: 'members',
       label: '成员管理',
       children: (
-        <div className="space-y-4">
-          <div className="flex justify-between items-center">
-            <h3 className="text-lg font-semibold text-white">项目成员</h3>
-            <Button icon={<PlusOutlined />}>添加成员</Button>
-          </div>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-            {project.members.map((member) => (
-              <Card
-                key={member.id}
-                className="bg-gray-700/30 border-gray-600"
-                size="small"
-              >
-                <div className="flex items-center gap-3">
-                  <Avatar
-                    size={40}
-                    className="bg-gradient-to-br from-orange-400 to-amber-500"
-                  >
-                    {member.name[0]}
-                  </Avatar>
-                  <div className="flex-1">
-                    <h4 className="text-white font-medium">{member.name}</h4>
-                    <Tag color={roleColorMap[member.role]} className="text-xs">
-                      {roleTextMap[member.role]}
-                    </Tag>
-                  </div>
-                </div>
-              </Card>
-            ))}
-          </div>
+        <div className="text-center py-12">
+          <Link href={`/projects/${projectId}/members`}>
+            <Button type="primary" icon={<UserAddOutlined />}>
+              进入成员管理
+            </Button>
+          </Link>
         </div>
       ),
     },
   ];
-
-  const handleDelete = async () => {
-    setLoading(true);
-    try {
-      // 调用删除接口
-      await new Promise((resolve) => setTimeout(resolve, 1000));
-      message.success('项目删除成功');
-      router.push('/projects');
-    } catch (error) {
-      message.error('删除失败，请稍后重试');
-    } finally {
-      setLoading(false);
-      setDeleteModalOpen(false);
-    }
-  };
 
   if (!projectId) {
     return <Empty description="项目 ID 不存在" />;
@@ -204,7 +253,7 @@ export default function ProjectDetailPage() {
         }
         extra={
           <Dropdown menu={{ items: projectMenuItems }} trigger={['click']}>
-            <Button size="large" className="text-gray-400">
+            <Button size="large" icon={<CloseOutlined />} className="text-gray-400">
               项目操作
             </Button>
           </Dropdown>
@@ -278,7 +327,12 @@ export default function ProjectDetailPage() {
 
       {/* 删除确认对话框 */}
       <Modal
-        title="确认删除"
+        title={
+          <div className="flex items-center gap-3">
+            <DeleteOutlined className="text-red-500 text-xl" />
+            <span>确认删除</span>
+          </div>
+        }
         open={deleteModalOpen}
         onOk={handleDelete}
         onCancel={() => setDeleteModalOpen(false)}
@@ -293,6 +347,135 @@ export default function ProjectDetailPage() {
           删除后所有相关数据（任务、文档等）都将被删除，此操作不可恢复。
         </p>
       </Modal>
+
+      {/* 编辑项目抽屉 */}
+      <Drawer
+        title="编辑项目"
+        placement="right"
+        width={600}
+        open={editDrawerOpen}
+        onClose={() => setEditDrawerOpen(false)}
+        className="bg-gray-900"
+      >
+        <Form
+          form={form}
+          layout="vertical"
+          requiredMark={false}
+          onFinish={handleEditSubmit}
+          size="large"
+        >
+          <Form.Item
+            name="name"
+            label="项目名称"
+            rules={[
+              { required: true, message: '请输入项目名称' },
+              { min: 2, message: '项目名称至少 2 个字符' },
+              { max: 50, message: '项目名称不能超过 50 个字符' },
+            ]}
+          >
+            <Input
+              placeholder="请输入项目名称"
+              className="bg-gray-700/50 border-gray-600 text-white"
+              prefix={<ProjectOutlined className="text-gray-400" />}
+            />
+          </Form.Item>
+
+          <Form.Item
+            name="description"
+            label="项目描述"
+            rules={[{ required: true, message: '请输入项目描述' }]}
+          >
+            <TextArea
+              rows={4}
+              placeholder="描述项目目标、范围等..."
+              className="bg-gray-700/50 border-gray-600 text-white"
+              showCount
+              maxLength={500}
+            />
+          </Form.Item>
+
+          <Form.Item
+            name="status"
+            label="项目状态"
+          >
+            <Select className="bg-gray-700/50 border-gray-600">
+              <Option value="active">进行中</Option>
+              <Option value="completed">已完成</Option>
+              <Option value="archived">已归档</Option>
+            </Select>
+          </Form.Item>
+
+          <div className="grid grid-cols-2 gap-4">
+            <Form.Item
+              name="startDate"
+              label="开始日期"
+            >
+              <DatePicker
+                className="w-full bg-gray-700/50 border-gray-600 text-white"
+                format="YYYY-MM-DD"
+              />
+            </Form.Item>
+
+            <Form.Item
+              name="endDate"
+              label="结束日期"
+            >
+              <DatePicker
+                className="w-full bg-gray-700/50 border-gray-600 text-white"
+                format="YYYY-MM-DD"
+              />
+            </Form.Item>
+          </div>
+
+          <Form.Item
+            name="icon"
+            label="项目图标"
+          >
+            <div className="flex gap-2 flex-wrap">
+              {projectIcons.map((icon) => (
+                <button
+                  key={icon}
+                  type="button"
+                  onClick={() => setSelectedIcon(icon)}
+                  className={`w-12 h-12 text-2xl rounded-lg flex items-center justify-center transition-all ${
+                    selectedIcon === icon
+                      ? 'bg-orange-500 ring-2 ring-orange-400'
+                      : 'bg-gray-700/50 hover:bg-gray-600'
+                  }`}
+                >
+                  {icon}
+                </button>
+              ))}
+            </div>
+          </Form.Item>
+
+          <Form.Item
+            name="color"
+            label="项目颜色"
+          >
+            <ColorPicker format="hex" showText className="w-full" />
+          </Form.Item>
+
+          <Form.Item className="pt-4">
+            <div className="flex gap-4">
+              <Button
+                type="primary"
+                htmlType="submit"
+                loading={loading}
+                className="flex-1 bg-gradient-to-r from-orange-500 to-orange-600 border-none"
+              >
+                保存修改
+              </Button>
+              <Button
+                onClick={() => setEditDrawerOpen(false)}
+                className="flex-1 border-gray-600 text-gray-300"
+              >
+                取消
+              </Button>
+            </div>
+          </Form.Item>
+        </Form>
+      </Drawer>
     </div>
   );
 }

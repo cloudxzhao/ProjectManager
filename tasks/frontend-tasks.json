@@ -271,7 +271,7 @@
     "priority": "P1",
     "estimatedDays": 1,
     "dependencies": ["FE-015"],
-    "done": false,
+    "done": true,
     "deliverables": [
       "编辑项目弹窗/页面",
       "删除确认对话框",
@@ -288,7 +288,7 @@
     "priority": "P1",
     "estimatedDays": 2,
     "dependencies": ["FE-015"],
-    "done": false,
+    "done": true,
     "deliverables": [
       "成员管理页面 (projects/[id]/members/page.tsx)",
       "成员列表展示",
@@ -381,7 +381,7 @@
     "priority": "P1",
     "estimatedDays": 1,
     "dependencies": ["FE-021"],
-    "done": true,
+    "done": false,
     "deliverables": [
       "SubTaskList 组件",
       "添加子任务功能",
@@ -398,7 +398,7 @@
     "priority": "P1",
     "estimatedDays": 2,
     "dependencies": ["FE-021"],
-    "done": true,
+    "done": false,
     "deliverables": [
       "评论列表展示",
       "发表评论功能",

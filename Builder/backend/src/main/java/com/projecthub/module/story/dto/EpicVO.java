@@ -1,0 +1,71 @@
+package com.projecthub.module.story.dto;
+
+import java.time.LocalDateTime;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Data;
+import lombok.NoArgsConstructor;
+
+/** 史诗 VO */
+@Data
+@Builder
+@NoArgsConstructor
+@AllArgsConstructor
+public class EpicVO {
+
+  /** 史诗 ID */
+  private Long id;
+
+  /** 项目 ID */
+  private Long projectId;
+
+  /** 标题 */
+  private String title;
+
+  /** 描述 */
+  private String description;
+
+  /** 颜色 */
+  private String color;
+
+  /** 位置 */
+  private Integer position;
+
+  /** 创建时间 */
+  private LocalDateTime createdAt;
+
+  /** 更新时间 */
+  private LocalDateTime updatedAt;
+
+  /** 创建史诗请求 */
+  @Data
+  @Builder
+  @NoArgsConstructor
+  @AllArgsConstructor
+  public static class CreateRequest {
+    /** 标题 */
+    private String title;
+
+    /** 描述 */
+    private String description;
+
+    /** 颜色 */
+    private String color;
+  }
+
+  /** 更新史诗请求 */
+  @Data
+  @Builder
+  @NoArgsConstructor
+  @AllArgsConstructor
+  public static class UpdateRequest {
+    /** 标题 */
+    private String title;
+
+    /** 描述 */
+    private String description;
+
+    /** 颜色 */
+    private String color;
+  }
+}

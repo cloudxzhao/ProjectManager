@@ -46,4 +46,13 @@ public interface TaskRepository extends JpaRepository<Task, Long>, JpaSpecificat
   /** 查询最大位置值 */
   @Query("SELECT COALESCE(MAX(t.position), -1) FROM Task t WHERE t.projectId = :projectId")
   Integer findMaxPosition(@Param("projectId") Long projectId);
+
+  /** 查询父任务下的子任务列表 */
+  @Query(
+      "SELECT t FROM Task t WHERE t.parentId = :parentId AND t.deletedAt IS NULL ORDER BY t.position ASC")
+  List<Task> findByParentId(@Param("parentId") Long parentId);
+
+  /** 查询子任务数量 */
+  @Query("SELECT COUNT(t) FROM Task t WHERE t.parentId = :parentId AND t.deletedAt IS NULL")
+  Long countByParentId(@Param("parentId") Long parentId);
 }

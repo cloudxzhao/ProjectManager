@@ -7,7 +7,7 @@
     "priority": "P0",
     "estimatedDays": 1,
     "dependencies": [],
-    "done": false,
+    "done": true,
     "deliverables": [
       "Maven 项目脚手架 (pom.xml)",
       "Spring Boot 3.x 配置",
@@ -24,7 +24,7 @@
     "priority": "P0",
     "estimatedDays": 1,
     "dependencies": ["BE-001"],
-    "done": false,
+    "done": true,
     "deliverables": [
       "application.yml 配置",
       "application-dev.yml 开发环境配置",
@@ -42,7 +42,7 @@
     "priority": "P0",
     "estimatedDays": 1,
     "dependencies": ["BE-002"],
-    "done": false,
+    "done": true,
     "deliverables": [
       "Flyway 迁移脚本 (V1__init_schema.sql)",
       "枚举类型定义",
@@ -60,7 +60,7 @@
     "priority": "P0",
     "estimatedDays": 1,
     "dependencies": ["BE-001"],
-    "done": false,
+    "done": true,
     "deliverables": [
       "Result<T> 统一响应类",
       "PageResult<T> 分页响应类",
@@ -77,7 +77,7 @@
     "priority": "P0",
     "estimatedDays": 1,
     "dependencies": ["BE-001"],
-    "done": false,
+    "done": true,
     "deliverables": [
       "JwtUtil JWT 工具类",
       "PasswordUtil 密码加密工具 (bcrypt)",
@@ -94,7 +94,7 @@
     "priority": "P0",
     "estimatedDays": 2,
     "dependencies": ["BE-004", "BE-005"],
-    "done": false,
+    "done": true,
     "deliverables": [
       "SecurityConfig 安全配置类",
       "JwtAuthenticationFilter JWT 认证过滤器",
@@ -111,7 +111,7 @@
     "priority": "P0",
     "estimatedDays": 2,
     "dependencies": ["BE-006"],
-    "done": false,
+    "done": true,
     "deliverables": [
       "AuthController 认证控制器",
       "AuthService 认证服务接口",
@@ -130,7 +130,7 @@
     "priority": "P0",
     "estimatedDays": 2,
     "dependencies": ["BE-007"],
-    "done": false,
+    "done": true,
     "deliverables": [
       "RegisterRequest DTO",
       "注册接口 (POST /api/v1/auth/register)",
@@ -148,7 +148,7 @@
     "priority": "P0",
     "estimatedDays": 1,
     "dependencies": ["BE-007"],
-    "done": false,
+    "done": true,
     "deliverables": [
       "刷新 Token 接口 (POST /api/v1/auth/refresh)",
       "登出接口 (POST /api/v1/auth/logout)",
@@ -180,7 +180,7 @@
     "priority": "P0",
     "estimatedDays": 2,
     "dependencies": ["BE-006"],
-    "done": false,
+    "done": true,
     "deliverables": [
       "UserController 用户控制器",
       "UserService 用户服务接口",
@@ -200,7 +200,7 @@
     "priority": "P0",
     "estimatedDays": 2,
     "dependencies": ["BE-006"],
-    "done": false,
+    "done": true,
     "deliverables": [
       "RequirePermission 注解",
       "PermissionAspect 权限切面",
@@ -217,7 +217,7 @@
     "priority": "P0",
     "estimatedDays": 3,
     "dependencies": ["BE-012"],
-    "done": false,
+    "done": true,
     "deliverables": [
       "ProjectController 项目控制器",
       "ProjectService 项目服务接口",
@@ -238,7 +238,7 @@
     "priority": "P0",
     "estimatedDays": 1,
     "dependencies": ["BE-013"],
-    "done": false,
+    "done": true,
     "deliverables": [
       "项目列表接口 (GET /api/v1/projects)",
       "状态筛选功能",
@@ -255,7 +255,7 @@
     "priority": "P0",
     "estimatedDays": 2,
     "dependencies": ["BE-013"],
-    "done": false,
+    "done": true,
     "deliverables": [
       "ProjectMember 实体类",
       "ProjectMemberRepository 仓储",
@@ -273,7 +273,7 @@
     "priority": "P0",
     "estimatedDays": 1,
     "dependencies": ["BE-012", "BE-013"],
-    "done": false,
+    "done": true,
     "deliverables": [
       "项目权限校验逻辑",
       "ProjectPermissionAspect 项目权限切面",
@@ -289,7 +289,7 @@
     "priority": "P0",
     "estimatedDays": 3,
     "dependencies": ["BE-012"],
-    "done": false,
+    "done": true,
     "deliverables": [
       "TaskController 任务控制器",
       "TaskService 任务服务接口",
@@ -310,7 +310,7 @@
     "priority": "P0",
     "estimatedDays": 2,
     "dependencies": ["BE-017"],
-    "done": false,
+    "done": true,
     "deliverables": [
       "任务列表接口 (GET /api/v1/tasks)",
       "按项目筛选",
@@ -329,7 +329,7 @@
     "priority": "P0",
     "estimatedDays": 1,
     "dependencies": ["BE-017"],
-    "done": false,
+    "done": true,
     "deliverables": [
       "移动任务接口 (POST /api/v1/tasks/{id}/move)",
       "状态变更逻辑",
@@ -346,7 +346,7 @@
     "priority": "P1",
     "estimatedDays": 1,
     "dependencies": ["BE-017"],
-    "done": false,
+    "done": true,
     "deliverables": [
       "SubTask 实体类",
       "SubTaskRepository 仓储",
@@ -364,7 +364,7 @@
     "priority": "P1",
     "estimatedDays": 2,
     "dependencies": ["BE-017"],
-    "done": false,
+    "done": true,
     "deliverables": [
       "Comment 实体类",
       "CommentRepository 评论仓储",
@@ -383,7 +383,7 @@
     "priority": "P0",
     "estimatedDays": 1,
     "dependencies": ["BE-016", "BE-017"],
-    "done": false,
+    "done": true,
     "deliverables": [
       "任务权限校验逻辑",
       "项目成员可访问任务",
@@ -624,7 +624,7 @@
     "priority": "P0",
     "estimatedDays": 1,
     "dependencies": ["BE-001"],
-    "done": false,
+    "done": true,
     "deliverables": [
       "SwaggerConfig 配置类",
       "OpenAPI Bean 配置",
