@@ -57,6 +57,21 @@ springdoc:
   swagger-ui:
     enabled: true
 
+# 邮件配置
+spring.mail:
+  host: smtp.example.com
+  port: 587
+  username: ${MAIL_USERNAME:noreply@projecthub.com}
+  password: ${MAIL_PASSWORD:your-mail-password}
+  properties:
+    mail:
+      smtp:
+        auth: true
+        starttls:
+          enable: true
+      transport:
+        protocol: smtp
+
 # 本地开发允许的文件上传大小
 spring.servlet:
   multipart:

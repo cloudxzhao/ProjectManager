@@ -7,6 +7,7 @@
     "priority": "P0",
     "estimatedDays": 1,
     "dependencies": [],
+    "done": true,
     "deliverables": [
       "Next.js 项目脚手架",
       "TypeScript 配置 (tsconfig.json)",
@@ -23,6 +24,7 @@
     "priority": "P0",
     "estimatedDays": 1,
     "dependencies": ["FE-001"],
+    "done": true,
     "deliverables": [
       "Ant Design 安装配置",
       "主题配置文件",
@@ -39,6 +41,7 @@
     "priority": "P0",
     "estimatedDays": 1,
     "dependencies": ["FE-001"],
+    "done": true,
     "deliverables": [
       "Axios 实例配置 (axios.ts)",
       "请求拦截器 (Token 注入)",
@@ -55,6 +58,7 @@
     "priority": "P0",
     "estimatedDays": 1,
     "dependencies": ["FE-001"],
+    "done": true,
     "deliverables": [
       "Zustand 配置",
       "React Query 配置",
@@ -71,6 +75,7 @@
     "priority": "P0",
     "estimatedDays": 1,
     "dependencies": ["FE-001"],
+    "done": true,
     "deliverables": [
       "用户类型定义 (user.ts)",
       "项目类型定义 (project.ts)",
@@ -87,6 +92,7 @@
     "priority": "P0",
     "estimatedDays": 2,
     "dependencies": ["FE-002"],
+    "done": true,
     "deliverables": [
       "MainLayout 组件 (主布局)",
       "AuthLayout 组件 (认证页布局)",
@@ -103,6 +109,7 @@
     "priority": "P1",
     "estimatedDays": 2,
     "dependencies": ["FE-002"],
+    "done": false,
     "deliverables": [
       "Button 组件",
       "Input 组件",
@@ -122,6 +129,7 @@
     "priority": "P0",
     "estimatedDays": 2,
     "dependencies": ["FE-003", "FE-004", "FE-006"],
+    "done": true,
     "deliverables": [
       "登录页面 (login/page.tsx)",
       "LoginForm 组件",
@@ -139,6 +147,7 @@
     "priority": "P0",
     "estimatedDays": 2,
     "dependencies": ["FE-008"],
+    "done": true,
     "deliverables": [
       "注册页面 (register/page.tsx)",
       "RegisterForm 组件",
@@ -155,6 +164,7 @@
     "priority": "P1",
     "estimatedDays": 1,
     "dependencies": ["FE-008"],
+    "done": true,
     "deliverables": [
       "密码找回页面",
       "邮箱输入表单",
@@ -170,6 +180,7 @@
     "priority": "P0",
     "estimatedDays": 1,
     "dependencies": ["FE-004", "FE-008"],
+    "done": true,
     "deliverables": [
       "Next.js Middleware (middleware.ts)",
       "路由守卫逻辑",
@@ -186,6 +197,7 @@
     "priority": "P0",
     "estimatedDays": 3,
     "dependencies": ["FE-006", "FE-007"],
+    "done": true,
     "deliverables": [
       "仪表盘页面 (dashboard/page.tsx)",
       "核心指标卡片组件",
@@ -204,6 +216,7 @@
     "priority": "P0",
     "estimatedDays": 2,
     "dependencies": ["FE-006", "FE-007"],
+    "done": true,
     "deliverables": [
       "项目列表页面 (projects/page.tsx)",
       "ProjectCard 组件",
@@ -221,6 +234,7 @@
     "priority": "P0",
     "estimatedDays": 2,
     "dependencies": ["FE-013"],
+    "done": true,
     "deliverables": [
       "新建项目页面 (projects/new/page.tsx)",
       "ProjectForm 组件",
@@ -240,6 +254,7 @@
     "priority": "P0",
     "estimatedDays": 2,
     "dependencies": ["FE-013"],
+    "done": true,
     "deliverables": [
       "项目详情页面 (projects/[id]/page.tsx)",
       "项目信息展示区",
@@ -256,6 +271,7 @@
     "priority": "P1",
     "estimatedDays": 1,
     "dependencies": ["FE-015"],
+    "done": true,
     "deliverables": [
       "编辑项目弹窗/页面",
       "删除确认对话框",
@@ -272,6 +288,7 @@
     "priority": "P1",
     "estimatedDays": 2,
     "dependencies": ["FE-015"],
+    "done": true,
     "deliverables": [
       "成员管理页面 (projects/[id]/members/page.tsx)",
       "成员列表展示",
@@ -289,6 +306,7 @@
     "priority": "P0",
     "estimatedDays": 3,
     "dependencies": ["FE-007", "FE-015"],
+    "done": true,
     "deliverables": [
       "任务看板页面 (projects/[id]/tasks/page.tsx)",
       "KanbanBoard 组件",
@@ -307,6 +325,7 @@
     "priority": "P0",
     "estimatedDays": 1,
     "dependencies": ["FE-018"],
+    "done": true,
     "deliverables": [
       "TaskCard 组件",
       "任务 ID 展示",
@@ -325,6 +344,7 @@
     "priority": "P0",
     "estimatedDays": 2,
     "dependencies": ["FE-018"],
+    "done": true,
     "deliverables": [
       "快速创建任务输入框",
       "任务创建弹窗",
@@ -342,6 +362,7 @@
     "priority": "P0",
     "estimatedDays": 2,
     "dependencies": ["FE-018"],
+    "done": true,
     "deliverables": [
       "任务详情页面/弹窗 (tasks/[id]/page.tsx)",
       "任务属性编辑区",
@@ -360,6 +381,7 @@
     "priority": "P1",
     "estimatedDays": 1,
     "dependencies": ["FE-021"],
+    "done": true,
     "deliverables": [
       "SubTaskList 组件",
       "添加子任务功能",
@@ -376,6 +398,7 @@
     "priority": "P1",
     "estimatedDays": 2,
     "dependencies": ["FE-021"],
+    "done": true,
     "deliverables": [
       "评论列表展示",
       "发表评论功能",
@@ -393,6 +416,7 @@
     "priority": "P1",
     "estimatedDays": 2,
     "dependencies": ["FE-015"],
+    "done": true,
     "deliverables": [
       "用户故事页面 (projects/[id]/stories/page.tsx)",
       "Epic 列表组件",
@@ -411,6 +435,7 @@
     "priority": "P1",
     "estimatedDays": 2,
     "dependencies": ["FE-015"],
+    "done": true,
     "deliverables": [
       "问题追踪页面 (projects/[id]/issues/page.tsx)",
       "IssueList 组件",
@@ -429,6 +454,7 @@
     "priority": "P1",
     "estimatedDays": 2,
     "dependencies": ["FE-015"],
+    "done": true,
     "deliverables": [
       "Wiki 页面 (projects/[id]/wiki/page.tsx)",
       "WikiTree 组件 (目录树)",
@@ -446,6 +472,7 @@
     "priority": "P2",
     "estimatedDays": 2,
     "dependencies": ["FE-015"],
+    "done": true,
     "deliverables": [
       "报表页面 (projects/[id]/reports/page.tsx)",
       "BurndownChart 组件 (燃尽图)",
@@ -463,6 +490,7 @@
     "priority": "P1",
     "estimatedDays": 1,
     "dependencies": ["FE-006"],
+    "done": true,
     "deliverables": [
       "通知中心页面",
       "通知列表组件",
@@ -480,6 +508,7 @@
     "priority": "P2",
     "estimatedDays": 2,
     "dependencies": ["FE-006"],
+    "done": true,
     "deliverables": [
       "全局搜索框组件",
       "搜索结果下拉",
@@ -496,6 +525,7 @@
     "priority": "P1",
     "estimatedDays": 1,
     "dependencies": ["FE-006"],
+    "done": true,
     "deliverables": [
       "个人设置页面 (settings/page.tsx)",
       "修改资料表单",
@@ -512,6 +542,7 @@
     "priority": "P1",
     "estimatedDays": 1,
     "dependencies": ["FE-006"],
+    "done": true,
     "deliverables": [
       "空状态组件 (Empty)",
       "404 页面 (not-found.tsx)",
@@ -528,6 +559,7 @@
     "priority": "P1",
     "estimatedDays": 2,
     "dependencies": ["FE-006"],
+    "done": true,
     "deliverables": [
       "侧边栏移动端适配 (抽屉式)",
       "项目卡片响应式",
@@ -544,6 +576,7 @@
     "priority": "P2",
     "estimatedDays": 2,
     "dependencies": ["FE-007"],
+    "done": true,
     "deliverables": [
       "键盘导航支持",
       "焦点可见样式",
@@ -560,6 +593,7 @@
     "priority": "P1",
     "estimatedDays": 3,
     "dependencies": ["FE-007", "FE-008"],
+    "done": true,
     "deliverables": [
       "Vitest 配置",
       "UI 组件测试",
@@ -576,6 +610,7 @@
     "priority": "P1",
     "estimatedDays": 2,
     "dependencies": ["FE-034"],
+    "done": true,
     "deliverables": [
       "Playwright 配置",
       "登录注册流程测试",
@@ -592,6 +627,7 @@
     "priority": "P2",
     "estimatedDays": 2,
     "dependencies": ["FE-012", "FE-013"],
+    "done": true,
     "deliverables": [
       "路由级别代码分割",
       "组件懒加载",
@@ -609,6 +645,7 @@
     "priority": "P1",
     "estimatedDays": 1,
     "dependencies": ["FE-001"],
+    "done": true,
     "deliverables": [
       "Dockerfile",
       "docker-compose.yml",
@@ -625,6 +662,7 @@
     "priority": "P1",
     "estimatedDays": 1,
     "dependencies": [],
+    "done": true,
     "deliverables": [
       "README.md",
       "开发文档",

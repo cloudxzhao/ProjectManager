@@ -46,3 +46,12 @@
 - **状态管理**: Zustand 或 React Query
 - **UI组件库**: Ant Design 5.x 或 MUI 
 - **构建工具**: Vite (Next.js内置)
+
+
+
+## 为前后端生成发布任务的Prompt
+
+ 项目的架构设计完成之后，需要按照你的架构设计，为前后端发布任务，让他们遵守约定的开发，现在给出让前后端开始任务的Prompt。
+
+- 前端 Prompt 保存为 FrontendPrompt，将此产物作为前端的`Memory`。
+- 前端 Prompt 保存为 BackendPrompt，将此产物作为后端的`Memory`

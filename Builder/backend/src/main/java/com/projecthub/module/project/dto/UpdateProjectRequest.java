@@ -1,13 +1,10 @@
 package com.projecthub.module.project.dto;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
+import java.time.LocalDate;
 import lombok.*;
 
-import java.time.LocalDate;
-
-/**
- * 更新项目请求 DTO
- */
+/** 更新项目请求 DTO */
 @NoArgsConstructor
 @AllArgsConstructor
 @Getter
@@ -16,19 +13,19 @@ import java.time.LocalDate;
 @Builder(toBuilder = true)
 public class UpdateProjectRequest {
 
-    private String name;
+  private String name;
 
-    private String description;
+  private String description;
 
-    @JsonFormat(pattern = "yyyy-MM-dd")
-    private LocalDate startDate;
+  @JsonFormat(pattern = "yyyy-MM-dd")
+  private LocalDate startDate;
 
-    @JsonFormat(pattern = "yyyy-MM-dd")
-    private LocalDate endDate;
+  @JsonFormat(pattern = "yyyy-MM-dd")
+  private LocalDate endDate;
 
-    private String status;
+  private String status;
 
-    private String icon;
+  private String icon;
 
-    private String themeColor;
+  private String themeColor;
 }

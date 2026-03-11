@@ -38,6 +38,25 @@ springdoc:
     tags-sorter: alpha
     operations-sorter: alpha
 
+# 应用配置
+app:
+  name: ProjectHub
+  url: http://localhost:8080
+  frontend-url: http://localhost:3000
+
+# 邮件配置
+spring.mail:
+  host: ${MAIL_HOST:smtp.example.com}
+  port: ${MAIL_PORT:587}
+  username: ${MAIL_USERNAME:noreply@projecthub.com}
+  password: ${MAIL_PASSWORD:changeme}
+  properties:
+    mail:
+      smtp:
+        auth: true
+        starttls:
+          enable: true
+
 # Actuator 配置
 management:
   endpoints:
