@@ -18,12 +18,21 @@ const authRoutes = ['/login', '/register', '/forgot-password'];
 export function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
 
-  // 从 cookie 或 localStorage 获取 token
-  // 注意：中间件只能访问 cookie，不能访问 localStorage
-  const token = request.cookies.get('auth-storage')?.value;
+  // 从 cookie 获取 auth-storage
+  // cookie 中存储的是 JSON 字符串：{ token: string, isAuthenticated: boolean }
+  const authCookie = request.cookies.get('auth-storage')?.value;
 
-  // 检查是否已登录（有 token）
-  const isAuthenticated = !!token;
+  // 解析 cookie 并检查是否已登录
+  let isAuthenticated = false;
+  if (authCookie) {
+    try {
+      const authData = JSON.parse(authCookie);
+      isAuthenticated = !!authData?.token && authData?.isAuthenticated === true;
+    } catch {
+      // 解析失败，认为未登录
+      isAuthenticated = false;
+    }
+  }
 
   // 检查是否是需要保护的路由
   const isProtectedRoute = protectedRoutes.some((route) =>
