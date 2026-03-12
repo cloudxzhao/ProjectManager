@@ -9,6 +9,23 @@
 | 数据库 | PostgreSQL |
 | API 基础地址 | `http://localhost:8080/api/v1` |
 
+
+## 接口信息
 - 后端代码目录: `/data/project/ProjectManager/Builder/backend/`
 - OpenAPI 文档: `http://localhost:8080/v3/api-docs`
 - 数据库和 Redis 配置: `src/main/resources/application-dev.yml`
+
+
+## 用户信息
+超级用户
+  │  字段  │          值          │
+  ├────────┼──────────────────────┤
+  │ 用户名 │ admin                │
+  ├────────┼──────────────────────┤
+  │ 邮箱   │ admin@projecthub.com │
+  ├────────┼──────────────────────┤
+  │ 密码   │ Admin123             │
+  ├────────┼──────────────────────┤
+  │ 角色   │ 超级管理员 (ADMIN)   │
+  ├────────┼──────────────────────┤
+  │ 状态   │ ACTIVE           

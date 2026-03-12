@@ -8,14 +8,15 @@ import { endpoints } from '@/lib/api/endpoints';
 const setAuthCookie = (value: string, expiresIn: number) => {
   if (typeof document !== 'undefined') {
     const maxAge = expiresIn || 3600; // 默认 1 小时
-    document.cookie = `auth-storage=${encodeURIComponent(value)}; path=/; max-age=${maxAge}; SameSite=Strict`;
+    // 使用 SameSite=Lax，允许在重定向时发送 cookie
+    document.cookie = `auth-storage=${encodeURIComponent(value)}; path=/; max-age=${maxAge}; SameSite=Lax`;
   }
 };
 
 // 删除 cookie 的辅助函数
 const removeAuthCookie = () => {
   if (typeof document !== 'undefined') {
-    document.cookie = 'auth-storage=; path=/; max-age=0; SameSite=Strict';
+    document.cookie = 'auth-storage=; path=/; max-age=0; SameSite=Lax';
   }
 };
 
@@ -49,8 +50,15 @@ export const useAuthStore = create<AuthState>()(
         try {
           const response = await api.post<AuthTokens>(endpoints.auth.login, credentials);
 
+          console.log('Login response:', response);
+          console.log('response.code:', response.code);
+          console.log('response.data:', response.data);
+
           if (response.code === 200) {
             const { accessToken, refreshToken, expiresIn } = response.data;
+
+            console.log('Token:', accessToken);
+            console.log('ExpiresIn:', expiresIn);
 
             // 存储 token 到 localStorage
             localStorage.setItem('access_token', accessToken);
@@ -59,15 +67,24 @@ export const useAuthStore = create<AuthState>()(
             // 同步到 cookie 供中间件使用
             setAuthCookie(JSON.stringify({ token: accessToken, isAuthenticated: true }), expiresIn);
 
-            // 获取用户信息
-            const userProfile = await api.get<User>(endpoints.user.profile);
-
-            set({
-              user: userProfile.data,
-              token: accessToken,
-              isAuthenticated: true,
-              isLoading: false,
-            });
+            // 获取用户信息（可选，失败不影响登录）
+            try {
+              const userProfile = await api.get<User>(endpoints.user.profile);
+              set({
+                user: userProfile.data,
+                token: accessToken,
+                isAuthenticated: true,
+                isLoading: false,
+              });
+            } catch (profileError) {
+              console.warn('获取用户信息失败，但登录已完成:', profileError);
+              // 即使获取用户信息失败，也完成登录
+              set({
+                token: accessToken,
+                isAuthenticated: true,
+                isLoading: false,
+              });
+            }
           }
         } catch (error: unknown) {
           const message = error instanceof Error ? error.message : '登录失败';
