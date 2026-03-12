@@ -19,9 +19,9 @@ spring:
 
   # JPA 配置
   jpa:
-    database-platform: org.hibernate.dialect.PostgreSQLDialect
     hibernate:
       ddl-auto: validate
+    open-in-view: false
     show-sql: true
     properties:
       hibernate:
