@@ -92,8 +92,16 @@ logs/
 # tasks/
 
 # Playwright
+.playwright-mcp/
 /test-results/
 /playwright-report/
 /blob-report/
 /playwright/.cache/
 /playwright/.auth/
+
+# Playwright screenshots
+dashboard
+date-picker
+new-project-form
+projects-list
+tasks-page
