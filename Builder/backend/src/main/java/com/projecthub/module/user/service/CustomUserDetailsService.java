@@ -4,6 +4,7 @@ import com.projecthub.common.exception.BusinessException;
 import com.projecthub.module.user.entity.User;
 import com.projecthub.module.user.repository.UserRepository;
 import com.projecthub.security.UserDetailsImpl;
+import java.util.Optional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -22,13 +23,27 @@ public class CustomUserDetailsService implements UserDetailsService {
 
   @Override
   @Transactional(readOnly = true)
-  public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
-    log.debug("加载用户详情：{}", username);
+  public UserDetails loadUserByUsername(String usernameOrEmail) throws UsernameNotFoundException {
+    log.debug("加载用户详情：{}", usernameOrEmail);
 
-    User user =
-        userRepository
-            .findByUsername(username)
-            .orElseThrow(() -> new UsernameNotFoundException("用户不存在：" + username));
+    User user = null;
+
+    // 先尝试通过用户名查找
+    Optional<User> userByUsername = userRepository.findByUsername(usernameOrEmail);
+    if (userByUsername.isPresent()) {
+      user = userByUsername.get();
+    } else {
+      // 如果用户名查找失败，尝试通过邮箱查找
+      Optional<User> userByEmail = userRepository.findByEmail(usernameOrEmail);
+      if (userByEmail.isPresent()) {
+        user = userByEmail.get();
+      }
+    }
+
+    // 如果仍然没有找到用户，抛出异常
+    if (user == null) {
+      throw new UsernameNotFoundException("用户不存在：" + usernameOrEmail);
+    }
 
     // 检查用户状态
     if (user.getStatus() == User.UserStatus.INACTIVE) {
