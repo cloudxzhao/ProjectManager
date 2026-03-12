@@ -36,7 +36,8 @@ export default function LoginPage() {
         remember: values.remember,
       });
       message.success('登录成功');
-      router.push('/dashboard');
+      // 使用 window.location.href 强制完整页面加载，确保中间件能读取到 cookie
+      window.location.href = '/dashboard';
     } catch (error: unknown) {
       const errorMessage = error instanceof Error ? error.message : '登录失败，请检查用户名和密码';
       message.error(errorMessage);
