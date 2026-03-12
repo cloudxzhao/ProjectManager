@@ -3,20 +3,24 @@ import { persist } from 'zustand/middleware';
 import { User, LoginCredentials, RegisterData, AuthTokens } from '@/types/user';
 import { api } from '@/lib/api/axios';
 import { endpoints } from '@/lib/api/endpoints';
+import type { Result } from '@/types/api';
 
 // 设置 cookie 的辅助函数
-const setAuthCookie = (value: string, expiresIn: number) => {
+const setAuthCookie = (token: string, expiresIn: number) => {
   if (typeof document !== 'undefined') {
-    const maxAge = expiresIn || 3600; // 默认 1 小时
-    // 使用 SameSite=Lax，允许在重定向时发送 cookie
-    document.cookie = `auth-storage=${encodeURIComponent(value)}; path=/; max-age=${maxAge}; SameSite=Lax`;
+    // expiresIn 是毫秒，需要转换为秒
+    const maxAge = expiresIn ? Math.floor(expiresIn / 1000) : 7200; // 默认 2 小时
+    // 使用 SameSite=Lax 和 Secure=false，允许在重定向时发送 cookie
+    // 注意：不要设置 Secure 属性，因为开发环境是 HTTP
+    document.cookie = `auth-storage=${encodeURIComponent(JSON.stringify({ token, isAuthenticated: true }))}; path=/; max-age=${maxAge}; SameSite=Lax`;
+    console.log('[Auth Cookie] Set cookie with maxAge:', maxAge, 'seconds');
   }
 };
 
 // 删除 cookie 的辅助函数
 const removeAuthCookie = () => {
   if (typeof document !== 'undefined') {
-    document.cookie = 'auth-storage=; path=/; max-age=0; SameSite=Lax';
+    document.cookie = 'auth-storage=; path=/; max-age=-1; SameSite=Lax';
   }
 };
 
@@ -33,7 +37,14 @@ interface AuthState {
   logout: () => void;
   updateUser: (user: Partial<User>) => void;
   clearError: () => void;
+  rehydrate: () => void; // 手动重新水合
 }
+
+// 手动从 localStorage 恢复状态的函数
+const getStoredToken = () => {
+  if (typeof window === 'undefined') return null;
+  return localStorage.getItem('access_token');
+};
 
 export const useAuthStore = create<AuthState>()(
   persist(
@@ -44,46 +55,74 @@ export const useAuthStore = create<AuthState>()(
       isLoading: false,
       error: null,
 
+      // 手动重新水合 - 从 localStorage 恢复 token
+      rehydrate: () => {
+        const token = getStoredToken();
+        if (token) {
+          set({
+            token,
+            isAuthenticated: true,
+          });
+        }
+      },
+
       login: async (credentials: LoginCredentials) => {
         set({ isLoading: true, error: null });
 
         try {
-          const response = await api.post<AuthTokens>(endpoints.auth.login, credentials);
+          // api.post 返回 Result<AuthTokens>，需要访问 data 字段获取实际的 token 数据
+          const result = await api.post<AuthTokens>(endpoints.auth.login, credentials);
 
-          console.log('Login response:', response);
-          console.log('response.code:', response.code);
-          console.log('response.data:', response.data);
+          // result.data 才是 AuthTokens
+          const tokenData = result.data;
 
-          if (response.code === 200) {
-            const { accessToken, refreshToken, expiresIn } = response.data;
+          console.log('Login token data:', tokenData);
+
+          // 检查是否有 accessToken 来判断登录是否成功
+          if (tokenData && tokenData.accessToken) {
+            const { accessToken, refreshToken, expiresIn } = tokenData;
 
             console.log('Token:', accessToken);
             console.log('ExpiresIn:', expiresIn);
 
-            // 存储 token 到 localStorage
+            // 1. 先存储 token 到 localStorage (供 Axios 拦截器使用)
             localStorage.setItem('access_token', accessToken);
             localStorage.setItem('refresh_token', refreshToken);
 
-            // 同步到 cookie 供中间件使用
-            setAuthCookie(JSON.stringify({ token: accessToken, isAuthenticated: true }), expiresIn);
+            // 2. 同步到 cookie 供中间件使用
+            setAuthCookie(accessToken, expiresIn);
 
-            // 获取用户信息（可选，失败不影响登录）
+            // 3. 获取用户信息（可选，失败不影响登录）
+            let userProfile: User | undefined;
             try {
-              const userProfile = await api.get<User>(endpoints.user.profile);
-              set({
-                user: userProfile.data,
-                token: accessToken,
-                isAuthenticated: true,
-                isLoading: false,
-              });
+              userProfile = await api.get<User>(endpoints.user.profile).then(res => res.data);
             } catch (profileError) {
               console.warn('获取用户信息失败，但登录已完成:', profileError);
-              // 即使获取用户信息失败，也完成登录
-              set({
-                token: accessToken,
-                isAuthenticated: true,
-                isLoading: false,
-              });
+            }
+
+            // 4. 更新 Zustand store - 这会触发 persist 中间件保存到 localStorage
+            set({
+              user: userProfile ?? null,
+              token: accessToken,
+              isAuthenticated: true,
+              isLoading: false,
+            });
+
+            console.log('Auth state after login:', get());
+
+            // 5. 手动同步到 localStorage 的 auth-storage（双重保障）
+            if (typeof window !== 'undefined') {
+              const state = get();
+              const persistedState = {
+                state: {
+                  token: state.token,
+                  isAuthenticated: state.isAuthenticated,
+                  user: state.user,
+                },
+                version: 0,
+              };
+              localStorage.setItem('auth-storage', JSON.stringify(persistedState));
+              console.log('Manually synced auth-storage to localStorage');
             }
           }
         } catch (error: unknown) {
@@ -97,29 +136,52 @@ export const useAuthStore = create<AuthState>()(
         set({ isLoading: true, error: null });
 
         try {
-          const response = await api.post<AuthTokens>(endpoints.auth.register, {
+          // api.post 返回 Result<AuthTokens>，需要访问 data 字段获取实际的 token 数据
+          const result = await api.post<AuthTokens>(endpoints.auth.register, {
             username: data.username,
             email: data.email,
             password: data.password,
           });
 
-          if (response.code === 200) {
-            const { accessToken, refreshToken, expiresIn } = response.data;
+          // result.data 才是 AuthTokens
+          const tokenData = result.data;
 
+          // 检查是否有 accessToken 来判断注册是否成功
+          if (tokenData && tokenData.accessToken) {
+            const { accessToken, refreshToken, expiresIn } = tokenData;
+
+            // 1. 先存储 token 到 localStorage
             localStorage.setItem('access_token', accessToken);
             localStorage.setItem('refresh_token', refreshToken);
 
-            // 同步到 cookie 供中间件使用
-            setAuthCookie(JSON.stringify({ token: accessToken, isAuthenticated: true }), expiresIn);
+            // 2. 同步到 cookie 供中间件使用
+            setAuthCookie(accessToken, expiresIn);
 
-            const userProfile = await api.get<User>(endpoints.user.profile);
+            const userProfile = await api.get<User>(endpoints.user.profile).then(res => res.data);
 
+            // 3. 更新 Zustand store
             set({
-              user: userProfile.data,
+              user: userProfile,
               token: accessToken,
               isAuthenticated: true,
               isLoading: false,
             });
+
+            console.log('Auth state after register:', get());
+
+            // 4. 手动同步到 localStorage 的 auth-storage（双重保障）
+            if (typeof window !== 'undefined') {
+              const state = get();
+              const persistedState = {
+                state: {
+                  token: state.token,
+                  isAuthenticated: state.isAuthenticated,
+                  user: state.user,
+                },
+                version: 0,
+              };
+              localStorage.setItem('auth-storage', JSON.stringify(persistedState));
+            }
           }
         } catch (error: unknown) {
           const message = error instanceof Error ? error.message : '注册失败';
@@ -131,6 +193,7 @@ export const useAuthStore = create<AuthState>()(
       logout: () => {
         localStorage.removeItem('access_token');
         localStorage.removeItem('refresh_token');
+        localStorage.removeItem('auth-storage'); // 清除 Zustand persist 存储
         removeAuthCookie(); // 删除 cookie
         set({
           user: null,
@@ -158,6 +221,18 @@ export const useAuthStore = create<AuthState>()(
         isAuthenticated: state.isAuthenticated,
         user: state.user,
       }),
+      onRehydrateStorage: () => {
+        console.log('=== onRehydrateStorage called ===');
+        return (state, error) => {
+          if (error) {
+            console.error('Failed to rehydrate auth state:', error);
+          } else {
+            console.log('Rehydrated auth state:', state);
+            console.log('Token from storage:', state?.token);
+            console.log('Is authenticated from storage:', state?.isAuthenticated);
+          }
+        };
+      },
     }
   )
 );
