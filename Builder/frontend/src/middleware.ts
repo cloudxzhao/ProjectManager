@@ -19,21 +19,29 @@ export function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
 
   // 从 cookie 获取 auth-storage
-  // cookie 中存储的是 JSON 字符串：{ token: string, isAuthenticated: boolean }
+  // 注意：Next.js request.cookies.get() 返回的 value 已经自动解码，不需要再次 decodeURIComponent
   const authCookie = request.cookies.get('auth-storage')?.value;
 
   // 解析 cookie 并检查是否已登录
   let isAuthenticated = false;
   if (authCookie) {
     try {
-      // 注意：cookie 值是经过 encodeURIComponent 编码的，需要先解码
-      const decodedCookie = decodeURIComponent(authCookie);
-      const authData = JSON.parse(decodedCookie);
+      // Next.js 已经自动解码，直接解析 JSON
+      const authData = JSON.parse(authCookie);
       isAuthenticated = !!authData?.token && authData?.isAuthenticated === true;
-    } catch {
+      console.log('[Middleware] Auth cookie found:', {
+        pathname,
+        isAuthenticated,
+        hasToken: !!authData?.token,
+        tokenPreview: authData?.token ? authData.token.substring(0, 20) + '...' : 'none'
+      });
+    } catch (error) {
       // 解析失败，认为未登录
+      console.error('[Middleware] Failed to parse auth cookie:', error, 'cookie value:', authCookie);
       isAuthenticated = false;
     }
+  } else {
+    console.log('[Middleware] No auth cookie found for pathname:', pathname);
   }
 
   // 检查是否是需要保护的路由

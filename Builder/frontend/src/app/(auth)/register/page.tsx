@@ -37,7 +37,10 @@ export default function RegisterPage() {
         confirmPassword: values.confirmPassword,
       });
       message.success('注册成功');
-      router.push('/dashboard');
+      // 使用 window.location.href 替代 router.push
+      // 因为 router.push 是客户端导航，不会触发 middleware
+      // 而 window.location.href 会触发完整页面加载，middleware 会正确读取 cookie
+      window.location.href = '/dashboard';
     } catch (error: unknown) {
       const errorMessage = error instanceof Error ? error.message : '注册失败，请稍后重试';
       message.error(errorMessage);
@@ -84,7 +87,7 @@ export default function RegisterPage() {
         <Input
           prefix={<UserOutlined className="text-gray-400" />}
           placeholder="请输入用户名"
-          className="h-12 bg-white text-gray-900 placeholder:text-gray-400"
+          className="h-12 bg-white/10 border-white/10 text-white placeholder:text-gray-400"
           autoComplete="username"
         />
       </Form.Item>
@@ -102,7 +105,7 @@ export default function RegisterPage() {
         <Input
           prefix={<MailOutlined className="text-gray-400" />}
           placeholder="name@example.com"
-          className="h-12 bg-white text-gray-900 placeholder:text-gray-400"
+          className="h-12 bg-white/10 border-white/10 text-white placeholder:text-gray-400"
           autoComplete="email"
         />
       </Form.Item>
@@ -118,17 +121,17 @@ export default function RegisterPage() {
         <Input.Password
           prefix={<LockOutlined className="text-gray-400" />}
           placeholder="请输入密码"
-          className="h-12 bg-white text-gray-900 placeholder:text-gray-400"
+          className="h-12 bg-white/10 border-white/10 text-white placeholder:text-gray-400"
           autoComplete="new-password"
           iconRender={(visible) =>
             visible ? (
               <EyeOutlined
-                className="text-gray-400 cursor-pointer"
+                className="text-gray-400 text-gray-300"
                 onClick={() => setPasswordVisible(!passwordVisible)}
               />
             ) : (
               <EyeInvisibleOutlined
-                className="text-gray-400 cursor-pointer"
+                className="text-gray-400 text-gray-300"
                 onClick={() => setPasswordVisible(!passwordVisible)}
               />
             )
@@ -157,17 +160,17 @@ export default function RegisterPage() {
         <Input.Password
           prefix={<LockOutlined className="text-gray-400" />}
           placeholder="请再次输入密码"
-          className="h-12 bg-white text-gray-900 placeholder:text-gray-400"
+          className="h-12 bg-white/10 border-white/10 text-white placeholder:text-gray-400"
           autoComplete="new-password"
           iconRender={(visible) =>
             visible ? (
               <EyeOutlined
-                className="text-gray-400 cursor-pointer"
+                className="text-gray-400 text-gray-300"
                 onClick={() => setConfirmPasswordVisible(!confirmPasswordVisible)}
               />
             ) : (
               <EyeInvisibleOutlined
-                className="text-gray-400 cursor-pointer"
+                className="text-gray-400 text-gray-300"
                 onClick={() => setConfirmPasswordVisible(!confirmPasswordVisible)}
               />
             )
@@ -182,11 +185,11 @@ export default function RegisterPage() {
       >
         <Checkbox className="text-gray-400">
           我已阅读并同意{' '}
-          <Link href="/terms" target="_blank" className="text-orange-500 hover:text-orange-400">
+          <Link href="/terms" target="_blank" className="text-orange-500">
             用户协议
           </Link>{' '}
           和{' '}
-          <Link href="/privacy" target="_blank" className="text-orange-500 hover:text-orange-400">
+          <Link href="/privacy" target="_blank" className="text-orange-500">
             隐私政策
           </Link>
         </Checkbox>
@@ -197,7 +200,7 @@ export default function RegisterPage() {
           type="primary"
           htmlType="submit"
           loading={loading || isLoading}
-          className="w-full h-12 bg-gradient-to-r from-orange-500 to-orange-600 hover:from-orange-600 hover:to-orange-700 border-none font-semibold text-base"
+          className="w-full h-12 bg-gradient-to-r from-orange-500 to-orange-600 border-none font-semibold text-base"
         >
           注册
         </Button>
@@ -205,7 +208,7 @@ export default function RegisterPage() {
 
       <div className="text-center">
         <span className="text-gray-400">已有账号？</span>
-        <Link href="/login" className="text-orange-500 hover:text-orange-400 font-medium ml-1">
+        <Link href="/login" className="text-orange-500 font-medium ml-1">
           立即登录
         </Link>
       </div>

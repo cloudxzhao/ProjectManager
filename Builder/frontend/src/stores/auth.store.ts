@@ -12,8 +12,10 @@ const setAuthCookie = (token: string, expiresIn: number) => {
     const maxAge = expiresIn ? Math.floor(expiresIn / 1000) : 7200; // 默认 2 小时
     // 使用 SameSite=Lax 和 Secure=false，允许在重定向时发送 cookie
     // 注意：不要设置 Secure 属性，因为开发环境是 HTTP
-    document.cookie = `auth-storage=${encodeURIComponent(JSON.stringify({ token, isAuthenticated: true }))}; path=/; max-age=${maxAge}; SameSite=Lax`;
-    console.log('[Auth Cookie] Set cookie with maxAge:', maxAge, 'seconds');
+    // Next.js middleware 会自动解码 cookie，所以不需要 encodeURIComponent
+    const cookieValue = JSON.stringify({ token, isAuthenticated: true });
+    document.cookie = `auth-storage=${cookieValue}; path=/; max-age=${maxAge}; SameSite=Lax`;
+    console.log('[Auth Cookie] Set cookie with maxAge:', maxAge, 'seconds, value:', cookieValue);
   }
 };
 

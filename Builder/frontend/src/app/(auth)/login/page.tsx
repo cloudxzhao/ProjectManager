@@ -36,7 +36,9 @@ export default function LoginPage() {
         remember: values.remember,
       });
       message.success('登录成功');
-      // 使用 window.location.href 强制完整页面加载，确保中间件能读取到 cookie
+      // 使用 window.location.href 替代 router.push
+      // 因为 router.push 是客户端导航，不会触发 middleware
+      // 而 window.location.href 会触发完整页面加载，middleware 会正确读取 cookie
       window.location.href = '/dashboard';
     } catch (error: unknown) {
       const errorMessage = error instanceof Error ? error.message : '登录失败，请检查用户名和密码';
@@ -90,7 +92,7 @@ export default function LoginPage() {
             <Input
               prefix={<MailOutlined className="text-gray-400" />}
               placeholder="请输入用户名或邮箱"
-              className="h-12 bg-white text-gray-900 placeholder:text-gray-400"
+              className="h-12 bg-white/10 border-white/10 text-white placeholder:text-gray-400"
               autoComplete="username"
             />
           </Form.Item>
@@ -106,17 +108,17 @@ export default function LoginPage() {
             <Input.Password
               prefix={<LockOutlined className="text-gray-400" />}
               placeholder="请输入密码"
-              className="h-12 bg-white text-gray-900 placeholder:text-gray-400"
+              className="h-12 bg-white/10 border-white/10 text-white placeholder:text-gray-400"
               autoComplete="current-password"
               iconRender={(visible) =>
                 visible ? (
                   <EyeOutlined
-                    className="text-gray-400 cursor-pointer hover:text-gray-300"
+                    className="text-gray-400 text-gray-300"
                     onClick={() => setPasswordVisible(!visible)}
                   />
                 ) : (
                   <EyeInvisibleOutlined
-                    className="text-gray-400 cursor-pointer hover:text-gray-300"
+                    className="text-gray-400 text-gray-300"
                     onClick={() => setPasswordVisible(!visible)}
                   />
                 )
@@ -128,7 +130,7 @@ export default function LoginPage() {
             <Form.Item name="remember" valuePropName="checked" className="!mb-0">
               <Checkbox className="text-gray-300">记住我</Checkbox>
             </Form.Item>
-            <Link href="/forgot-password" className="text-sm text-orange-400 hover:text-orange-300 font-medium">
+            <Link href="/forgot-password" className="text-sm text-orange-400 font-medium">
               忘记密码？
             </Link>
           </div>
@@ -152,15 +154,15 @@ export default function LoginPage() {
 
         {/* 社交登录 */}
         <div className="grid grid-cols-3 gap-3">
-          <button className="flex items-center justify-center gap-2 p-3 bg-white/10 border border-white/20 rounded-xl hover:border-orange-500/50 hover:bg-orange-500/10 transition-all">
+          <button className="flex items-center justify-center gap-2 p-3 bg-white/10 border border-white/20 rounded-xl">
             <WechatOutlined className="text-xl text-[#07c160]" />
             <span className="text-sm text-gray-300">微信</span>
           </button>
-          <button className="flex items-center justify-center gap-2 p-3 bg-white/10 border border-white/20 rounded-xl hover:border-orange-500/50 hover:bg-orange-500/10 transition-all">
+          <button className="flex items-center justify-center gap-2 p-3 bg-white/10 border border-white/20 rounded-xl">
             <QqOutlined className="text-xl text-[#1296db]" />
             <span className="text-sm text-gray-300">QQ</span>
           </button>
-          <button className="flex items-center justify-center gap-2 p-3 bg-white/10 border border-white/20 rounded-xl hover:border-orange-500/50 hover:bg-orange-500/10 transition-all">
+          <button className="flex items-center justify-center gap-2 p-3 bg-white/10 border border-white/20 rounded-xl">
             <DingtalkOutlined className="text-xl text-[#0089ff]" />
             <span className="text-sm text-gray-300">钉钉</span>
           </button>
@@ -169,7 +171,7 @@ export default function LoginPage() {
         {/* 注册链接 */}
         <div className="text-center mt-8 pt-6 border-t border-white/10">
           <span className="text-gray-400">还没有账户？</span>
-          <Link href="/register" className="text-orange-400 hover:text-orange-300 font-semibold ml-1">
+          <Link href="/register" className="text-orange-400 font-semibold ml-1">
             立即注册
           </Link>
         </div>
