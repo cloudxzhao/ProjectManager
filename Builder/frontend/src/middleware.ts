@@ -26,7 +26,9 @@ export function middleware(request: NextRequest) {
   let isAuthenticated = false;
   if (authCookie) {
     try {
-      const authData = JSON.parse(authCookie);
+      // 注意：cookie 值是经过 encodeURIComponent 编码的，需要先解码
+      const decodedCookie = decodeURIComponent(authCookie);
+      const authData = JSON.parse(decodedCookie);
       isAuthenticated = !!authData?.token && authData?.isAuthenticated === true;
     } catch {
       // 解析失败，认为未登录
