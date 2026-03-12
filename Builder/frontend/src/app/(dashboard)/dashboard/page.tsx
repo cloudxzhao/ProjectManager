@@ -1,9 +1,10 @@
 'use client';
 
 import { Avatar } from 'antd';
-import type { ReactNode } from 'react';
+import { useMemo } from 'react';
+import type { CSSProperties } from 'react';
 
-// 图标组件
+// 图标组件 - 使用 useMemo 确保引用稳定
 const ProjectIcon = () => (
   <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
     <path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"></path>
@@ -23,9 +24,28 @@ const CheckIcon = () => (
   </svg>
 );
 
-const FireIcon = () => (
+const ClockIcon = () => (
   <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-    <path d="M8.5 14.5A2.5 2.5 0 0 0 11 12c0-1.38-.5-2-1-3-1.072-2.143-.224-4.054 2-6 .5 2.5 2 4.9 4 6.5 2 1.6 3 3.5 3 5.5a7 7 0 1 1-14 0c0-1.1.2-2.2.5-3.3a7 7 0 0 0 3 3.3z"></path>
+    <circle cx="12" cy="12" r="10"></circle>
+    <polyline points="12 6 12 12 16 14"></polyline>
+  </svg>
+);
+
+const ArrowUpIcon = () => (
+  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
+    <polyline points="18 15 12 9 6 15"></polyline>
+  </svg>
+);
+
+const ArrowDownIcon = () => (
+  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
+    <polyline points="6 9 12 15 18 9"></polyline>
+  </svg>
+);
+
+const CheckSquareIcon = () => (
+  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
+    <polyline points="20 6 9 17 4 12"></polyline>
   </svg>
 );
 
@@ -76,37 +96,12 @@ const ChartIcon = () => (
   </svg>
 );
 
-const ClockIcon = () => (
-  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-    <circle cx="12" cy="12" r="10"></circle>
-    <polyline points="12 6 12 12 16 14"></polyline>
-  </svg>
-);
-
-const ArrowUpIcon = () => (
-  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
-    <polyline points="18 15 12 9 6 15"></polyline>
-  </svg>
-);
-
-const ArrowDownIcon = () => (
-  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
-    <polyline points="6 9 12 15 18 9"></polyline>
-  </svg>
-);
-
-const CheckSquareIcon = () => (
-  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
-    <polyline points="20 6 9 17 4 12"></polyline>
-  </svg>
-);
-
-// Mock 数据
+// Mock 数据 - 使用数字而不是 ReactNode 避免 SSR/CSR 不一致
 const metricsData = [
   {
     title: '进行中项目',
     value: 12,
-    icon: <ProjectIcon />,
+    iconType: 'project' as const,
     trend: 'up' as const,
     trendValue: 12,
     color: '#f97316',
@@ -116,7 +111,7 @@ const metricsData = [
   {
     title: '待完成任务',
     value: 48,
-    icon: <TaskIcon />,
+    iconType: 'task' as const,
     trend: 'up' as const,
     trendValue: 8,
     color: '#ec4899',
@@ -126,7 +121,7 @@ const metricsData = [
   {
     title: '本周已完成',
     value: 156,
-    icon: <CheckIcon />,
+    iconType: 'check' as const,
     trend: 'up' as const,
     trendValue: 24,
     color: '#10b981',
@@ -136,7 +131,7 @@ const metricsData = [
   {
     title: '逾期任务',
     value: 8,
-    icon: <ClockIcon />,
+    iconType: 'clock' as const,
     trend: 'down' as const,
     trendValue: 3,
     color: '#8b5cf6',
@@ -144,6 +139,14 @@ const metricsData = [
     glow: 'rgba(139, 92, 246, 0.4)',
   },
 ];
+
+// 图标类型映射
+const iconMap: Record<string, () => React.ReactNode> = {
+  project: ProjectIcon,
+  task: TaskIcon,
+  check: CheckIcon,
+  clock: ClockIcon,
+};
 
 const projectsData = [
   {
@@ -156,7 +159,7 @@ const projectsData = [
     statusText: '进行中',
     color: '#f97316',
     colorDark: '#ea580c',
-    icon: 'globe',
+    iconType: 'globe' as const,
   },
   {
     id: '2',
@@ -168,7 +171,7 @@ const projectsData = [
     statusText: '进行中',
     color: '#8b5cf6',
     colorDark: '#7c3aed',
-    icon: 'mobile',
+    iconType: 'mobile' as const,
   },
   {
     id: '3',
@@ -180,7 +183,7 @@ const projectsData = [
     statusText: '延期',
     color: '#06b6d4',
     colorDark: '#0891b2',
-    icon: 'layers',
+    iconType: 'layers' as const,
   },
   {
     id: '4',
@@ -192,9 +195,17 @@ const projectsData = [
     statusText: '评审中',
     color: '#84cc16',
     colorDark: '#65a30d',
-    icon: 'marketing',
+    iconType: 'marketing' as const,
   },
 ];
+
+// 项目图标类型映射
+const projectIconMap: Record<string, () => React.ReactNode> = {
+  globe: GlobeIcon,
+  mobile: MobileIcon,
+  layers: LayersIcon,
+  marketing: MarketingIcon,
+};
 
 const tasksData = [
   {
@@ -292,25 +303,29 @@ const chartData = [
   { day: '日', value: 28 },
 ];
 
-// 图标映射
-const projectIcons: Record<string, ReactNode> = {
-  globe: <GlobeIcon />,
-  mobile: <MobileIcon />,
-  layers: <LayersIcon />,
-  marketing: <MarketingIcon />,
-};
-
-// 任务复选框组件
-const TaskCheckbox = ({ checked, onChange }: { checked: boolean; onChange: () => void }) => (
-  <div
-    className={`task-checkbox ${checked ? 'checked' : ''}`}
-    onClick={onChange}
-  >
+// 任务复选框组件 - 纯展示组件
+const TaskCheckbox = () => (
+  <div className="task-checkbox">
     <CheckSquareIcon />
   </div>
 );
 
 export default function DashboardPage() {
+  // 使用 useMemo 缓存图标组件，确保 SSR/CSR 一致
+  const metricIcons = useMemo(() => ({
+    project: <ProjectIcon />,
+    task: <TaskIcon />,
+    check: <CheckIcon />,
+    clock: <ClockIcon />,
+  }), []);
+
+  const projectIcons = useMemo(() => ({
+    globe: <GlobeIcon />,
+    mobile: <MobileIcon />,
+    layers: <LayersIcon />,
+    marketing: <MarketingIcon />,
+  }), []);
+
   return (
     <div className="dashboard">
       {/* 背景图层 */}
@@ -327,30 +342,33 @@ export default function DashboardPage() {
 
       {/* 关键指标卡片 */}
       <div className="metrics-grid">
-        {metricsData.map((metric, index) => (
-          <div
-            key={index}
-            className="metric-card animate-fade-in"
-            style={{
-              '--metric-color': metric.color,
-              '--metric-color-dark': metric.colorDark,
-              '--metric-glow': metric.glow,
-              animationDelay: `${(index + 1) * 0.1}s`,
-            } as React.CSSProperties}
-          >
-            <div className="metric-header">
-              <div className="metric-icon">
-                {metric.icon}
+        {metricsData.map((metric, index) => {
+          const IconComponent = iconMap[metric.iconType];
+          return (
+            <div
+              key={index}
+              className="metric-card animate-fade-in"
+              style={{
+                '--metric-color': metric.color,
+                '--metric-color-dark': metric.colorDark,
+                '--metric-glow': metric.glow,
+                animationDelay: `${(index + 1) * 0.1}s`,
+              } as CSSProperties}
+            >
+              <div className="metric-header">
+                <div className="metric-icon">
+                  {metricIcons[metric.iconType]}
+                </div>
+                <div className={`metric-change ${metric.trend === 'up' ? 'positive' : 'negative'}`}>
+                  {metric.trend === 'up' ? <ArrowUpIcon /> : <ArrowDownIcon />}
+                  {metric.trend === 'up' ? '+' : '-'}{metric.trendValue}%
+                </div>
               </div>
-              <div className={`metric-change ${metric.trend === 'up' ? 'positive' : 'negative'}`}>
-                {metric.trend === 'up' ? <ArrowUpIcon /> : <ArrowDownIcon />}
-                {metric.trend === 'up' ? '+' : '-'}{metric.trendValue}%
-              </div>
+              <div className="metric-value">{metric.value}</div>
+              <div className="metric-label">{metric.title}</div>
             </div>
-            <div className="metric-value">{metric.value}</div>
-            <div className="metric-label">{metric.title}</div>
-          </div>
-        ))}
+          );
+        })}
       </div>
 
       {/* Bento Grid 布局 */}
@@ -365,38 +383,41 @@ export default function DashboardPage() {
             <a href="/projects" className="card-action">查看全部 →</a>
           </div>
           <div className="project-list">
-            {projectsData.map((project) => (
-              <div
-                key={project.id}
-                className="project-item"
-                style={{
-                  '--project-color': project.color,
-                  '--project-color-dark': project.colorDark,
-                } as React.CSSProperties}
-              >
-                <div className="project-icon">
-                  {projectIcons[project.icon]}
-                </div>
-                <div className="project-info">
-                  <div className="project-name">{project.name}</div>
-                  <div className="project-meta">
-                    <span>{project.members} 成员</span>
-                    <span>剩余 {project.daysLeft} 天</span>
+            {projectsData.map((project) => {
+              const IconComponent = projectIconMap[project.iconType];
+              return (
+                <div
+                  key={project.id}
+                  className="project-item"
+                  style={{
+                    '--project-color': project.color,
+                    '--project-color-dark': project.colorDark,
+                  } as CSSProperties}
+                >
+                  <div className="project-icon">
+                    <IconComponent />
                   </div>
-                </div>
-                <div className="project-progress">
-                  <div className="progress-bar">
-                    <div
-                      className="progress-fill"
-                      style={{ width: `${project.progress}%` }}
-                    />
+                  <div className="project-info">
+                    <div className="project-name">{project.name}</div>
+                    <div className="project-meta">
+                      <span>{project.members} 成员</span>
+                      <span>剩余 {project.daysLeft} 天</span>
+                    </div>
                   </div>
+                  <div className="project-progress">
+                    <div className="progress-bar">
+                      <div
+                        className="progress-fill"
+                        style={{ width: `${project.progress}%` }}
+                      />
+                    </div>
+                  </div>
+                  <span className={`project-status status-${project.status}`}>
+                    {project.statusText}
+                  </span>
                 </div>
-                <span className={`project-status status-${project.status}`}>
-                  {project.statusText}
-                </span>
-              </div>
-            ))}
+              );
+            })}
           </div>
         </div>
 
@@ -432,7 +453,7 @@ export default function DashboardPage() {
                 style={{
                   '--activity-color': activity.color,
                   '--activity-color-dark': activity.colorDark,
-                } as React.CSSProperties}
+                } as CSSProperties}
               >
                 <Avatar
                   className="activity-avatar"
@@ -477,19 +498,17 @@ export default function DashboardPage() {
   );
 }
 
-// 任务项组件（需要内部状态管理复选框）
+// 任务项组件 - 纯展示组件，避免 SSR/CSR 不一致
 function TaskItem({ task }: { task: typeof tasksData[0] }) {
-  const isChecked = false; // 可以在这里添加状态管理
-
-  const priorityColors = {
+  const priorityColors = useMemo(() => ({
     high: 'priority-high',
     medium: 'priority-medium',
     low: 'priority-low',
-  };
+  }), []);
 
   return (
     <div className="task-item">
-      <TaskCheckbox checked={isChecked} onChange={() => {}} />
+      <TaskCheckbox />
       <div className="task-content">
         <div className="task-title">{task.title}</div>
         <div className="task-meta">
