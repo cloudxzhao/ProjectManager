@@ -30,5 +30,6 @@
     "react": {
       "version": "detect"
     }
-  }
+  },
+  "ignorePatterns": ["node_modules", ".next", "*.config.js", "*.config.ts"]
 }
