@@ -3,8 +3,10 @@ package com.projecthub.module.story.entity;
 import jakarta.persistence.*;
 import java.time.LocalDateTime;
 import lombok.*;
+import org.hibernate.annotations.JdbcTypeCode;
 import org.hibernate.annotations.SQLDelete;
 import org.hibernate.annotations.SQLRestriction;
+import org.hibernate.type.SqlTypes;
 import org.springframework.data.annotation.CreatedDate;
 import org.springframework.data.annotation.LastModifiedDate;
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
@@ -41,7 +43,8 @@ public class UserStory {
   private String acceptanceCriteria;
 
   @Enumerated(EnumType.STRING)
-  @Column(nullable = false)
+  @JdbcTypeCode(SqlTypes.VARCHAR)
+  @Column(nullable = false, length = 20)
   private Priority priority = Priority.MEDIUM;
 
   @Column(name = "story_points")
@@ -51,7 +54,8 @@ public class UserStory {
   private Long assigneeId;
 
   @Enumerated(EnumType.STRING)
-  @Column(nullable = false)
+  @JdbcTypeCode(SqlTypes.VARCHAR)
+  @Column(nullable = false, length = 20)
   private TaskStatus status = TaskStatus.TODO;
 
   @Column(nullable = false)

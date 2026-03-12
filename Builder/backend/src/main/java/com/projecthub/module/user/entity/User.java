@@ -3,8 +3,10 @@ package com.projecthub.module.user.entity;
 import jakarta.persistence.*;
 import java.time.LocalDateTime;
 import lombok.*;
+import org.hibernate.annotations.JdbcTypeCode;
 import org.hibernate.annotations.SQLDelete;
 import org.hibernate.annotations.SQLRestriction;
+import org.hibernate.type.SqlTypes;
 import org.springframework.data.annotation.CreatedDate;
 import org.springframework.data.annotation.LastModifiedDate;
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
@@ -38,7 +40,8 @@ public class User {
   private String avatar;
 
   @Enumerated(EnumType.STRING)
-  @Column(nullable = false)
+  @JdbcTypeCode(SqlTypes.VARCHAR)
+  @Column(nullable = false, length = 20)
   private UserStatus status = UserStatus.ACTIVE;
 
   @Column(name = "created_at", nullable = false, updatable = false)

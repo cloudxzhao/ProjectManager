@@ -2,6 +2,7 @@ import type { Metadata } from 'next';
 import { Noto_Sans_SC, Outfit } from 'next/font/google';
 import './globals.css';
 import { AntdRegistry } from '@ant-design/nextjs-registry';
+import { AntdProvider } from '@/components/providers/AntdProvider';
 
 // 配置中文字体
 const notoSansSC = Noto_Sans_SC({
@@ -32,7 +33,9 @@ export default function RootLayout({
   return (
     <html lang="zh-CN" suppressHydrationWarning>
       <body className={`${notoSansSC.variable} ${outfit.variable} font-sans`}>
-        <AntdRegistry>{children}</AntdRegistry>
+        <AntdRegistry>
+          <AntdProvider>{children}</AntdProvider>
+        </AntdRegistry>
       </body>
     </html>
   );

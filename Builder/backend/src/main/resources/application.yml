@@ -1,6 +1,6 @@
 # ProjectHub 应用配置
 server:
-  port: 8080
+  port: 9527
   servlet:
     context-path: /
 
@@ -17,7 +17,7 @@ logging:
     root: INFO
     com.projecthub: DEBUG
   pattern:
-    console: "%d{yyyy-MM-dd HH:mm:ss.SSS} [%thread] %-5level %logger{36} - %msg%n"
+    console: "%clr(%d{yyyy-MM-dd HH:mm:ss.SSS}){faint} %clr([%thread]){magenta} %clr(%-5level){highlight} %clr(%logger{36}){cyan} - %clr(%msg){white}%n"
 
 # JWT 配置
 jwt:

@@ -33,7 +33,7 @@ public class Notification {
   @Column(columnDefinition = "TEXT")
   private String content;
 
-  @Column(name = "type", nullable = false)
+  @Column(name = "type", nullable = false, columnDefinition = "notification_type DEFAULT 'INFO'")
   private String type;
 
   @Column(name = "related_id")

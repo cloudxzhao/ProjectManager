@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { Form, Input, Button, DatePicker, Select, ColorPicker, message, Card } from 'antd';
 import { ArrowLeftOutlined, ProjectOutlined } from '@ant-design/icons';
@@ -26,9 +26,22 @@ const projectIcons = ['🛒', '📱', '📊', '🤝', '🌐', '🔧', '💼', '�
 
 export default function NewProjectPage() {
   const router = useRouter();
-  const { isAuthenticated } = useAuth();
+  const { isAuthenticated, token } = useAuth();
   const [loading, setLoading] = useState(false);
   const [selectedIcon, setSelectedIcon] = useState('🛒');
+
+  // 检查是否已登录，未登录则重定向到登录页
+  useEffect(() => {
+    if (!isAuthenticated) {
+      // 检查 localStorage 中是否有 token（双重检查）
+      const storedToken = typeof window !== 'undefined' ? localStorage.getItem('access_token') : null;
+      if (!storedToken) {
+        // 未登录，重定向到登录页
+        window.location.href = `/login?from=${encodeURIComponent('/projects/new')}`;
+        return;
+      }
+    }
+  }, [isAuthenticated]);
 
   const onFinish = async (values: ProjectFormValues) => {
     setLoading(true);

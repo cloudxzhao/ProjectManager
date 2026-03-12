@@ -3,6 +3,8 @@ package com.projecthub.module.project.entity;
 import jakarta.persistence.*;
 import java.time.LocalDateTime;
 import lombok.*;
+import org.hibernate.annotations.JdbcTypeCode;
+import org.hibernate.type.SqlTypes;
 import org.springframework.data.annotation.CreatedDate;
 
 /** 项目成员实体类 */
@@ -27,7 +29,8 @@ public class ProjectMember {
   private Long userId;
 
   @Enumerated(EnumType.STRING)
-  @Column(nullable = false)
+  @JdbcTypeCode(SqlTypes.VARCHAR)
+  @Column(nullable = false, length = 20)
   private ProjectMemberRole role = ProjectMemberRole.MEMBER;
 
   @Column(name = "joined_at", nullable = false)
