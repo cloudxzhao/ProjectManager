@@ -53,13 +53,13 @@ export default function DashboardPage() {
       {/* 页面标题 */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold text-white">工作台</h1>
-          <p className="text-gray-400 mt-1">欢迎回来，今天也是高效的一天！</p>
+          <h1 className="font-display text-2xl font-bold text-white">工作台</h1>
+          <p className="text-gray-400 text-sm mt-1">欢迎回来，今天也是高效的一天！</p>
         </div>
         <Button
           type="primary"
           icon={<PlusOutlined />}
-          className="bg-gradient-to-r from-orange-500 to-orange-600 border-none"
+          className="bg-gradient-to-r from-orange-500 to-orange-600 border-none h-10 px-5 rounded-xl glow-orange hover:-translate-y-0.5 transition-all"
         >
           快速创建
         </Button>
@@ -69,26 +69,26 @@ export default function DashboardPage() {
       <Row gutter={[16, 16]}>
         {statsData.map((stat, index) => (
           <Col xs={24} sm={12} lg={6} key={index}>
-            <Card className="bg-gray-800/50 border-gray-700 hover:border-orange-500/30 transition-all">
+            <Card className="glass-card bg-white/3 border-white/8 hover:bg-white/5 hover:border-orange-500/30 transition-all duration-300">
               <Statistic
-                title={<span className="text-gray-400">{stat.title}</span>}
+                title={<span className="text-gray-400 text-sm">{stat.title}</span>}
                 value={stat.value}
                 suffix={stat.suffix}
                 prefix={
-                  <span className="text-orange-500 text-2xl mr-2">{stat.icon}</span>
+                  <span className="text-orange-400 text-2xl mr-2">{stat.icon}</span>
                 }
-                valueStyle={{ color: '#fff' }}
+                valueStyle={{ color: '#fff', fontFamily: 'Outfit, sans-serif', fontWeight: 600 }}
               />
               <div className="mt-2 flex items-center gap-2">
                 {stat.trend === 'up' ? (
-                  <ArrowUpOutlined className="text-green-500" />
+                  <ArrowUpOutlined className="text-emerald-400" />
                 ) : (
-                  <ArrowDownOutlined className="text-red-500" />
+                  <ArrowDownOutlined className="text-red-400" />
                 )}
-                <span className={stat.trend === 'up' ? 'text-green-500' : 'text-red-500'}>
-                  {stat.trendValue}
+                <span className={stat.trend === 'up' ? 'text-emerald-400' : 'text-red-400'}>
+                  {stat.trendValue > 0 ? '+' : ''}{stat.trendValue}
                 </span>
-                <span className="text-gray-500 text-sm">较上周</span>
+                <span className="text-gray-500 text-xs">较上周</span>
               </div>
             </Card>
           </Col>
@@ -100,13 +100,13 @@ export default function DashboardPage() {
         {/* 进行中项目 */}
         <Col xs={24} lg={16}>
           <Card
-            title={<span className="text-white font-semibold">进行中项目</span>}
+            title={<span className="text-white font-display font-semibold">进行中项目</span>}
             extra={
-              <Link href="/projects" className="text-orange-500 hover:text-orange-400 text-sm">
+              <Link href="/projects" className="text-orange-400 hover:text-orange-300 text-sm transition-colors">
                 查看全部 →
               </Link>
             }
-            className="bg-gray-800/50 border-gray-700"
+            className="glass-card bg-white/3 border-white/8"
           >
             <List
               grid={{ gutter: 16, column: 2 }}
@@ -114,7 +114,7 @@ export default function DashboardPage() {
               renderItem={(project) => (
                 <List.Item>
                   <Card
-                    className="bg-gray-700/30 border-gray-600 hover:border-orange-500/30 transition-all cursor-pointer"
+                    className="bg-white/3 border-white/8 hover:bg-white/5 hover:border-orange-500/30 transition-all duration-300 cursor-pointer"
                     bodyStyle={{ padding: '16px' }}
                   >
                     <div className="mb-3">
@@ -123,7 +123,7 @@ export default function DashboardPage() {
                     <Progress
                       percent={project.progress}
                       strokeColor={{ from: '#f97316', to: '#eab308' }}
-                      trailColor="transparent"
+                      trailColor="rgba(255,255,255,0.1)"
                       format={(percent) => <span className="text-white text-xs">{percent}%</span>}
                     />
                     <div className="mt-3 flex items-center justify-between">
@@ -132,7 +132,7 @@ export default function DashboardPage() {
                           <Avatar
                             key={i}
                             size={24}
-                            className="bg-gray-600 border-2 border-gray-700"
+                            className="bg-gradient-to-br from-purple-400 to-pink-500 border-2 border-gray-700"
                             icon={<span className="text-xs">U{i + 1}</span>}
                           />
                         ))}
@@ -144,8 +144,8 @@ export default function DashboardPage() {
                           />
                         )}
                       </div>
-                      <Tag color="orange" className="border-orange-500/50">
-                        {project.status === 'active' ? '进行中' : '已完成'}
+                      <Tag color="orange" className="border-orange-500/50 bg-orange-500/10 text-orange-400">
+                        进行中
                       </Tag>
                     </div>
                   </Card>
@@ -158,22 +158,29 @@ export default function DashboardPage() {
         {/* 待处理任务 */}
         <Col xs={24} lg={8}>
           <Card
-            title={<span className="text-white font-semibold">待处理任务</span>}
+            title={<span className="text-white font-display font-semibold">待处理任务</span>}
             extra={
-              <Link href="/tasks" className="text-orange-500 hover:text-orange-400 text-sm">
+              <Link href="/tasks" className="text-orange-400 hover:text-orange-300 text-sm transition-colors">
                 查看全部 →
               </Link>
             }
-            className="bg-gray-800/50 border-gray-700"
+            className="glass-card bg-white/3 border-white/8"
           >
             <List
               dataSource={pendingTasks}
               renderItem={(task) => (
-                <List.Item className="border-gray-700 hover:bg-gray-700/30 transition-all cursor-pointer px-0">
-                  <div className="flex-1">
-                    <div className="flex items-start justify-between mb-1">
+                <List.Item className="border-gray-700/50 hover:bg-white/5 transition-all cursor-pointer px-0">
+                  <div className="flex-1 py-2">
+                    <div className="flex items-start justify-between mb-2">
                       <h4 className="text-white text-sm font-medium line-clamp-1">{task.title}</h4>
-                      <Tag color={priorityColors[task.priority]} className="text-xs">
+                      <Tag
+                        color={task.priority === 'high' ? 'red' : task.priority === 'medium' ? 'orange' : 'green'}
+                        className={`${
+                          task.priority === 'high' ? 'bg-red-500/10 text-red-400 border-red-500/30' :
+                          task.priority === 'medium' ? 'bg-orange-500/10 text-orange-400 border-orange-500/30' :
+                          'bg-green-500/10 text-green-400 border-green-500/30'
+                        } text-xs`}
+                      >
                         {task.priority === 'high' ? '高' : task.priority === 'medium' ? '中' : '低'}
                       </Tag>
                     </div>
@@ -191,22 +198,22 @@ export default function DashboardPage() {
         {/* 最近活动 */}
         <Col xs={24}>
           <Card
-            title={<span className="text-white font-semibold">最近活动</span>}
-            className="bg-gray-800/50 border-gray-700"
+            title={<span className="text-white font-display font-semibold">最近活动</span>}
+            className="glass-card bg-white/3 border-white/8"
           >
             <List
               dataSource={recentActivities}
               renderItem={(activity) => (
-                <List.Item className="border-gray-700">
+                <List.Item className="border-gray-700/50 py-3">
                   <div className="flex items-center gap-3 w-full">
                     <Avatar className="bg-gradient-to-br from-orange-400 to-amber-500">
                       {activity.user[0]}
                     </Avatar>
                     <div className="flex-1">
-                      <p className="text-gray-300">
+                      <p className="text-gray-300 text-sm">
                         <span className="text-white font-medium">{activity.user}</span>{' '}
                         <span className="text-gray-400">{activity.action}</span>{' '}
-                        <span className="text-orange-400">{activity.target}</span>
+                        <span className="text-orange-400 hover:text-orange-300 cursor-pointer">{activity.target}</span>
                       </p>
                       <p className="text-gray-500 text-xs mt-1">{activity.time}</p>
                     </div>
