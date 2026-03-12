@@ -26,4 +26,13 @@ public interface UserRepository extends JpaRepository<User, Long> {
   /** 检查邮箱是否存在 */
   @Query("SELECT COUNT(u) > 0 FROM User u WHERE u.email = :email AND u.deletedAt IS NULL")
   boolean existsByEmail(@Param("email") String email);
+
+  /** 查询用户的角色（从 sys_user_role 和 sys_role 表） */
+  @Query(
+      value =
+          "SELECT r.code FROM sys_role r "
+              + "JOIN sys_user_role ur ON r.id = ur.role_id "
+              + "WHERE ur.user_id = :userId LIMIT 1",
+      nativeQuery = true)
+  String findRoleCodeByUserId(@Param("userId") Long userId);
 }

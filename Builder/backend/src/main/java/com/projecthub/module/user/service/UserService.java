@@ -35,7 +35,17 @@ public class UserService {
   @Transactional(readOnly = true)
   public UserVO getCurrentUserInfo() {
     User user = getCurrentUser();
-    return BeanCopyUtil.copyProperties(user, UserVO.class);
+    UserVO userVO = BeanCopyUtil.copyProperties(user, UserVO.class);
+
+    // 设置用户角色
+    String roleCode = userRepository.findRoleCodeByUserId(user.getId());
+    if (roleCode != null && roleCode.startsWith("ROLE_")) {
+      userVO.setRole(roleCode.substring(5)); // 去掉 ROLE_ 前缀
+    } else {
+      userVO.setRole("MEMBER"); // 默认为 MEMBER
+    }
+
+    return userVO;
   }
 
   /** 更新用户资料 */
@@ -53,7 +63,9 @@ public class UserService {
     userRepository.save(user);
     log.info("更新用户资料成功：{}", user.getUsername());
 
-    return BeanCopyUtil.copyProperties(user, UserVO.class);
+    UserVO userVO = BeanCopyUtil.copyProperties(user, UserVO.class);
+    setUserRole(userVO, user.getId());
+    return userVO;
   }
 
   /** 上传头像 */
@@ -87,7 +99,9 @@ public class UserService {
 
       log.info("上传头像成功：{}", user.getUsername());
 
-      return BeanCopyUtil.copyProperties(user, UserVO.class);
+      UserVO userVO = BeanCopyUtil.copyProperties(user, UserVO.class);
+      setUserRole(userVO, user.getId());
+      return userVO;
 
     } catch (IOException e) {
       log.error("上传头像失败：{}", e.getMessage(), e);
@@ -116,7 +130,19 @@ public class UserService {
   @Transactional(readOnly = true)
   public UserVO getUserById(Long userId) {
     User user = userRepository.findById(userId).orElseThrow(() -> new BusinessException("用户不存在"));
-    return BeanCopyUtil.copyProperties(user, UserVO.class);
+    UserVO userVO = BeanCopyUtil.copyProperties(user, UserVO.class);
+    setUserRole(userVO, userId);
+    return userVO;
+  }
+
+  /** 设置用户角色 */
+  private void setUserRole(UserVO userVO, Long userId) {
+    String roleCode = userRepository.findRoleCodeByUserId(userId);
+    if (roleCode != null && roleCode.startsWith("ROLE_")) {
+      userVO.setRole(roleCode.substring(5)); // 去掉 ROLE_ 前缀，如 ROLE_ADMIN -> ADMIN
+    } else {
+      userVO.setRole("MEMBER"); // 默认为 MEMBER
+    }
   }
 
   /** 获取当前登录用户 */

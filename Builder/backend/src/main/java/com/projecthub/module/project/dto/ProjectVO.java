@@ -1,6 +1,7 @@
 package com.projecthub.module.project.dto;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import java.time.LocalDate;
@@ -48,7 +49,17 @@ public class ProjectVO {
   private String icon;
 
   /** 主题颜色 */
+  @JsonProperty("color")
   private String themeColor;
+
+  /** 项目成员数 */
+  private Integer memberCount;
+
+  /** 任务总数 */
+  private Integer taskCount;
+
+  /** 已完成任务数 */
+  private Integer completedTaskCount;
 
   /** 创建时间 */
   private LocalDateTime createdAt;
@@ -73,6 +84,7 @@ public class ProjectVO {
 
     private String icon;
 
+    @JsonProperty("color")
     private String themeColor;
   }
 
@@ -95,6 +107,7 @@ public class ProjectVO {
 
     private String icon;
 
+    @JsonProperty("color")
     private String themeColor;
   }
 }

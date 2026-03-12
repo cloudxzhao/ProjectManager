@@ -32,4 +32,19 @@ public interface ProjectRepository
   /** 查询项目 ID 列表（根据所有者 ID） */
   @Query("SELECT p.id FROM Project p WHERE p.ownerId = :ownerId AND p.deletedAt IS NULL")
   List<Long> findIdsByOwnerId(@Param("ownerId") Long ownerId);
+
+  /** 统计项目成员数量 */
+  @Query("SELECT COUNT(pm) FROM ProjectMember pm WHERE pm.projectId = :projectId")
+  Long countMembersByProjectId(@Param("projectId") Long projectId);
+
+  /** 统计项目任务数量 */
+  @Query("SELECT COUNT(t) FROM Task t WHERE t.projectId = :projectId AND t.deletedAt IS NULL")
+  Long countTasksByProjectId(@Param("projectId") Long projectId);
+
+  /** 统计项目已完成任务数量 */
+  @Query(
+      "SELECT COUNT(t) FROM Task t WHERE t.projectId = :projectId "
+          + "AND t.status = com.projecthub.module.task.entity.Task$TaskStatus.DONE "
+          + "AND t.deletedAt IS NULL")
+  Long countCompletedTasksByProjectId(@Param("projectId") Long projectId);
 }

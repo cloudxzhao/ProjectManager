@@ -1,6 +1,7 @@
 package com.projecthub.module.task.dto;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import java.time.LocalDate;
@@ -42,6 +43,7 @@ public class TaskVO {
   private String assigneeName;
 
   /** 创建者 ID */
+  @JsonProperty("reporterId")
   private Long creatorId;
 
   /** 父任务 ID */
@@ -55,7 +57,17 @@ public class TaskVO {
   private Integer storyPoints;
 
   /** 位置 */
+  @JsonProperty("order")
   private Integer position;
+
+  /** 子任务总数 */
+  private Integer subtaskCount;
+
+  /** 已完成子任务数 */
+  private Integer completedSubtaskCount;
+
+  /** 评论总数 */
+  private Integer commentCount;
 
   /** 创建时间 */
   private LocalDateTime createdAt;
@@ -119,6 +131,7 @@ public class TaskVO {
     private String status;
 
     /** 目标位置 */
+    @JsonProperty("order")
     private Integer position;
   }
 

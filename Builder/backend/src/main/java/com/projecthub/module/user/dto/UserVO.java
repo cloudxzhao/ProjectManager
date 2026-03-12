@@ -29,6 +29,9 @@ public class UserVO {
   /** 用户状态 */
   private String status;
 
+  /** 用户角色 */
+  private String role;
+
   /** 创建时间 */
   private LocalDateTime createdAt;
 

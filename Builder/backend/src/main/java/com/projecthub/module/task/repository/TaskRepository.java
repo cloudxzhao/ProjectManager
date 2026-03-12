@@ -55,4 +55,11 @@ public interface TaskRepository extends JpaRepository<Task, Long>, JpaSpecificat
   /** 查询子任务数量 */
   @Query("SELECT COUNT(t) FROM Task t WHERE t.parentId = :parentId AND t.deletedAt IS NULL")
   Long countByParentId(@Param("parentId") Long parentId);
+
+  /** 统计父任务下已完成的子任务数量 */
+  @Query(
+      "SELECT COUNT(t) FROM Task t WHERE t.parentId = :parentId "
+          + "AND t.status = com.projecthub.module.task.entity.Task$TaskStatus.DONE "
+          + "AND t.deletedAt IS NULL")
+  Long countCompletedSubTasksByParentId(@Param("parentId") Long parentId);
 }

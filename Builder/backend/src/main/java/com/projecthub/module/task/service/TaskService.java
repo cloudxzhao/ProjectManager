@@ -6,6 +6,7 @@ import com.projecthub.common.util.BeanCopyUtil;
 import com.projecthub.module.project.service.PermissionService;
 import com.projecthub.module.task.dto.TaskVO;
 import com.projecthub.module.task.entity.Task;
+import com.projecthub.module.task.repository.CommentRepository;
 import com.projecthub.module.task.repository.TaskRepository;
 import com.projecthub.security.UserDetailsImpl;
 import jakarta.persistence.criteria.Predicate;
@@ -32,6 +33,7 @@ public class TaskService {
 
   private final TaskRepository taskRepository;
   private final PermissionService permissionService;
+  private final CommentRepository commentRepository;
 
   /** 创建任务 */
   @Transactional
@@ -69,7 +71,9 @@ public class TaskService {
     taskRepository.save(task);
     log.info("创建任务成功：taskId={}, projectId={}", task.getId(), projectId);
 
-    return BeanCopyUtil.copyProperties(task, TaskVO.class);
+    TaskVO taskVO = BeanCopyUtil.copyProperties(task, TaskVO.class);
+    populateTaskStats(taskVO);
+    return taskVO;
   }
 
   /** 获取任务详情 */
@@ -77,7 +81,9 @@ public class TaskService {
   public TaskVO getTask(Long taskId) {
     Task task = taskRepository.findById(taskId).orElseThrow(() -> new BusinessException("任务不存在"));
 
-    return BeanCopyUtil.copyProperties(task, TaskVO.class);
+    TaskVO taskVO = BeanCopyUtil.copyProperties(task, TaskVO.class);
+    populateTaskStats(taskVO);
+    return taskVO;
   }
 
   /** 更新任务 */
@@ -114,7 +120,9 @@ public class TaskService {
     taskRepository.save(task);
     log.info("更新任务成功：taskId={}", taskId);
 
-    return BeanCopyUtil.copyProperties(task, TaskVO.class);
+    TaskVO taskVO = BeanCopyUtil.copyProperties(task, TaskVO.class);
+    populateTaskStats(taskVO);
+    return taskVO;
   }
 
   /** 删除任务 */
@@ -150,7 +158,9 @@ public class TaskService {
     taskRepository.save(task);
     log.info("移动任务成功：taskId={}, status={}", taskId, task.getStatus());
 
-    return BeanCopyUtil.copyProperties(task, TaskVO.class);
+    TaskVO taskVO = BeanCopyUtil.copyProperties(task, TaskVO.class);
+    populateTaskStats(taskVO);
+    return taskVO;
   }
 
   /** 获取任务列表（支持多维度筛选） */
@@ -195,10 +205,34 @@ public class TaskService {
 
     List<TaskVO> content =
         taskPage.getContent().stream()
-            .map(task -> BeanCopyUtil.copyProperties(task, TaskVO.class))
+            .map(
+                task -> {
+                  TaskVO taskVO = BeanCopyUtil.copyProperties(task, TaskVO.class);
+                  populateTaskStats(taskVO);
+                  return taskVO;
+                })
             .collect(Collectors.toList());
 
     return PageResult.of(content, taskPage.getTotalElements(), page, size);
+  }
+
+  /** 填充任务统计信息 */
+  private void populateTaskStats(TaskVO taskVO) {
+    if (taskVO.getId() == null) {
+      return;
+    }
+
+    // 统计子任务数量
+    Long subtaskCount = taskRepository.countByParentId(taskVO.getId());
+    taskVO.setSubtaskCount(subtaskCount.intValue());
+
+    // 统计已完成子任务数量
+    Long completedSubtaskCount = taskRepository.countCompletedSubTasksByParentId(taskVO.getId());
+    taskVO.setCompletedSubtaskCount(completedSubtaskCount.intValue());
+
+    // 统计评论数量
+    Long commentCount = commentRepository.countByTaskId(taskVO.getId());
+    taskVO.setCommentCount(commentCount.intValue());
   }
 
   /** 检查任务权限 */
@@ -230,7 +264,12 @@ public class TaskService {
 
     List<Task> subTasks = taskRepository.findByParentId(parentId);
     return subTasks.stream()
-        .map(task -> BeanCopyUtil.copyProperties(task, TaskVO.class))
+        .map(
+            task -> {
+              TaskVO taskVO = BeanCopyUtil.copyProperties(task, TaskVO.class);
+              populateTaskStats(taskVO);
+              return taskVO;
+            })
         .collect(Collectors.toList());
   }
 
@@ -256,6 +295,8 @@ public class TaskService {
     taskRepository.save(task);
     log.info("切换子任务完成状态：taskId={}, status={}", taskId, task.getStatus());
 
-    return BeanCopyUtil.copyProperties(task, TaskVO.class);
+    TaskVO taskVO = BeanCopyUtil.copyProperties(task, TaskVO.class);
+    populateTaskStats(taskVO);
+    return taskVO;
   }
 }

@@ -33,6 +33,25 @@ public class ProjectService {
   private final ProjectMemberRepository memberRepository;
   private final PermissionService permissionService;
 
+  /** 填充项目统计信息 */
+  private void populateProjectStats(ProjectVO projectVO) {
+    if (projectVO.getId() == null) {
+      return;
+    }
+
+    // 统计成员数量
+    Long memberCount = projectRepository.countMembersByProjectId(projectVO.getId());
+    projectVO.setMemberCount(memberCount.intValue());
+
+    // 统计任务总数
+    Long taskCount = projectRepository.countTasksByProjectId(projectVO.getId());
+    projectVO.setTaskCount(taskCount.intValue());
+
+    // 统计已完成任务数
+    Long completedTaskCount = projectRepository.countCompletedTasksByProjectId(projectVO.getId());
+    projectVO.setCompletedTaskCount(completedTaskCount.intValue());
+  }
+
   /** 创建项目 */
   @Transactional
   public ProjectVO createProject(CreateProjectRequest request) {
@@ -58,7 +77,9 @@ public class ProjectService {
     projectRepository.save(project);
     log.info("创建项目成功：projectId={}, ownerId={}", project.getId(), ownerId);
 
-    return BeanCopyUtil.copyProperties(project, ProjectVO.class);
+    ProjectVO projectVO = BeanCopyUtil.copyProperties(project, ProjectVO.class);
+    populateProjectStats(projectVO);
+    return projectVO;
   }
 
   /** 获取项目详情 */
@@ -67,7 +88,9 @@ public class ProjectService {
     Project project =
         projectRepository.findById(projectId).orElseThrow(() -> new BusinessException("项目不存在"));
 
-    return BeanCopyUtil.copyProperties(project, ProjectVO.class);
+    ProjectVO projectVO = BeanCopyUtil.copyProperties(project, ProjectVO.class);
+    populateProjectStats(projectVO);
+    return projectVO;
   }
 
   /** 更新项目 */
@@ -114,7 +137,9 @@ public class ProjectService {
     projectRepository.save(project);
     log.info("更新项目成功：projectId={}", projectId);
 
-    return BeanCopyUtil.copyProperties(project, ProjectVO.class);
+    ProjectVO projectVO = BeanCopyUtil.copyProperties(project, ProjectVO.class);
+    populateProjectStats(projectVO);
+    return projectVO;
   }
 
   /** 删除项目 */
@@ -178,7 +203,12 @@ public class ProjectService {
 
     List<ProjectVO> content =
         projectPage.getContent().stream()
-            .map(project -> BeanCopyUtil.copyProperties(project, ProjectVO.class))
+            .map(
+                project -> {
+                  ProjectVO projectVO = BeanCopyUtil.copyProperties(project, ProjectVO.class);
+                  populateProjectStats(projectVO);
+                  return projectVO;
+                })
             .collect(Collectors.toList());
 
     return PageResult.of(content, projectPage.getTotalElements(), page, size);
