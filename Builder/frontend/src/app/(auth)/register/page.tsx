@@ -37,9 +37,9 @@ export default function RegisterPage() {
         confirmPassword: values.confirmPassword,
       });
       message.success('注册成功');
+      // 等待一小段时间确保 cookie 已经写入
+      await new Promise(resolve => setTimeout(resolve, 100));
       // 使用 window.location.href 替代 router.push
-      // 因为 router.push 是客户端导航，不会触发 middleware
-      // 而 window.location.href 会触发完整页面加载，middleware 会正确读取 cookie
       window.location.href = '/dashboard';
     } catch (error: unknown) {
       const errorMessage = error instanceof Error ? error.message : '注册失败，请稍后重试';

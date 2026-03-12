@@ -14,8 +14,13 @@ const setAuthCookie = (token: string, expiresIn: number) => {
     // 注意：不要设置 Secure 属性，因为开发环境是 HTTP
     // Next.js middleware 会自动解码 cookie，所以不需要 encodeURIComponent
     const cookieValue = JSON.stringify({ token, isAuthenticated: true });
+    // 不设置 domain，默认使用当前域名（包括 IP 地址访问）
     document.cookie = `auth-storage=${cookieValue}; path=/; max-age=${maxAge}; SameSite=Lax`;
-    console.log('[Auth Cookie] Set cookie with maxAge:', maxAge, 'seconds, value:', cookieValue);
+    console.log('[Auth Cookie] Set cookie:', {
+      maxAge,
+      value: cookieValue,
+      hostname: window.location.hostname
+    });
   }
 };
 
