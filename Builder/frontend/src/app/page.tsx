@@ -32,27 +32,23 @@ export default function HomePage() {
           {/* 导航链接 */}
           <ul className="hidden lg:flex items-center gap-8 list-none">
             <li>
-              <a href="#features" className="text-gray-400 hover:text-white transition-colors relative group">
+              <a href="#features" className="text-gray-400 text-gray-300 relative">
                 功能特性
-                <span className="absolute bottom--4 left-0 w-0 h-0.5 bg-orange-500 transition-all group-hover:w-full" />
               </a>
             </li>
             <li>
-              <a href="#pricing" className="text-gray-400 hover:text-white transition-colors relative group">
+              <a href="#pricing" className="text-gray-400 text-gray-300 relative">
                 定价方案
-                <span className="absolute bottom--4 left-0 w-0 h-0.5 bg-orange-500 transition-all group-hover:w-full" />
               </a>
             </li>
             <li>
-              <a href="#docs" className="text-gray-400 hover:text-white transition-colors relative group">
+              <a href="#docs" className="text-gray-400 text-gray-300 relative">
                 文档中心
-                <span className="absolute bottom--4 left-0 w-0 h-0.5 bg-orange-500 transition-all group-hover:w-full" />
               </a>
             </li>
             <li>
-              <a href="#about" className="text-gray-400 hover:text-white transition-colors relative group">
+              <a href="#about" className="text-gray-400 text-gray-300 relative">
                 关于我们
-                <span className="absolute bottom--4 left-0 w-0 h-0.5 bg-orange-500 transition-all group-hover:w-full" />
               </a>
             </li>
           </ul>
@@ -265,11 +261,11 @@ export default function HomePage() {
       <footer className="relative z-1 border-t border-white/10 py-12 px-4">
         <div className="max-w-7xl mx-auto">
           <ul className="flex flex-wrap justify-center gap-8 mb-8 list-none">
-            <li><a href="#" className="text-gray-400 hover:text-orange-400 transition-colors">产品文档</a></li>
-            <li><a href="#" className="text-gray-400 hover:text-orange-400 transition-colors">API 参考</a></li>
-            <li><a href="#" className="text-gray-400 hover:text-orange-400 transition-colors">隐私政策</a></li>
-            <li><a href="#" className="text-gray-400 hover:text-orange-400 transition-colors">服务条款</a></li>
-            <li><a href="#" className="text-gray-400 hover:text-orange-400 transition-colors">联系我们</a></li>
+            <li><a href="#" className="text-gray-400">产品文档</a></li>
+            <li><a href="#" className="text-gray-400">API 参考</a></li>
+            <li><a href="#" className="text-gray-400">隐私政策</a></li>
+            <li><a href="#" className="text-gray-400">服务条款</a></li>
+            <li><a href="#" className="text-gray-400">联系我们</a></li>
           </ul>
           <p className="text-center text-gray-500 text-sm">
             &copy; 2026 ProjectHub. All rights reserved.
@@ -308,9 +304,9 @@ const FeatureCard: React.FC<FeatureCardProps> = ({
   };
 
   return (
-    <div className="group relative p-6 bg-white/3 border border-white/8 rounded-2xl transition-all duration-500 hover:-translate-y-2 hover:bg-white/5 hover:shadow-2xl cursor-pointer overflow-hidden">
+    <div className="group relative p-6 bg-white/3 border border-white/8 rounded-2xl transition-all duration-500 cursor-pointer overflow-hidden">
       {/* 顶部渐变条 */}
-      <div className={`absolute top-0 left-0 right-0 h-1 bg-gradient-to-r ${accentStyles[accentColor].split(' ')[0]} ${accentStyles[accentColor].split(' ')[1]} opacity-60 group-hover:opacity-100 transition-opacity`} />
+      <div className={`absolute top-0 left-0 right-0 h-1 bg-gradient-to-r ${accentStyles[accentColor].split(' ')[0]} ${accentStyles[accentColor].split(' ')[1]} opacity-60`} />
 
       {/* 图标 */}
       <div className={`w-14 h-14 rounded-xl bg-gradient-to-br ${accentStyles[accentColor]} flex items-center justify-center mb-6 glow-orange`}>
@@ -334,7 +330,7 @@ const FeatureCard: React.FC<FeatureCardProps> = ({
         {tags.map((tag) => (
           <span
             key={tag}
-            className="px-3 py-1.5 bg-white/5 border border-white/8 rounded-lg text-xs text-gray-400 group-hover:border-orange-500/50 group-hover:text-white transition-all"
+            className="px-3 py-1.5 bg-white/5 border border-white/8 rounded-lg text-xs text-gray-400"
           >
             {tag}
           </span>

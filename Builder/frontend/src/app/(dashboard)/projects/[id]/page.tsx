@@ -300,14 +300,14 @@ export default function ProjectDetailPage() {
                 <Avatar
                   key={member.id}
                   size={32}
-                  className="bg-gray-600 border-2 border-gray-800 cursor-pointer hover:z-10 transition-all"
+                  className="bg-gray-600 border-2 border-gray-800"
                 >
                   {member.name[0]}
                 </Avatar>
               ))}
               <Avatar
                 size={32}
-                className="bg-gray-700 border-2 border-gray-800 cursor-pointer hover:z-10 transition-all"
+                className="bg-gray-700 border-2 border-gray-800"
                 icon={<PlusOutlined />}
                 onClick={() => message.info('添加成员功能开发中')}
               />
@@ -437,10 +437,10 @@ export default function ProjectDetailPage() {
                   key={icon}
                   type="button"
                   onClick={() => setSelectedIcon(icon)}
-                  className={`w-12 h-12 text-2xl rounded-lg flex items-center justify-center transition-all ${
+                  className={`w-12 h-12 text-2xl rounded-lg flex items-center justify-center ${
                     selectedIcon === icon
                       ? 'bg-orange-500 ring-2 ring-orange-400'
-                      : 'bg-gray-700/50 hover:bg-gray-600'
+                      : 'bg-gray-700/50'
                   }`}
                 >
                   {icon}

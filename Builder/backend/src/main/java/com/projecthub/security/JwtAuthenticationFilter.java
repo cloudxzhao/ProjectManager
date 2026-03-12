@@ -41,7 +41,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
       // 从请求头中获取 Token
       String token = extractTokenFromRequest(request);
 
-      if (StringUtils.hasText(token) && jwtUtil.validateToken(token, "")) {
+      if (StringUtils.hasText(token)) {
         String username = jwtUtil.getUsernameFromToken(token);
 
         if (StringUtils.hasText(username)
