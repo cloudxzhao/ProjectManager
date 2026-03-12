@@ -122,7 +122,7 @@ export default function ProjectDetailPage() {
   const handleEditSubmit = async (values: EditProjectFormValues) => {
     setLoading(true);
     try {
-      await api.put(endpoints.project.update(projectId), {
+      await api.put(endpoints.project.update(Number(projectId)), {
         name: values.name,
         description: values.description,
         status: values.status,
@@ -158,7 +158,7 @@ export default function ProjectDetailPage() {
   const handleDelete = async () => {
     setLoading(true);
     try {
-      await api.delete(endpoints.project.delete(projectId));
+      await api.delete(endpoints.project.delete(Number(projectId)));
       message.success('项目删除成功');
       router.push('/projects');
     } catch (error: unknown) {

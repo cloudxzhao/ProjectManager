@@ -80,8 +80,8 @@ export default function ProjectMembersPage() {
 
     setLoading(true);
     try {
-      await api.put(endpoints.project.addMember(projectId), {
-        userId: editingMember.userId,
+      await api.put(endpoints.project.addMember(Number(projectId)), {
+        userId: Number(editingMember.userId),
         role: values.role,
       });
 
@@ -111,7 +111,7 @@ export default function ProjectMembersPage() {
         return;
       }
 
-      await api.delete(endpoints.project.removeMember(projectId, memberId));
+      await api.delete(endpoints.project.removeMember(Number(projectId), Number(memberId)));
       setMembers(members.filter((m) => m.id !== memberId));
       message.success('成员已移除');
     } catch (error: unknown) {

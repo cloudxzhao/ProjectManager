@@ -1,13 +1,13 @@
 // 用户相关类型定义
 
 export interface User {
-  id: string;
+  id: number;
   email: string;
   username: string;
   avatar?: string;
   role: UserRole;
   createdAt: string;
-  updatedAt: string;
+  updatedAt?: string;
 }
 
 export type UserRole = 'admin' | 'manager' | 'member';

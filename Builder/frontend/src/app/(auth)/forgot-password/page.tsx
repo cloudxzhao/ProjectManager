@@ -18,7 +18,7 @@ export default function ForgotPasswordPage() {
   const onFinish = async (values: ForgotPasswordFormValues) => {
     setLoading(true);
     try {
-      await api.post(endpoints.auth.passwordReset, { email: values.email });
+      await api.post(endpoints.auth.forgotPassword, { email: values.email });
       message.success('重置链接已发送到您的邮箱，请查收');
       setSuccess(true);
     } catch (error: unknown) {

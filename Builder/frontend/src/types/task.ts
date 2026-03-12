@@ -1,24 +1,24 @@
 // 任务相关类型定义
 
 export interface Task {
-  id: string;
-  projectId: string;
+  id: number;
+  projectId: number;
   title: string;
   description: string;
   status: TaskStatus;
   priority: Priority;
-  assigneeId?: string;
-  reporterId?: string;
+  assigneeId?: number;
+  reporterId?: number;
   storyPoints?: number;
   dueDate?: string;
   tags: string[];
-  parentId?: string;
+  parentId?: number;
   order: number;
   subtaskCount: number;
   completedSubtaskCount: number;
   commentCount: number;
   createdAt: string;
-  updatedAt: string;
+  updatedAt?: string;
 }
 
 export type TaskStatus = 'todo' | 'in_progress' | 'testing' | 'done';
@@ -26,16 +26,16 @@ export type TaskStatus = 'todo' | 'in_progress' | 'testing' | 'done';
 export type Priority = 'low' | 'medium' | 'high' | 'urgent';
 
 export interface CreateTaskDto {
-  projectId: string;
+  projectId: number;
   title: string;
   description?: string;
   status?: TaskStatus;
   priority?: Priority;
-  assigneeId?: string;
+  assigneeId?: number;
   storyPoints?: number;
   dueDate?: string;
   tags?: string[];
-  parentId?: string;
+  parentId?: number;
 }
 
 export interface UpdateTaskDto {
@@ -43,7 +43,7 @@ export interface UpdateTaskDto {
   description?: string;
   status?: TaskStatus;
   priority?: Priority;
-  assigneeId?: string;
+  assigneeId?: number;
   storyPoints?: number;
   dueDate?: string;
   tags?: string[];
@@ -51,22 +51,22 @@ export interface UpdateTaskDto {
 }
 
 export interface SubTask {
-  id: string;
-  taskId: string;
+  id: number;
+  taskId: number;
   title: string;
   completed: boolean;
   order: number;
   createdAt: string;
-  updatedAt: string;
+  updatedAt?: string;
 }
 
 export interface TaskComment {
-  id: string;
-  taskId: string;
-  userId: string;
+  id: number;
+  taskId: number;
+  userId: number;
   content: string;
-  parentId?: string;
+  parentId?: number;
   replyCount: number;
   createdAt: string;
-  updatedAt: string;
+  updatedAt?: string;
 }

@@ -1,7 +1,7 @@
 // 项目相关类型定义
 
 export interface Project {
-  id: string;
+  id: number;
   name: string;
   description: string;
   status: ProjectStatus;
@@ -12,9 +12,9 @@ export interface Project {
   memberCount: number;
   taskCount: number;
   completedTaskCount: number;
-  ownerId: string;
+  ownerId: number;
   createdAt: string;
-  updatedAt: string;
+  updatedAt?: string;
 }
 
 export type ProjectStatus = 'planning' | 'active' | 'completed' | 'archived';
@@ -27,7 +27,7 @@ export interface CreateProjectDto {
   endDate?: string;
   color: string;
   icon?: string;
-  memberIds?: string[];
+  memberIds?: number[];
 }
 
 export interface UpdateProjectDto {
@@ -41,9 +41,9 @@ export interface UpdateProjectDto {
 }
 
 export interface ProjectMember {
-  id: string;
-  userId: string;
-  projectId: string;
+  id: number;
+  userId: number;
+  projectId: number;
   role: MemberRole;
   joinedAt: string;
 }

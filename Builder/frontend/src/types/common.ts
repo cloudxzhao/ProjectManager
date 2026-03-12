@@ -8,7 +8,7 @@ export interface Timestamps {
 }
 
 export interface BaseEntity {
-  id: string;
+  id: number;
 }
 
 export type Optional<T, K extends keyof T> = Pick<Partial<T>, K> & Omit<T, K>;
