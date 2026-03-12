@@ -1,0 +1,293 @@
+{
+  "metadata": {
+    "project": "ProjectHub",
+    "module": "frontend",
+    "generated_at": "2026-03-12T10:00:00Z",
+    "total_issues": 8,
+    "version": "1.0.0"
+  },
+  "issues": [
+    {
+      "id": "FRONTEND-001",
+      "title": "任务操作接口路径缺少 projectId 参数",
+      "severity": "critical",
+      "category": "uri",
+      "description": "前端任务相关接口使用 /api/v1/tasks/{id} 路径，但后端实际路径需要包含 projectId 参数。这会导致所有任务详情、更新、删除、移动等操作返回 404 错误。",
+      "affected_apis": [
+        "GET /api/v1/tasks/{id}",
+        "PUT /api/v1/tasks/{id}",
+        "DELETE /api/v1/tasks/{id}",
+        "POST /api/v1/tasks/{id}/move",
+        "GET /api/v1/tasks/{id}/subtasks",
+        "POST /api/v1/tasks/{id}/toggle-complete"
+      ],
+      "current_state": {
+        "path": "/api/v1/tasks/{id}",
+        "method": "GET/PUT/DELETE/POST"
+      },
+      "expected_state": {
+        "path": "/api/v1/projects/{projectId}/tasks/{id}",
+        "method": "GET/PUT/DELETE/POST"
+      },
+      "solution": {
+        "type": "modify",
+        "description": "修改前端 API 调用路径，添加 projectId 参数。需要在调用时传入当前项目ID。",
+        "files_to_modify": [
+          "src/api/task.ts",
+          "src/views/task/TaskDetail.vue",
+          "src/views/task/TaskEdit.vue",
+          "src/stores/task.ts"
+        ],
+        "code_example": "// 修改前\nconst getTask = (id: string) => request.get(`/tasks/${id}`)\n\n// 修改后\nconst getTask = (projectId: number, id: number) =>\n  request.get(`/projects/${projectId}/tasks/${id}`)\n\n// 或从 store 获取当前项目ID\nconst getTask = (id: number) => {\n  const projectId = useProjectStore().currentProjectId\n  return request.get(`/projects/${projectId}/tasks/${id}`)\n}"
+      },
+      "related_issues": ["FRONTEND-002"],
+      "labels": ["api", "breaking-change"],
+      "estimated_effort": "medium"
+    },
+    {
+      "id": "FRONTEND-002",
+      "title": "ID 类型定义不一致 (string vs number)",
+      "severity": "high",
+      "category": "schema",
+      "description": "前端所有实体的 ID 字段定义为 string 类型，但后端返回的是 integer 类型。这会导致类型校验失败和潜在的运行时错误。",
+      "affected_apis": [
+        "GET /api/v1/user/profile",
+        "GET /api/v1/projects",
+        "GET /api/v1/projects/{id}",
+        "GET /api/v1/projects/{projectId}/tasks",
+        "GET /api/v1/notifications"
+      ],
+      "current_state": {
+        "response": {
+          "id": "string"
+        }
+      },
+      "expected_state": {
+        "response": {
+          "id": "number (integer)"
+        }
+      },
+      "solution": {
+        "type": "modify",
+        "description": "将前端所有 Schema 中的 id 字段类型从 string 改为 number，包括 User、Task、Project、Notification 等实体。",
+        "files_to_modify": [
+          "src/types/user.ts",
+          "src/types/task.ts",
+          "src/types/project.ts",
+          "src/types/notification.ts",
+          "src/types/common.ts"
+        ],
+        "code_example": "// 修改前\ninterface User {\n  id: string\n  username: string\n  // ...\n}\n\n// 修改后\ninterface User {\n  id: number\n  username: string\n  // ...\n}"
+      },
+      "related_issues": [],
+      "labels": ["api", "breaking-change"],
+      "estimated_effort": "medium"
+    },
+    {
+      "id": "FRONTEND-003",
+      "title": "认证接口路径不一致",
+      "severity": "high",
+      "category": "uri",
+      "description": "前端忘记密码和重置密码的接口路径与后端不匹配，导致密码找回功能无法使用。",
+      "affected_apis": [
+        "POST /api/v1/auth/password/reset",
+        "POST /api/v1/auth/password/reset/confirm"
+      ],
+      "current_state": {
+        "path": "/api/v1/auth/password/reset",
+        "method": "POST"
+      },
+      "expected_state": {
+        "path": "/api/v1/auth/forgot-password",
+        "method": "POST"
+      },
+      "solution": {
+        "type": "modify",
+        "description": "修改前端认证相关接口路径，使用后端实际的路径。",
+        "files_to_modify": [
+          "src/api/auth.ts",
+          "src/views/auth/ForgotPassword.vue",
+          "src/views/auth/ResetPassword.vue"
+        ],
+        "code_example": "// 修改前\nconst forgotPassword = (email: string) =>\n  request.post('/auth/password/reset', { email })\n\nconst resetPassword = (token: string, password: string) =>\n  request.post('/auth/password/reset/confirm', { token, password })\n\n// 修改后\nconst forgotPassword = (email: string) =>\n  request.post('/auth/forgot-password', { email })\n\nconst resetPassword = (token: string, password: string) =>\n  request.post('/auth/reset-password', { token, password })"
+      },
+      "related_issues": [],
+      "labels": ["api", "authentication"],
+      "estimated_effort": "small"
+    },
+    {
+      "id": "FRONTEND-004",
+      "title": "移除项目成员接口路径参数名不一致",
+      "severity": "medium",
+      "category": "uri",
+      "description": "前端使用 {projectId} 作为路径参数名，后端使用 {id}。虽然路径模板相同，但参数命名不一致可能导致文档和代码理解上的混淆。",
+      "affected_apis": [
+        "DELETE /api/v1/projects/{projectId}/members/{userId}"
+      ],
+      "current_state": {
+        "path": "/api/v1/projects/{projectId}/members/{userId}",
+        "parameters": {
+          "projectId": "path parameter name"
+        }
+      },
+      "expected_state": {
+        "path": "/api/v1/projects/{id}/members/{userId}",
+        "parameters": {
+          "id": "path parameter name"
+        }
+      },
+      "solution": {
+        "type": "modify",
+        "description": "更新前端文档和代码注释，统一使用 {id} 作为项目路径参数名。实际调用时传递的值相同，仅命名统一。",
+        "files_to_modify": [
+          "src/api/project.ts",
+          "docs/api/API 前端接口文档.md"
+        ],
+        "code_example": "// 路径不变，仅需统一参数命名理解\nconst removeMember = (projectId: number, userId: number) =>\n  request.delete(`/projects/${projectId}/members/${userId}`)"
+      },
+      "related_issues": [],
+      "labels": ["api", "documentation"],
+      "estimated_effort": "trivial"
+    },
+    {
+      "id": "FRONTEND-005",
+      "title": "缺少史诗管理模块接口调用",
+      "severity": "medium",
+      "category": "feature",
+      "description": "后端已实现史诗管理的完整 CRUD 接口，但前端文档中未定义，前端代码可能缺少史诗管理功能。",
+      "affected_apis": [
+        "GET /api/v1/projects/{projectId}/epics",
+        "POST /api/v1/projects/{projectId}/epics",
+        "GET /api/v1/projects/{projectId}/epics/{id}",
+        "PUT /api/v1/projects/{projectId}/epics/{id}",
+        "DELETE /api/v1/projects/{projectId}/epics/{id}"
+      ],
+      "current_state": {
+        "description": "前端未调用这些接口"
+      },
+      "expected_state": {
+        "description": "前端需要添加史诗管理功能模块"
+      },
+      "solution": {
+        "type": "add",
+        "description": "添加史诗管理 API 调用模块，创建史诗管理页面组件。",
+        "files_to_modify": [
+          "src/api/epic.ts (新建)",
+          "src/types/epic.ts (新建)",
+          "src/views/epic/EpicList.vue (新建)",
+          "src/views/epic/EpicDetail.vue (新建)",
+          "src/router/index.ts"
+        ],
+        "code_example": "// src/api/epic.ts\nimport request from './request'\n\nexport const getEpics = (projectId: number) =>\n  request.get(`/projects/${projectId}/epics`)\n\nexport const getEpic = (projectId: number, id: number) =>\n  request.get(`/projects/${projectId}/epics/${id}`)\n\nexport const createEpic = (projectId: number, data: CreateEpicDto) =>\n  request.post(`/projects/${projectId}/epics`, data)\n\nexport const updateEpic = (projectId: number, id: number, data: UpdateEpicDto) =>\n  request.put(`/projects/${projectId}/epics/${id}`, data)\n\nexport const deleteEpic = (projectId: number, id: number) =>\n  request.delete(`/projects/${projectId}/epics/${id}`)"
+      },
+      "related_issues": ["FRONTEND-006", "FRONTEND-007", "FRONTEND-008"],
+      "labels": ["api", "feature"],
+      "estimated_effort": "large"
+    },
+    {
+      "id": "FRONTEND-006",
+      "title": "缺少用户故事管理模块接口调用",
+      "severity": "medium",
+      "category": "feature",
+      "description": "后端已实现用户故事管理的完整 CRUD 接口，但前端文档中未定义。",
+      "affected_apis": [
+        "GET /api/v1/projects/{projectId}/stories",
+        "POST /api/v1/projects/{projectId}/stories",
+        "GET /api/v1/projects/{projectId}/stories/{id}",
+        "PUT /api/v1/projects/{projectId}/stories/{id}",
+        "DELETE /api/v1/projects/{projectId}/stories/{id}"
+      ],
+      "current_state": {
+        "description": "前端未调用这些接口"
+      },
+      "expected_state": {
+        "description": "前端需要添加用户故事管理功能模块"
+      },
+      "solution": {
+        "type": "add",
+        "description": "添加用户故事管理 API 调用模块和页面组件。",
+        "files_to_modify": [
+          "src/api/story.ts (新建)",
+          "src/types/story.ts (新建)",
+          "src/views/story/StoryList.vue (新建)",
+          "src/views/story/StoryDetail.vue (新建)"
+        ]
+      },
+      "related_issues": ["FRONTEND-005"],
+      "labels": ["api", "feature"],
+      "estimated_effort": "large"
+    },
+    {
+      "id": "FRONTEND-007",
+      "title": "缺少问题追踪管理模块接口调用",
+      "severity": "medium",
+      "category": "feature",
+      "description": "后端已实现问题追踪管理的完整 CRUD 接口，但前端文档中未定义。",
+      "affected_apis": [
+        "GET /api/v1/projects/{projectId}/issues",
+        "POST /api/v1/projects/{projectId}/issues",
+        "GET /api/v1/projects/{projectId}/issues/{id}",
+        "PUT /api/v1/projects/{projectId}/issues/{id}",
+        "DELETE /api/v1/projects/{projectId}/issues/{id}"
+      ],
+      "current_state": {
+        "description": "前端未调用这些接口"
+      },
+      "expected_state": {
+        "description": "前端需要添加问题追踪管理功能模块"
+      },
+      "solution": {
+        "type": "add",
+        "description": "添加问题追踪管理 API 调用模块和页面组件。",
+        "files_to_modify": [
+          "src/api/issue.ts (新建)",
+          "src/types/issue.ts (新建)",
+          "src/views/issue/IssueList.vue (新建)",
+          "src/views/issue/IssueDetail.vue (新建)"
+        ]
+      },
+      "related_issues": ["FRONTEND-005"],
+      "labels": ["api", "feature"],
+      "estimated_effort": "large"
+    },
+    {
+      "id": "FRONTEND-008",
+      "title": "缺少 Wiki、评论、报表等扩展模块接口调用",
+      "severity": "low",
+      "category": "feature",
+      "description": "后端已实现 Wiki 文档管理、任务评论管理、燃尽图报表等接口，前端文档未定义。",
+      "affected_apis": [
+        "GET /api/v1/projects/{projectId}/wiki",
+        "POST /api/v1/projects/{projectId}/wiki",
+        "GET /api/v1/projects/{projectId}/wiki/{id}",
+        "PUT /api/v1/projects/{projectId}/wiki/{id}",
+        "DELETE /api/v1/projects/{projectId}/wiki/{id}",
+        "GET /api/v1/tasks/{taskId}/comments",
+        "POST /api/v1/tasks/{taskId}/comments",
+        "PUT /api/v1/tasks/{taskId}/comments/{id}",
+        "DELETE /api/v1/tasks/{taskId}/comments/{id}",
+        "GET /api/v1/projects/{projectId}/reports/burndown"
+      ],
+      "current_state": {
+        "description": "前端未调用这些接口"
+      },
+      "expected_state": {
+        "description": "前端需要添加相应功能模块"
+      },
+      "solution": {
+        "type": "add",
+        "description": "分阶段添加各功能模块的 API 调用和页面组件。",
+        "files_to_modify": [
+          "src/api/wiki.ts (新建)",
+          "src/api/comment.ts (新建)",
+          "src/api/report.ts (新建)",
+          "src/types/wiki.ts (新建)",
+          "src/types/comment.ts (新建)"
+        ]
+      },
+      "related_issues": ["FRONTEND-005"],
+      "labels": ["api", "feature"],
+      "estimated_effort": "large"
+    }
+  ]
+}

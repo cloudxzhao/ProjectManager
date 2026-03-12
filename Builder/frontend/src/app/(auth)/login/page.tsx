@@ -16,7 +16,7 @@ import {
 import { useAuth } from '@/lib/hooks/useAuth';
 
 interface LoginFormValues {
-  email: string;
+  username: string;
   password: string;
   remember?: boolean;
 }
@@ -31,14 +31,14 @@ export default function LoginPage() {
     setLoading(true);
     try {
       await login({
-        email: values.email,
+        email: values.username,
         password: values.password,
         remember: values.remember,
       });
       message.success('登录成功');
       router.push('/dashboard');
     } catch (error: unknown) {
-      const errorMessage = error instanceof Error ? error.message : '登录失败，请检查邮箱和密码';
+      const errorMessage = error instanceof Error ? error.message : '登录失败，请检查用户名和密码';
       message.error(errorMessage);
     } finally {
       setLoading(false);
@@ -80,18 +80,17 @@ export default function LoginPage() {
           className="space-y-5"
         >
           <Form.Item
-            name="email"
-            label={<span className="text-gray-300 text-sm font-medium">邮箱地址</span>}
+            name="username"
+            label={<span className="text-gray-300 text-sm font-medium">用户名/邮箱</span>}
             rules={[
-              { required: true, message: '请输入邮箱' },
-              { type: 'email', message: '请输入有效的邮箱地址' },
+              { required: true, message: '请输入用户名或邮箱' },
             ]}
           >
             <Input
               prefix={<MailOutlined className="text-gray-400" />}
-              placeholder="name@example.com"
-              className="h-12 bg-white/10 border-white/20 text-white placeholder:text-gray-500"
-              autoComplete="email"
+              placeholder="请输入用户名或邮箱"
+              className="dark-input"
+              autoComplete="username"
             />
           </Form.Item>
 
@@ -106,7 +105,7 @@ export default function LoginPage() {
             <Input.Password
               prefix={<LockOutlined className="text-gray-400" />}
               placeholder="请输入密码"
-              className="h-12 bg-white/10 border-white/20 text-white placeholder:text-gray-500"
+              className="dark-input"
               autoComplete="current-password"
               iconRender={(visible) =>
                 visible ? (

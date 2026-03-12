@@ -59,10 +59,9 @@ INSERT INTO sys_permission (name, code, description) VALUES
 INSERT INTO sys_role_permission (role_id, permission_id)
 SELECT 1, id FROM sys_permission;
 
--- 默认管理员用户 (密码：Admin123 - bcrypt 加密)
--- bcrypt hash for "Admin123": $2a$10$N.zmdr9k7uOCQb376NoUnuTJ8iAt6Z5EHsM8lE9lBOsl7iKTVKIUi
+-- 默认管理员用户 (密码：Admin123 - bcrypt 加密, strength=10)
 INSERT INTO sys_user (username, email, password, status) VALUES
-    ('admin', 'admin@projecthub.com', '$2a$10$N.zmdr9k7uOCQb376NoUnuTJ8iAt6Z5EHsM8lE9lBOsl7iKTVKIUi', 'ACTIVE');
+    ('admin', 'admin@projecthub.com', '$2a$10$49QV.C712rCF9d6DhN7WSOLnoWxJh0vjFXzXbdEp8eT9PDTJw4Eoe', 'ACTIVE');
 
 -- 分配管理员角色给用户 ID=1
 INSERT INTO sys_user_role (user_id, role_id) VALUES (1, 1);

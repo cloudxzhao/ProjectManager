@@ -206,35 +206,6 @@ CREATE TABLE sub_task (
 -- 子任务表索引
 CREATE INDEX idx_sub_task_task ON sub_task(task_id);
 
--- 任务评论表
-CREATE TABLE comment (
-    id BIGSERIAL PRIMARY KEY,
-    task_id BIGINT,
-    issue_id BIGINT,
-    story_id BIGINT,
-    user_id BIGINT NOT NULL,
-    content TEXT NOT NULL,
-    parent_id BIGINT,
-    created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    updated_at TIMESTAMP,
-    deleted_at TIMESTAMP,
-
-    CONSTRAINT chk_comment_target CHECK (task_id IS NOT NULL OR issue_id IS NOT NULL OR story_id IS NOT NULL),
-    CONSTRAINT fk_comment_task FOREIGN KEY (task_id) REFERENCES task(id) ON DELETE CASCADE,
-    CONSTRAINT fk_comment_issue FOREIGN KEY (issue_id) REFERENCES issue(id) ON DELETE CASCADE,
-    CONSTRAINT fk_comment_story FOREIGN KEY (story_id) REFERENCES user_story(id) ON DELETE CASCADE,
-    CONSTRAINT fk_comment_user FOREIGN KEY (user_id) REFERENCES sys_user(id),
-    CONSTRAINT fk_comment_parent FOREIGN KEY (parent_id) REFERENCES comment(id) ON DELETE CASCADE
-);
-
--- 评论表索引
-CREATE INDEX idx_comment_task ON comment(task_id);
-CREATE INDEX idx_comment_issue ON comment(issue_id);
-CREATE INDEX idx_comment_story ON comment(story_id);
-CREATE INDEX idx_comment_user ON comment(user_id);
-CREATE INDEX idx_comment_parent ON comment(parent_id);
-CREATE INDEX idx_comment_deleted_at ON comment(deleted_at);
-
 -- ============================================
 -- 用户故事模块
 -- ============================================
@@ -249,6 +220,7 @@ CREATE TABLE epic (
     position INTEGER NOT NULL DEFAULT 0,
     created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP,
+    deleted_at TIMESTAMP,
 
     CONSTRAINT fk_epic_project FOREIGN KEY (project_id) REFERENCES project(id) ON DELETE CASCADE
 );
@@ -271,6 +243,7 @@ CREATE TABLE user_story (
     position INTEGER NOT NULL DEFAULT 0,
     created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP,
+    deleted_at TIMESTAMP,
 
     CONSTRAINT fk_story_epic FOREIGN KEY (epic_id) REFERENCES epic(id) ON DELETE SET NULL,
     CONSTRAINT fk_story_project FOREIGN KEY (project_id) REFERENCES project(id) ON DELETE CASCADE,
@@ -304,6 +277,7 @@ CREATE TABLE issue (
     resolved_date DATE,
     created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP,
+    deleted_at TIMESTAMP,
 
     CONSTRAINT fk_issue_project FOREIGN KEY (project_id) REFERENCES project(id) ON DELETE CASCADE,
     CONSTRAINT fk_issue_assignee FOREIGN KEY (assignee_id) REFERENCES sys_user(id),
@@ -318,6 +292,32 @@ CREATE INDEX idx_issue_reporter ON issue(reporter_id);
 CREATE INDEX idx_issue_type ON issue(type);
 CREATE INDEX idx_issue_severity ON issue(severity);
 CREATE INDEX idx_issue_status ON issue(status);
+
+-- ============================================
+-- 评论表（任务评论）
+-- ============================================
+
+-- 任务评论表
+CREATE TABLE task_comment (
+    id BIGSERIAL PRIMARY KEY,
+    task_id BIGINT NOT NULL,
+    user_id BIGINT NOT NULL,
+    content TEXT NOT NULL,
+    parent_id BIGINT,
+    created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP,
+    deleted_at TIMESTAMP,
+
+    CONSTRAINT fk_task_comment_task FOREIGN KEY (task_id) REFERENCES task(id) ON DELETE CASCADE,
+    CONSTRAINT fk_task_comment_user FOREIGN KEY (user_id) REFERENCES sys_user(id),
+    CONSTRAINT fk_task_comment_parent FOREIGN KEY (parent_id) REFERENCES task_comment(id) ON DELETE CASCADE
+);
+
+-- 评论表索引
+CREATE INDEX idx_task_comment_task ON task_comment(task_id);
+CREATE INDEX idx_task_comment_user ON task_comment(user_id);
+CREATE INDEX idx_task_comment_parent ON task_comment(parent_id);
+CREATE INDEX idx_task_comment_deleted_at ON task_comment(deleted_at);
 
 -- ============================================
 -- Wiki 模块
@@ -336,6 +336,7 @@ CREATE TABLE wiki_document (
     is_published BOOLEAN NOT NULL DEFAULT TRUE,
     created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP,
+    deleted_at TIMESTAMP,
 
     CONSTRAINT fk_wiki_project FOREIGN KEY (project_id) REFERENCES project(id) ON DELETE CASCADE,
     CONSTRAINT fk_wiki_parent FOREIGN KEY (parent_id) REFERENCES wiki_document(id) ON DELETE CASCADE,
@@ -352,14 +353,13 @@ CREATE INDEX idx_wiki_published ON wiki_document(is_published);
 CREATE TABLE wiki_history (
     id BIGSERIAL PRIMARY KEY,
     document_id BIGINT NOT NULL,
+    user_id BIGINT NOT NULL,
     version INTEGER NOT NULL,
     content TEXT NOT NULL,
-    author_id BIGINT NOT NULL,
-    change_summary VARCHAR(255),
     created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
 
     CONSTRAINT fk_wiki_history_document FOREIGN KEY (document_id) REFERENCES wiki_document(id) ON DELETE CASCADE,
-    CONSTRAINT fk_wiki_history_author FOREIGN KEY (author_id) REFERENCES sys_user(id),
+    CONSTRAINT fk_wiki_history_user FOREIGN KEY (user_id) REFERENCES sys_user(id),
     CONSTRAINT uk_wiki_history UNIQUE (document_id, version)
 );
 
@@ -381,6 +381,7 @@ CREATE TABLE notification (
     related_id BIGINT,
     related_type VARCHAR(50),
     created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    deleted_at TIMESTAMP,
 
     CONSTRAINT fk_notification_user FOREIGN KEY (user_id) REFERENCES sys_user(id) ON DELETE CASCADE
 );
@@ -415,17 +416,15 @@ CREATE INDEX idx_sys_config_key ON sys_config(config_key);
 -- 操作日志表
 CREATE TABLE operation_log (
     id BIGSERIAL PRIMARY KEY,
-    user_id BIGINT,
-    operation VARCHAR(100) NOT NULL,
-    module VARCHAR(50),
-    request_method VARCHAR(10),
-    request_url VARCHAR(500),
-    request_params TEXT,
-    response_status INTEGER,
-    error_message TEXT,
+    user_id BIGINT NOT NULL,
+    username VARCHAR(100),
+    module VARCHAR(50) NOT NULL,
+    operation VARCHAR(50) NOT NULL,
+    method VARCHAR(200),
+    params TEXT,
+    result TEXT,
     ip_address VARCHAR(50),
-    user_agent VARCHAR(500),
-    execution_time INTEGER,
+    duration BIGINT NOT NULL,
     created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
 
     CONSTRAINT fk_operation_log_user FOREIGN KEY (user_id) REFERENCES sys_user(id)
@@ -483,7 +482,7 @@ SELECT
     cu.email AS creator_email,
     (SELECT COUNT(*) FROM sub_task st WHERE st.task_id = t.id) AS sub_task_count,
     (SELECT COUNT(*) FROM sub_task st WHERE st.task_id = t.id AND st.completed = TRUE) AS completed_sub_task_count,
-    (SELECT COUNT(*) FROM comment c WHERE c.task_id = t.id AND c.deleted_at IS NULL) AS comment_count
+    (SELECT COUNT(*) FROM task_comment c WHERE c.task_id = t.id AND c.deleted_at IS NULL) AS comment_count
 FROM task t
 LEFT JOIN project p ON t.project_id = p.id
 LEFT JOIN sys_user au ON t.assignee_id = au.id

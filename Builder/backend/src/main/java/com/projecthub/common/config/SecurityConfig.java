@@ -40,6 +40,7 @@ public class SecurityConfig {
                     // 公开接口
                     .requestMatchers(
                         "/api/v1/auth/**",
+                        "/swagger-ui.html",
                         "/swagger-ui/**",
                         "/v3/api-docs/**",
                         "/swagger-resources/**",

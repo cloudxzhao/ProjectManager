@@ -27,6 +27,7 @@ ProjectHub 是一款现代化项目管理系统，融合敏捷开发理念与现
    - 缓存策略
 
 2. **API 契约文档**: `docs/api/openapi.yaml`
+    说明：issue涉及 URL 的修改时无需遵守 API 契约文档
    - 所有 API 接口定义
    - 请求/响应格式
    - 错误码说明
@@ -457,30 +458,6 @@ public enum ErrorCode {
 - [ ] SQL 使用参数化查询
 - [ ] 输入已做校验
 
----
-
-## 环境信息
-
-### PostgreSQL 
-
-- IP 地址：192.168.31.138
-- 端口号：5432
-- 账号：pgsql
-- 密码：Admin_2026
-
-
-
-### Redis
-
-- IP 地址：192.168.31.138
-- 端口号：6379
-- 密码：aiteam123
-
-
-### Maven
-
-maven 的安装地址：C:\software\maven\bin
-
 ## 环境配置
 
 ### 开发环境要求
@@ -499,56 +476,99 @@ psql --version # 必须 >= 15
 redis-server --version  # 必须 >= 7
 ```
 
+### Docker 环境（推荐）
+
+使用 Docker 运行 PostgreSQL 和 Redis：
+
+```bash
+# 启动 PostgreSQL 容器
+docker run -d \
+  --name agent-postgres \
+  -e POSTGRES_PASSWORD=Admin_2026 \
+  --network host \
+  postgres:16
+
+# 启动 Redis 容器
+docker run -d \
+  --name agent-redis \
+  --network host \
+  redis:latest
+```
+
 ### 数据库配置
 
-创建本地 PostgreSQL 数据库：
+PostgreSQL 连接配置（开发环境）：
 
-```sql
-CREATE DATABASE projecthub_dev;
-CREATE USER projecthub WITH PASSWORD 'projecthub';
-GRANT ALL PRIVILEGES ON DATABASE projecthub_dev TO projecthub;
-```
+| 配置项 | 值 | 说明 |
+|--------|-----|------|
+| Host | localhost | Docker host 网络模式 |
+| Port | 5432 | PostgreSQL 默认端口 |
+| Database | projecthub_dev | 开发数据库 |
+| Username | postgres | 超级用户 |
+| Password | Admin_2026 | 密码 |
+
+Redis 连接配置：
+
+| 配置项 | 值 | 说明 |
+|--------|-----|------|
+| Host | localhost | Docker host 网络模式 |
+| Port | 6379 | Redis 默认端口 |
+| Password | Admin_2026 | 密码 |
 
 ### 环境变量
 
-创建 `.env` 文件或配置环境变量：
+创建 `.env` 文件或使用默认配置：
 
 ```bash
-# 数据库配置
+# 数据库配置（默认使用 Docker 容器）
 DB_HOST=localhost
 DB_PORT=5432
 DB_NAME=projecthub_dev
-DB_USER=projecthub
-DB_PASSWORD=projecthub
+DB_USER=postgres
+DB_PASSWORD=Admin_2026
 
 # Redis 配置
 REDIS_HOST=localhost
 REDIS_PORT=6379
+REDIS_PASSWORD=Admin_2026
 
 # JWT 配置
-JWT_SECRET=your-secret-key-here
-JWT_EXPIRATION=7200000
-JWT_REFRESH_EXPIRATION=604800000
+JWT_SECRET=projecthub-secret-key-for-jwt-token-generation-must-be-long-enough
+JWT_EXPIRATION=7200000        # 2 小时
+JWT_REFRESH_EXPIRATION=604800000  # 7 天
 ```
 
 ### 启动应用
 
 ```bash
-# 安装依赖
+# 1. 确保 Docker 容器运行中
+docker ps | grep -E "postgres|redis"
+
+# 2. 创建数据库（首次启动）
+docker exec agent-postgres createdb -U postgres projecthub_dev
+
+# 3. 安装依赖
 mvn clean install
 
-# 启动应用 (开发环境)
+# 4. 启动应用（开发环境）
 mvn spring-boot:run -Dspring-boot.run.profiles=dev
 
-# 运行测试
-mvn test
+# 5. 验证启动
+curl http://localhost:8080/actuator/health
+curl http://localhost:8080/swagger-ui.html
 
-# 打包
+# 6. 打包
 mvn clean package -DskipTests
-
-# Docker 启动
-docker-compose up -d
 ```
+
+### 常见问题排查
+
+| 问题 | 解决方案 |
+|------|----------|
+| 数据库连接失败 | 检查 Docker 容器是否运行：`docker ps` |
+| Flyway 迁移失败 | 删除并重建数据库：`docker exec agent-postgres dropdb -U postgres projecthub_dev && docker exec agent-postgres createdb -U postgres projecthub_dev` |
+| 端口被占用 | 修改 `application-dev.yml` 中的 `server.port` |
+| 健康检查 DOWN | 检查 Redis 连接配置 |
 
 ---
 

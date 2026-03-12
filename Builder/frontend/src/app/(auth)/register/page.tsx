@@ -84,7 +84,7 @@ export default function RegisterPage() {
         <Input
           prefix={<UserOutlined className="text-gray-400" />}
           placeholder="请输入用户名"
-          className="bg-gray-800 border-gray-700 text-white placeholder-gray-500 h-12"
+          className="dark-input"
           autoComplete="username"
         />
       </Form.Item>
@@ -102,7 +102,7 @@ export default function RegisterPage() {
         <Input
           prefix={<MailOutlined className="text-gray-400" />}
           placeholder="name@example.com"
-          className="bg-gray-800 border-gray-700 text-white placeholder-gray-500 h-12"
+          className="dark-input"
           autoComplete="email"
         />
       </Form.Item>
@@ -118,7 +118,7 @@ export default function RegisterPage() {
         <Input.Password
           prefix={<LockOutlined className="text-gray-400" />}
           placeholder="请输入密码"
-          className="bg-gray-800 border-gray-700 text-white placeholder-gray-500 h-12"
+          className="dark-input"
           autoComplete="new-password"
           iconRender={(visible) =>
             visible ? (
@@ -157,7 +157,7 @@ export default function RegisterPage() {
         <Input.Password
           prefix={<LockOutlined className="text-gray-400" />}
           placeholder="请再次输入密码"
-          className="bg-gray-800 border-gray-700 text-white placeholder-gray-500 h-12"
+          className="dark-input"
           autoComplete="new-password"
           iconRender={(visible) =>
             visible ? (

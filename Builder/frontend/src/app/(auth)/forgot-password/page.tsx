@@ -90,17 +90,16 @@ export default function ForgotPasswordPage() {
           <Form.Item
             name="email"
             label={
-              <span className="text-gray-300 text-sm">邮箱地址</span>
+              <span className="text-gray-300 text-sm">邮箱/用户名</span>
             }
             rules={[
-              { required: true, message: '请输入邮箱' },
-              { type: 'email', message: '请输入有效的邮箱地址' },
+              { required: true, message: '请输入邮箱或用户名' },
             ]}
           >
             <Input
               prefix={<MailOutlined className="text-gray-400" />}
-              placeholder="name@example.com"
-              className="bg-gray-800 border-gray-700 text-white placeholder-gray-500 h-12"
+              placeholder="请输入邮箱或用户名"
+              className="dark-input h-12"
               autoComplete="email"
             />
           </Form.Item>

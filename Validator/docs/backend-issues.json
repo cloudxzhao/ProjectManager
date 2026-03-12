@@ -1,0 +1,202 @@
+{
+  "metadata": {
+    "project": "ProjectHub",
+    "module": "backend",
+    "generated_at": "2026-03-12T10:00:00Z",
+    "total_issues": 5,
+    "version": "1.0.0"
+  },
+  "issues": [
+    {
+      "id": "BACKEND-001",
+      "title": "TaskVO 缺少前端需要的统计字段",
+      "severity": "medium",
+      "category": "response",
+      "description": "后端 TaskVO 缺少 subtaskCount、completedSubtaskCount、commentCount 等前端展示所需的统计字段，前端需要额外请求获取这些数据。",
+      "affected_apis": [
+        "GET /api/v1/projects/{projectId}/tasks",
+        "GET /api/v1/projects/{projectId}/tasks/{id}"
+      ],
+      "current_state": {
+        "response": {
+          "missing_fields": [
+            "subtaskCount",
+            "completedSubtaskCount",
+            "commentCount"
+          ]
+        }
+      },
+      "expected_state": {
+        "response": {
+          "added_fields": [
+            { "name": "subtaskCount", "type": "integer", "description": "子任务总数" },
+            { "name": "completedSubtaskCount", "type": "integer", "description": "已完成子任务数" },
+            { "name": "commentCount", "type": "integer", "description": "评论总数" }
+          ]
+        }
+      },
+      "solution": {
+        "type": "add",
+        "description": "在 TaskVO 中添加统计字段，并在 TaskService 中计算这些值。",
+        "files_to_modify": [
+          "src/main/java/com/projecthub/task/dto/TaskVO.java",
+          "src/main/java/com/projecthub/task/service/TaskService.java",
+          "src/main/java/com/projecthub/task/mapper/TaskMapper.java"
+        ],
+        "code_example": "// TaskVO.java\n@Data\npublic class TaskVO {\n    // ... 现有字段\n    \n    private Integer subtaskCount;\n    private Integer completedSubtaskCount;\n    private Integer commentCount;\n}\n\n// TaskService.java\npublic TaskVO getTaskById(Long projectId, Long id) {\n    TaskVO task = taskMapper.selectById(id);\n    // 添加统计信息\n    task.setSubtaskCount(taskMapper.countSubtasks(id));\n    task.setCompletedSubtaskCount(taskMapper.countCompletedSubtasks(id));\n    task.setCommentCount(commentMapper.countByTaskId(id));\n    return task;\n}"
+      },
+      "related_issues": [],
+      "labels": ["api"],
+      "estimated_effort": "small"
+    },
+    {
+      "id": "BACKEND-002",
+      "title": "TaskVO 字段命名与前端期望不一致",
+      "severity": "low",
+      "category": "schema",
+      "description": "TaskVO 中部分字段命名与前端期望不一致：position vs order，creatorId vs reporterId。建议统一命名以提高前后端一致性。",
+      "affected_apis": [
+        "GET /api/v1/projects/{projectId}/tasks",
+        "GET /api/v1/projects/{projectId}/tasks/{id}"
+      ],
+      "current_state": {
+        "response": {
+          "position": "integer",
+          "creatorId": "integer"
+        }
+      },
+      "expected_state": {
+        "response": {
+          "order": "integer",
+          "reporterId": "integer"
+        }
+      },
+      "solution": {
+        "type": "rename",
+        "description": "方案一：后端修改字段名（推荐使用 order 和 reporterId）。方案二：后端保持现有命名，前端适配。",
+        "files_to_modify": [
+          "src/main/java/com/projecthub/task/dto/TaskVO.java",
+          "src/main/java/com/projecthub/task/entity/Task.java",
+          "src/main/java/com/projecthub/task/mapper/TaskMapper.xml"
+        ],
+        "code_example": "// TaskVO.java - 重命名字段\n@Data\npublic class TaskVO {\n    // position -> order\n    private Integer order;\n    \n    // creatorId -> reporterId (或添加别名)\n    private Long reporterId;\n}"
+      },
+      "related_issues": [],
+      "labels": ["api"],
+      "estimated_effort": "small"
+    },
+    {
+      "id": "BACKEND-003",
+      "title": "ProjectVO 缺少前端需要的统计字段",
+      "severity": "medium",
+      "category": "response",
+      "description": "后端 ProjectVO 缺少 memberCount、taskCount、completedTaskCount 等前端项目列表展示所需的统计字段。",
+      "affected_apis": [
+        "GET /api/v1/projects",
+        "GET /api/v1/projects/{id}"
+      ],
+      "current_state": {
+        "response": {
+          "missing_fields": [
+            "memberCount",
+            "taskCount",
+            "completedTaskCount"
+          ]
+        }
+      },
+      "expected_state": {
+        "response": {
+          "added_fields": [
+            { "name": "memberCount", "type": "integer", "description": "项目成员数" },
+            { "name": "taskCount", "type": "integer", "description": "任务总数" },
+            { "name": "completedTaskCount", "type": "integer", "description": "已完成任务数" }
+          ]
+        }
+      },
+      "solution": {
+        "type": "add",
+        "description": "在 ProjectVO 中添加统计字段，在查询项目时计算这些统计数据。",
+        "files_to_modify": [
+          "src/main/java/com/projecthub/project/dto/ProjectVO.java",
+          "src/main/java/com/projecthub/project/service/ProjectService.java",
+          "src/main/java/com/projecthub/project/mapper/ProjectMapper.java"
+        ],
+        "code_example": "// ProjectVO.java\n@Data\npublic class ProjectVO {\n    // ... 现有字段\n    \n    private Integer memberCount;\n    private Integer taskCount;\n    private Integer completedTaskCount;\n}"
+      },
+      "related_issues": [],
+      "labels": ["api"],
+      "estimated_effort": "small"
+    },
+    {
+      "id": "BACKEND-004",
+      "title": "ProjectVO 字段命名不一致 (themeColor vs color)",
+      "severity": "low",
+      "category": "schema",
+      "description": "后端 ProjectVO 使用 themeColor 字段名，前端期望使用 color。建议统一命名。",
+      "affected_apis": [
+        "GET /api/v1/projects",
+        "GET /api/v1/projects/{id}",
+        "POST /api/v1/projects",
+        "PUT /api/v1/projects/{id}"
+      ],
+      "current_state": {
+        "response": {
+          "themeColor": "string"
+        }
+      },
+      "expected_state": {
+        "response": {
+          "color": "string"
+        }
+      },
+      "solution": {
+        "type": "rename",
+        "description": "建议后端将 themeColor 重命名为 color，与前端保持一致。",
+        "files_to_modify": [
+          "src/main/java/com/projecthub/project/dto/ProjectVO.java",
+          "src/main/java/com/projecthub/project/entity/Project.java",
+          "src/main/resources/db/migration/V*.sql"
+        ],
+        "code_example": "// ProjectVO.java\n@Data\npublic class ProjectVO {\n    // themeColor -> color\n    private String color;\n}"
+      },
+      "related_issues": [],
+      "labels": ["api"],
+      "estimated_effort": "small"
+    },
+    {
+      "id": "BACKEND-005",
+      "title": "UserVO 缺少 role 字段",
+      "severity": "medium",
+      "category": "response",
+      "description": "前端 User 类型定义了 role 字段用于权限控制，但后端 UserVO 未返回该字段。后端返回了 status 字段但前端未定义。",
+      "affected_apis": [
+        "GET /api/v1/user/profile"
+      ],
+      "current_state": {
+        "response": {
+          "has": ["status"],
+          "missing": ["role"]
+        }
+      },
+      "expected_state": {
+        "response": {
+          "has": ["role", "status"],
+          "description": "同时返回 role 和 status 字段"
+        }
+      },
+      "solution": {
+        "type": "add",
+        "description": "在 UserVO 中添加 role 字段，根据用户权限设置对应角色。",
+        "files_to_modify": [
+          "src/main/java/com/projecthub/user/dto/UserVO.java",
+          "src/main/java/com/projecthub/user/entity/User.java",
+          "src/main/java/com/projecthub/user/service/UserService.java"
+        ],
+        "code_example": "// UserVO.java\n@Data\npublic class UserVO {\n    private Long id;\n    private String username;\n    private String email;\n    private String avatar;\n    private String status;\n    private String role;  // 新增字段: ADMIN, MEMBER, GUEST 等\n    private LocalDateTime createdAt;\n}"
+      },
+      "related_issues": [],
+      "labels": ["api", "security"],
+      "estimated_effort": "small"
+    }
+  ]
+}

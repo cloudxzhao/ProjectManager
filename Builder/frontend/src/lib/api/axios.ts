@@ -1,7 +1,8 @@
 import axios, { AxiosInstance, AxiosError, AxiosRequestConfig } from 'axios';
 import { Result } from '@/types/api';
 
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080/api/v1';
+// 使用相对路径，通过 Nginx 反向代理到后端 API
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || '/api/v1';
 
 // 创建 Axios 实例
 export const apiClient: AxiosInstance = axios.create({

@@ -1,0 +1,32 @@
+[Unit]
+Description=ProjectHub Next.js Frontend Application
+Documentation=https://nextjs.org
+After=network.target
+
+[Service]
+Type=simple
+User=www-data
+Group=www-data
+WorkingDirectory=/data/project/ProjectManager/Builder/frontend
+Environment=NODE_ENV=production
+Environment=PORT=3000
+Environment=NEXT_PUBLIC_API_URL=/api/v1
+Environment=NEXT_PUBLIC_APP_NAME=ProjectHub
+Environment=NEXT_PUBLIC_APP_URL=http://localhost
+ExecStart=/usr/local/bin/npx next start
+Restart=on-failure
+RestartSec=10
+KillSignal=SIGINT
+TimeoutStopSec=30
+
+# 安全配置
+NoNewPrivileges=true
+PrivateTmp=true
+
+# 日志
+StandardOutput=journal
+StandardError=journal
+SyslogIdentifier=projecthub-frontend
+
+[Install]
+WantedBy=multi-user.target
