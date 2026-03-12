@@ -13,7 +13,7 @@ export interface User {
 export type UserRole = 'admin' | 'manager' | 'member';
 
 export interface LoginCredentials {
-  email: string;
+  usernameOrEmail: string;
   password: string;
   remember?: boolean;
 }

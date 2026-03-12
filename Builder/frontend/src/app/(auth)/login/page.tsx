@@ -31,7 +31,7 @@ export default function LoginPage() {
     setLoading(true);
     try {
       await login({
-        email: values.username,
+        usernameOrEmail: values.username,
         password: values.password,
         remember: values.remember,
       });
@@ -89,7 +89,7 @@ export default function LoginPage() {
             <Input
               prefix={<MailOutlined className="text-gray-400" />}
               placeholder="请输入用户名或邮箱"
-              className="dark-input"
+              className="h-12 bg-white text-gray-900 placeholder:text-gray-400"
               autoComplete="username"
             />
           </Form.Item>
@@ -105,7 +105,7 @@ export default function LoginPage() {
             <Input.Password
               prefix={<LockOutlined className="text-gray-400" />}
               placeholder="请输入密码"
-              className="dark-input"
+              className="h-12 bg-white text-gray-900 placeholder:text-gray-400"
               autoComplete="current-password"
               iconRender={(visible) =>
                 visible ? (

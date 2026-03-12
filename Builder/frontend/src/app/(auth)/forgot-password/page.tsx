@@ -99,7 +99,7 @@ export default function ForgotPasswordPage() {
             <Input
               prefix={<MailOutlined className="text-gray-400" />}
               placeholder="请输入邮箱或用户名"
-              className="dark-input h-12"
+              className="h-12 bg-white text-gray-900 placeholder:text-gray-400"
               autoComplete="email"
             />
           </Form.Item>

@@ -350,42 +350,6 @@ body {
     box-shadow: 0 0 0 4px var(--accent-glow);
   }
 
-  /* 暗色主题输入框样式 - 用于登录/注册页面 */
-  .dark-input,
-  .dark-input .ant-input,
-  .dark-input .ant-input-password {
-    background: rgba(255, 255, 255, 0.1) !important;
-    border: 1px solid rgba(255, 255, 255, 0.2) !important;
-    color: #fff !important;
-  }
-
-  .dark-input .ant-input::placeholder,
-  .dark-input .ant-input-password::placeholder {
-    color: rgba(255, 255, 255, 0.5) !important;
-  }
-
-  .dark-input .ant-input:hover,
-  .dark-input .ant-input-password:hover {
-    background: rgba(255, 255, 255, 0.15) !important;
-    border-color: rgba(255, 255, 255, 0.3) !important;
-  }
-
-  .dark-input .ant-input:focus,
-  .dark-input .ant-input-password:focus {
-    background: rgba(255, 255, 255, 0.15) !important;
-    border-color: rgba(249, 115, 22, 0.5) !important;
-    box-shadow: 0 0 0 2px rgba(249, 115, 22, 0.2) !important;
-  }
-
-  /* 修复密码输入框图标颜色 */
-  .dark-input .ant-input-password-icon {
-    color: rgba(255, 255, 255, 0.65) !important;
-  }
-
-  .dark-input .ant-input-password-icon:hover {
-    color: rgba(255, 255, 255, 0.85) !important;
-  }
-
   /* 卡片样式 */
   .card {
     @apply p-6 glass-card;
