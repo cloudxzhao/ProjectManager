@@ -29,6 +29,7 @@ export default function NewProjectPage() {
   const { isAuthenticated, token } = useAuth();
   const [loading, setLoading] = useState(false);
   const [selectedIcon, setSelectedIcon] = useState('🛒');
+  const [selectedColor, setSelectedColor] = useState('#f97316');
 
   // 检查是否已登录，未登录则重定向到登录页
   useEffect(() => {
@@ -46,14 +47,17 @@ export default function NewProjectPage() {
   const onFinish = async (values: ProjectFormValues) => {
     setLoading(true);
     try {
-      const response = await api.post(endpoints.project.create, {
+      console.log('Form values:', values, 'selectedColor:', selectedColor, 'selectedIcon:', selectedIcon);
+      const payload = {
         name: values.name,
         description: values.description,
         startDate: values.startDate?.format('YYYY-MM-DD'),
         endDate: values.endDate?.format('YYYY-MM-DD'),
-        color: values.color || '#f97316',
+        color: selectedColor,
         icon: selectedIcon,
-      });
+      };
+      console.log('Submitting payload:', payload);
+      const response = await api.post(endpoints.project.create, payload);
 
       if (response.code === 200) {
         message.success('项目创建成功');
@@ -184,6 +188,12 @@ export default function NewProjectPage() {
               format="hex"
               showText
               className="w-full"
+              defaultValue="#f97316"
+              onChange={(color) => {
+                const hexColor = color.toHexString();
+                console.log('Color changed to:', hexColor);
+                setSelectedColor(hexColor);
+              }}
             />
           </Form.Item>
 
