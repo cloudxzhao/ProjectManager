@@ -27,8 +27,16 @@ import Link from 'next/link';
 import dayjs from 'dayjs';
 import { getProject, deleteProject, updateProject } from '@/lib/api/project';
 import { getTasks } from '@/lib/api/task';
+import { getStories } from '@/lib/api/story';
+import { getIssues } from '@/lib/api/issue';
+import { getWikis } from '@/lib/api/wiki';
+import { getBurndown } from '@/lib/api/report';
 import type { Project, ProjectStatus } from '@/lib/api/project';
 import type { Task } from '@/lib/api/task';
+import type { UserStory } from '@/lib/api/story';
+import type { Issue } from '@/lib/api/issue';
+import type { Wiki } from '@/lib/api/wiki';
+import type { BurndownData } from '@/lib/api/report';
 
 const { Option } = Select;
 const { TextArea } = Input;
@@ -161,6 +169,10 @@ export default function ProjectDetailPage() {
   const [fetchLoading, setFetchLoading] = useState(true);
   const [project, setProject] = useState<Project | null>(null);
   const [tasks, setTasks] = useState<Task[]>([]);
+  const [stories, setStories] = useState<UserStory[]>([]);
+  const [issues, setIssues] = useState<Issue[]>([]);
+  const [wikis, setWikis] = useState<Wiki[]>([]);
+  const [burndownData, setBurndownData] = useState<BurndownData[]>([]);
   const [deleteModalOpen, setDeleteModalOpen] = useState(false);
   const [editDrawerOpen, setEditDrawerOpen] = useState(false);
   const [selectedIcon, setSelectedIcon] = useState<string>('🛒');
@@ -177,6 +189,22 @@ export default function ProjectDetailPage() {
       // 获取任务列表
       const tasksResult = await getTasks(Number(projectId));
       setTasks(tasksResult.list || []);
+
+      // 获取用户故事列表
+      const storiesResult = await getStories(Number(projectId));
+      setStories(storiesResult.data || []);
+
+      // 获取问题列表
+      const issuesResult = await getIssues(Number(projectId));
+      setIssues(issuesResult.data || []);
+
+      // 获取 Wiki 文档列表
+      const wikisResult = await getWikis(Number(projectId));
+      setWikis(wikisResult.data || []);
+
+      // 获取燃尽图数据
+      const burndownResult = await getBurndown(Number(projectId));
+      setBurndownData(burndownResult.data || []);
     } catch (error: unknown) {
       const errorMessage = error instanceof Error ? error.message : '获取项目详情失败';
       message.error(errorMessage);
@@ -203,38 +231,61 @@ export default function ProjectDetailPage() {
     return dayjs(dateStr).format('YYYY-MM-DD');
   };
 
-  // Mock 数据 - 用户故事
-  const mockStories = [
-    { id: 'STORY-001', title: '用户登录功能', description: '实现基于JWT的用户认证系统，支持邮箱密码登录', points: 5, tags: ['feature'] },
-    { id: 'STORY-002', title: '项目管理模块', description: '创建、编辑、删除项目的基本CRUD操作', points: 8, tags: ['feature'] },
-    { id: 'STORY-003', title: '任务看板优化', description: '优化看板拖拽交互体验', points: 3, tags: ['bug'] },
-  ];
-
-  // Mock 数据 - 看板任务
-  const mockTasks = {
-    analysis: [
-      { id: 'TASK-001', title: '需求分析文档编写', priority: 'high', assignee: '张三', comments: 2 },
-      { id: 'TASK-002', title: '技术方案设计', priority: 'medium', assignee: '李四', comments: 1 },
-    ],
-    development: [
-      { id: 'TASK-003', title: '前端架构搭建', priority: 'critical', assignee: '王五', comments: 5 },
-      { id: 'TASK-004', title: '用户认证模块', priority: 'high', assignee: '赵六', comments: 3 },
-    ],
-    testing: [
-      { id: 'TASK-005', title: '单元测试编写', priority: 'medium', assignee: '钱七', comments: 0 },
-    ],
-    completed: [
-      { id: 'TASK-006', title: '项目初始化', priority: 'low', assignee: '张三', comments: 1 },
-      { id: 'TASK-007', title: '环境配置', priority: 'low', comments: 0 },
-    ],
+  // 格式化故事状态
+  const getStoryStatusText = (status: string) => {
+    const map: Record<string, string> = {
+      todo: '待办',
+      in_progress: '进行中',
+      testing: '测试中',
+      done: '已完成',
+    };
+    return map[status] || status;
   };
 
-  // Mock 数据 - 问题列表
-  const mockIssues = [
-    { id: 'ISSUE-001', title: '登录页面在Safari浏览器显示异常', type: 'bug', severity: 'high', status: 'open', assignee: '王五' },
-    { id: 'ISSUE-002', title: '添加项目成员功能缺失', type: 'feature', severity: 'medium', status: 'open', assignee: '李四' },
-    { id: 'ISSUE-003', title: '优化大数据量渲染性能', type: 'improvement', severity: 'low', status: 'closed' },
-  ];
+  // 获取故事状态颜色
+  const getStoryStatusColor = (status: string) => {
+    const map: Record<string, string> = {
+      todo: 'default',
+      in_progress: 'processing',
+      testing: 'warning',
+      done: 'success',
+    };
+    return map[status] || 'default';
+  };
+
+  // 获取问题类型文本
+  const getIssueTypeText = (type: string) => {
+    const map: Record<string, string> = {
+      bug: '缺陷',
+      feature: '功能',
+      improvement: '改进',
+      task: '任务',
+    };
+    return map[type] || type;
+  };
+
+  // 获取问题严重程度颜色
+  const getIssueSeverityColor = (severity: string) => {
+    const map: Record<string, string> = {
+      critical: 'red',
+      high: 'orange',
+      medium: 'blue',
+      low: 'gray',
+    };
+    return map[severity] || 'gray';
+  };
+
+  // 获取问题状态文本
+  const getIssueStatusText = (status: string) => {
+    const map: Record<string, string> = {
+      open: '打开',
+      in_progress: '进行中',
+      resolved: '已解决',
+      closed: '已关闭',
+    };
+    return map[status] || status;
+  };
+
 
   // 项目操作菜单
   const projectMenuItems: MenuProps['items'] = [
@@ -351,10 +402,49 @@ export default function ProjectDetailPage() {
         </span>
       ),
       children: (
-        <div className="empty-state">
-          <FileTextOutlined style={{ fontSize: 64 }} />
-          <h3>用户故事</h3>
-          <p>功能开发中</p>
+        <div className="space-y-4">
+          <div className="flex justify-between items-center mb-4">
+            <h3 className="text-lg font-semibold text-white">用户故事列表</h3>
+            <span className="text-gray-400">共 {stories.length} 个故事</span>
+          </div>
+          {stories.length > 0 ? (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+              {stories.map((story) => (
+                <div
+                  key={story.id}
+                  className="bg-gray-800/50 border border-gray-700 rounded-lg p-4 hover:border-orange-500/50 transition-colors"
+                >
+                  <div className="flex items-start justify-between mb-2">
+                    <h4 className="text-white font-medium flex-1">{story.title}</h4>
+                    {story.storyPoints && (
+                      <span className="ml-2 px-2 py-1 bg-orange-500/20 text-orange-400 text-xs rounded">
+                        {story.storyPoints} pts
+                      </span>
+                    )}
+                  </div>
+                  <p className="text-gray-400 text-sm mb-3 line-clamp-2">{story.description}</p>
+                  <div className="flex items-center justify-between">
+                    <Tag color={getStoryStatusColor(story.status)}>{getStoryStatusText(story.status)}</Tag>
+                    {story.tags && story.tags.length > 0 && (
+                      <div className="flex gap-1">
+                        {story.tags.map((tag) => (
+                          <span key={tag} className="px-2 py-0.5 bg-gray-700 text-gray-300 text-xs rounded">
+                            {tag}
+                          </span>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                </div>
+              ))}
+            </div>
+          ) : (
+            <div className="text-center py-12">
+              <FileTextOutlined style={{ fontSize: 64, color: '#6b7280' }} />
+              <h3 className="text-gray-400 mt-4">暂无用户故事</h3>
+              <p className="text-gray-500 mt-2">故事功能开发中</p>
+            </div>
+          )}
         </div>
       ),
     },
@@ -367,10 +457,53 @@ export default function ProjectDetailPage() {
         </span>
       ),
       children: (
-        <div className="empty-state">
-          <BugOutlined style={{ fontSize: 64 }} />
-          <h3>问题追踪</h3>
-          <p>功能开发中</p>
+        <div className="space-y-4">
+          <div className="flex justify-between items-center mb-4">
+            <h3 className="text-lg font-semibold text-white">问题列表</h3>
+            <span className="text-gray-400">共 {issues.length} 个问题</span>
+          </div>
+          {issues.length > 0 ? (
+            <div className="space-y-3">
+              {issues.map((issue) => (
+                <div
+                  key={issue.id}
+                  className="bg-gray-800/50 border border-gray-700 rounded-lg p-4 hover:border-orange-500/50 transition-colors"
+                >
+                  <div className="flex items-start gap-3">
+                    <div className={`flex-shrink-0 w-10 h-10 rounded-lg flex items-center justify-center ${
+                      issue.type === 'bug' ? 'bg-red-500/20' :
+                      issue.type === 'feature' ? 'bg-green-500/20' :
+                      'bg-blue-500/20'
+                    }`}>
+                      {issue.type === 'bug' ? <BugOutlined className={issue.type === 'bug' ? 'text-red-400' : ''} /> :
+                       issue.type === 'feature' ? <CheckSquareOutlined className="text-green-400" /> :
+                       <CodeOutlined className="text-blue-400" />}
+                    </div>
+                    <div className="flex-1">
+                      <div className="flex items-center gap-2 mb-1">
+                        <span className="text-gray-400 text-sm">#{issue.id}</span>
+                        <h4 className="text-white font-medium flex-1">{issue.title}</h4>
+                        <Tag color={getIssueSeverityColor(issue.severity)}>
+                          {getIssueTypeText(issue.type)} · {issue.severity}
+                        </Tag>
+                      </div>
+                      <div className="flex items-center gap-4 text-sm text-gray-400">
+                        <span>状态：{getIssueStatusText(issue.status)}</span>
+                        <span>优先级：{issue.priority}</span>
+                        {issue.dueDate && <span>截止日期：{formatDate(issue.dueDate)}</span>}
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          ) : (
+            <div className="text-center py-12">
+              <BugOutlined style={{ fontSize: 64, color: '#6b7280' }} />
+              <h3 className="text-gray-400 mt-4">暂无问题</h3>
+              <p className="text-gray-500 mt-2">问题追踪功能开发中</p>
+            </div>
+          )}
         </div>
       ),
     },
@@ -383,10 +516,44 @@ export default function ProjectDetailPage() {
         </span>
       ),
       children: (
-        <div className="empty-state">
-          <BookOutlined style={{ fontSize: 64 }} />
-          <h3>Wiki 知识库</h3>
-          <p>暂无文档内容</p>
+        <div className="space-y-4">
+          <div className="flex justify-between items-center mb-4">
+            <h3 className="text-lg font-semibold text-white">Wiki 文档</h3>
+            <span className="text-gray-400">共 {wikis.length} 篇文档</span>
+          </div>
+          {wikis.length > 0 ? (
+            <div className="space-y-3">
+              {wikis.map((wiki) => (
+                <div
+                  key={wiki.id}
+                  className="bg-gray-800/50 border border-gray-700 rounded-lg p-4 hover:border-orange-500/50 transition-colors"
+                >
+                  <div className="flex items-start justify-between">
+                    <div className="flex-1">
+                      <h4 className="text-white font-medium text-lg mb-2">{wiki.title}</h4>
+                      {wiki.summary && (
+                        <p className="text-gray-400 text-sm mb-3">{wiki.summary}</p>
+                      )}
+                      <div className="flex items-center gap-4 text-sm text-gray-500">
+                        <span>作者：{wiki.authorName || '未知'}</span>
+                        <span>浏览：{wiki.viewCount}</span>
+                        <span>更新：{formatDate(wiki.updatedAt || wiki.createdAt)}</span>
+                        {!wiki.isPublished && (
+                          <Tag color="warning">未发布</Tag>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          ) : (
+            <div className="text-center py-12">
+              <BookOutlined style={{ fontSize: 64, color: '#6b7280' }} />
+              <h3 className="text-gray-400 mt-4">暂无文档</h3>
+              <p className="text-gray-500 mt-2">Wiki 功能开发中</p>
+            </div>
+          )}
         </div>
       ),
     },
@@ -399,10 +566,48 @@ export default function ProjectDetailPage() {
         </span>
       ),
       children: (
-        <div className="empty-state">
-          <BarChartOutlined style={{ fontSize: 64 }} />
-          <h3>数据报表</h3>
-          <p>报表功能开发中</p>
+        <div className="space-y-6">
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+            <div className="bg-gray-800/50 border border-gray-700 rounded-lg p-4 text-center">
+              <div className="text-2xl font-bold text-white">{project?.taskCount || 0}</div>
+              <div className="text-gray-400 text-sm mt-1">总任务数</div>
+            </div>
+            <div className="bg-gray-800/50 border border-gray-700 rounded-lg p-4 text-center">
+              <div className="text-2xl font-bold text-green-400">{project?.completedTaskCount || 0}</div>
+              <div className="text-gray-400 text-sm mt-1">已完成</div>
+            </div>
+            <div className="bg-gray-800/50 border border-gray-700 rounded-lg p-4 text-center">
+              <div className="text-2xl font-bold text-blue-400">{stories.length}</div>
+              <div className="text-gray-400 text-sm mt-1">用户故事</div>
+            </div>
+            <div className="bg-gray-800/50 border border-gray-700 rounded-lg p-4 text-center">
+              <div className="text-2xl font-bold text-orange-400">{issues.length}</div>
+              <div className="text-gray-400 text-sm mt-1">问题</div>
+            </div>
+          </div>
+
+          {burndownData.length > 0 ? (
+            <div className="bg-gray-800/50 border border-gray-700 rounded-lg p-6">
+              <h4 className="text-white font-medium mb-4">燃尽图数据</h4>
+              <div className="h-48 flex items-end gap-2">
+                {burndownData.slice(-7).map((item, idx) => (
+                  <div key={idx} className="flex-1 flex flex-col items-center gap-2">
+                    <div
+                      className="w-full bg-gradient-to-t from-orange-500 to-orange-400 rounded-t transition-all"
+                      style={{ height: `${Math.max(10, (item.remaining / Math.max(...burndownData.map(d => d.remaining))) * 100)}%` }}
+                    />
+                    <span className="text-xs text-gray-400">{item.date.slice(5)}</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+          ) : (
+            <div className="text-center py-12 bg-gray-800/30 rounded-lg">
+              <BarChartOutlined style={{ fontSize: 64, color: '#6b7280' }} />
+              <h3 className="text-gray-400 mt-4">暂无报表数据</h3>
+              <p className="text-gray-500 mt-2">报表功能开发中</p>
+            </div>
+          )}
         </div>
       ),
     },

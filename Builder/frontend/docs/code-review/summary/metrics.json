@@ -1,0 +1,12 @@
+{
+  "lastReviewDate": "",
+  "backendIssues": 0,
+  "frontendIssues": 0,
+  "totalIssues": 0,
+  "metrics": {
+    "codeQuality": 0,
+    "security": 0,
+    "performance": 0,
+    "maintainability": 0
+  }
+}

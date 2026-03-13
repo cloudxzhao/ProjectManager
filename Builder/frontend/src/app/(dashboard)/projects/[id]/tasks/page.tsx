@@ -1,17 +1,19 @@
 'use client';
 
-import { useState } from 'react';
-import { useParams } from 'next/navigation';
-import { Card, Button, Tag, Avatar, Popover, Drawer, Form, Input, Select, DatePicker, message } from 'antd';
+import { useState, useEffect } from 'react';
+import { useParams, useRouter } from 'next/navigation';
+import { Card, Button, Tag, Avatar, Popover, Drawer, Form, Input, Select, DatePicker, message, Spin } from 'antd';
 import { PlusOutlined, MoreOutlined, ClockCircleOutlined, FlagOutlined } from '@ant-design/icons';
 import { DndContext, DragEndEvent, closestCenter } from '@dnd-kit/core';
 import { SortableContext, horizontalListSortingStrategy, useSortable, verticalListSortingStrategy } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
+import { getTasksForBoard, createTask as createTaskApi, moveTask, deleteTask } from '@/lib/api/task';
+import type { TaskBoardItem, TaskStatus, Priority } from '@/lib/api/task';
 
 const { Option } = Select;
 const { TextArea } = Input;
 
-// Mock 数据
+// 看板列定义
 const initialColumns = [
   { id: 'todo', title: '待办', color: '#6b7280' },
   { id: 'in-progress', title: '进行中', color: '#3b82f6' },
@@ -19,15 +21,18 @@ const initialColumns = [
   { id: 'done', title: '已完成', color: '#10b981' },
 ];
 
-const initialTasks = [
-  { id: '1', title: '完成用户登录模块', priority: 'high', assignee: '张三', dueDate: '2024-03-15', columnId: 'todo', storyPoints: 5 },
-  { id: '2', title: '设计数据库架构', priority: 'high', assignee: '李四', dueDate: '2024-03-12', columnId: 'todo', storyPoints: 8 },
-  { id: '3', title: '搭建项目脚手架', priority: 'medium', assignee: '王五', dueDate: '2024-03-10', columnId: 'in-progress', storyPoints: 3 },
-  { id: '4', title: '实现 API 接口', priority: 'medium', assignee: '赵六', dueDate: '2024-03-14', columnId: 'in-progress', storyPoints: 5 },
-  { id: '5', title: '编写单元测试', priority: 'low', assignee: '钱七', dueDate: '2024-03-16', columnId: 'testing', storyPoints: 3 },
-  { id: '6', title: '代码审查', priority: 'medium', assignee: '张三', dueDate: '2024-03-11', columnId: 'done', storyPoints: 2 },
-  { id: '7', title: '部署到测试环境', priority: 'high', assignee: '李四', dueDate: '2024-03-08', columnId: 'done', storyPoints: 3 },
-];
+// 前端看板任务类型
+interface TaskItem {
+  id: string;
+  title: string;
+  priority: Priority;
+  assignee?: string;
+  dueDate?: string;
+  columnId: string;
+  storyPoints?: number;
+  taskId: number;
+  projectId: number;
+}
 
 const priorityColors: Record<string, string> = {
   high: 'red',
@@ -43,8 +48,8 @@ const priorityText: Record<string, string> = {
 
 // 可排序的任务卡片组件
 interface SortableTaskCardProps {
-  task: typeof initialTasks[0];
-  onClick: (task: typeof initialTasks[0]) => void;
+  task: TaskItem;
+  onClick: (task: TaskItem) => void;
 }
 
 const SortableTaskCard: React.FC<SortableTaskCardProps> = ({ task, onClick }) => {
@@ -64,8 +69,8 @@ const SortableTaskCard: React.FC<SortableTaskCardProps> = ({ task, onClick }) =>
 
 // 任务卡片组件
 interface TaskCardProps {
-  task: typeof initialTasks[0];
-  onClick: (task: typeof initialTasks[0]) => void;
+  task: TaskItem;
+  onClick: (task: TaskItem) => void;
 }
 
 const TaskCard: React.FC<TaskCardProps> = ({ task, onClick }) => {
@@ -106,8 +111,8 @@ const TaskCard: React.FC<TaskCardProps> = ({ task, onClick }) => {
 // 可排序的列组件
 interface SortableColumnProps {
   column: typeof initialColumns[0];
-  tasks: typeof initialTasks;
-  onTaskClick: (task: typeof initialTasks[0]) => void;
+  tasks: TaskItem[];
+  onTaskClick: (task: TaskItem) => void;
   onAddTask: (columnId: string) => void;
 }
 
@@ -142,14 +147,14 @@ const SortableColumn: React.FC<SortableColumnProps> = ({ column, tasks, onTaskCl
 interface TaskFormModalProps {
   open: boolean;
   onClose: () => void;
-  onSubmit: (values: unknown) => void;
+  onSubmit: (values: { title: string; description?: string; priority?: Priority; storyPoints?: number; assignee?: string; dueDate?: string }) => void;
   initialColumnId?: string;
 }
 
 const TaskFormModal: React.FC<TaskFormModalProps> = ({ open, onClose, onSubmit, initialColumnId }) => {
   const [form] = Form.useForm();
 
-  const handleFinish = (values: unknown) => {
+  const handleFinish = (values: { title: string; description?: string; priority?: Priority; storyPoints?: number; assignee?: string; dueDate?: string }) => {
     onSubmit(values);
     form.resetFields();
     onClose();
@@ -259,47 +264,98 @@ const TaskFormModal: React.FC<TaskFormModalProps> = ({ open, onClose, onSubmit, 
 
 export default function TaskBoardPage() {
   const params = useParams();
-  const projectId = params.id as string;
+  const router = useRouter();
+  const projectIdNum = Number(params.id);
 
   const [columns] = useState(initialColumns);
-  const [tasks, setTasks] = useState(initialTasks);
+  const [tasks, setTasks] = useState<TaskItem[]>([]);
+  const [loading, setLoading] = useState(true);
   const [formOpen, setFormOpen] = useState(false);
   const [initialColumnId, setInitialColumnId] = useState<string | undefined>();
-  const [selectedTask, setSelectedTask] = useState<typeof initialTasks[0] | null>(null);
+  const [selectedTask, setSelectedTask] = useState<TaskItem | null>(null);
 
-  const handleDragEnd = (event: DragEndEvent) => {
+  // 加载任务列表
+  const loadTasks = async () => {
+    try {
+      setLoading(true);
+      const taskList = await getTasksForBoard(projectIdNum);
+      setTasks(taskList);
+    } catch (error) {
+      console.error('加载任务失败:', error);
+      message.error('加载任务失败');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    if (projectIdNum) {
+      loadTasks();
+    }
+  }, [projectIdNum]);
+
+  // 状态到列的映射
+  const statusToColumn: Record<string, TaskStatus> = {
+    'todo': 'todo',
+    'in-progress': 'in_progress',
+    'testing': 'testing',
+    'done': 'done',
+  };
+
+  // 列到状态的映射
+  const columnToStatus: Record<string, string> = {
+    'todo': 'todo',
+    'in-progress': 'in_progress',
+    'testing': 'testing',
+    'done': 'done',
+  };
+
+  const handleDragEnd = async (event: DragEndEvent) => {
     const { active, over } = event;
 
     if (over) {
       const activeId = active.id as string;
       const overId = over.id as string;
 
-      setTasks((prevTasks) => {
-        const activeTask = prevTasks.find((t) => t.id === activeId);
-        const overTask = prevTasks.find((t) => t.id === overId);
+      const activeTask = tasks.find((t) => t.id === activeId);
+      if (!activeTask) return;
 
-        if (activeTask && overTask) {
-          // 检查是否拖到列上
-          const isColumn = columns.some((c) => c.id === overId);
+      // 检查是否拖到列上
+      const targetColumn = columns.find((c) => c.id === overId);
+      let newColumnId = activeTask.columnId;
 
-          if (isColumn) {
-            // 移动到不同列
-            return prevTasks.map((t) =>
-              t.id === activeId ? { ...t, columnId: overId } : t
-            );
-          } else {
-            // 在同一列内或不同列移动
-            const overTaskColumn = overTask.columnId;
-            return prevTasks.map((t) =>
-              t.id === activeId ? { ...t, columnId: overTaskColumn } : t
-            );
-          }
+      if (targetColumn) {
+        newColumnId = targetColumn.id;
+      } else {
+        const overTask = tasks.find((t) => t.id === overId);
+        if (overTask) {
+          newColumnId = overTask.columnId;
         }
+      }
 
-        return prevTasks;
-      });
+      // 如果状态没有变化，不调用API
+      if (newColumnId === activeTask.columnId) {
+        return;
+      }
 
-      message.success('任务已移动');
+      // 更新本地状态（乐观更新）
+      setTasks((prevTasks) =>
+        prevTasks.map((t) =>
+          t.id === activeId ? { ...t, columnId: newColumnId } : t
+        )
+      );
+
+      // 调用API更新任务状态
+      try {
+        const newStatus = statusToColumn[newColumnId] || 'todo';
+        await moveTask(projectIdNum, activeTask.taskId, newStatus);
+        message.success('任务已移动');
+      } catch (error) {
+        console.error('移动任务失败:', error);
+        message.error('移动任务失败');
+        // 回滚本地状态
+        loadTasks();
+      }
     }
   };
 
@@ -308,14 +364,34 @@ export default function TaskBoardPage() {
     setFormOpen(true);
   };
 
-  const handleTaskClick = (task: typeof initialTasks[0]) => {
+  const handleTaskClick = (task: TaskItem) => {
     setSelectedTask(task);
-    message.info(`查看任务详情：${task.title}`);
+    router.push(`/tasks/${task.taskId}`);
   };
 
-  const handleCreateTask = (values: unknown) => {
-    console.log('创建任务:', values);
-    message.success('任务创建成功');
+  const handleCreateTask = async (values: { title: string; description?: string; priority?: Priority; storyPoints?: number; assignee?: string; dueDate?: string }) => {
+    try {
+      // 将列ID转换为状态
+      const columnId = initialColumnId || 'todo';
+      const status = columnToStatus[columnId] || 'todo';
+
+      await createTaskApi(projectIdNum, {
+        projectId: projectIdNum,
+        title: values.title,
+        description: values.description,
+        priority: values.priority || 'medium',
+        storyPoints: values.storyPoints,
+        dueDate: values.dueDate,
+        status: status as TaskStatus,
+      });
+
+      message.success('任务创建成功');
+      setFormOpen(false);
+      loadTasks();
+    } catch (error) {
+      console.error('创建任务失败:', error);
+      message.error('创建任务失败');
+    }
   };
 
   return (
@@ -336,25 +412,34 @@ export default function TaskBoardPage() {
         </Button>
       </div>
 
-      {/* Kanban 看板 */}
-      <div className="overflow-x-auto pb-4">
-        <DndContext collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
-          <div className="flex gap-4">
-            {columns.map((column) => {
-              const columnTasks = tasks.filter((t) => t.columnId === column.id);
-              return (
-                <SortableColumn
-                  key={column.id}
-                  column={column}
-                  tasks={columnTasks}
-                  onTaskClick={handleTaskClick}
-                  onAddTask={handleAddTask}
-                />
-              );
-            })}
+      {/* 加载状态 */}
+      {loading ? (
+        <div className="flex justify-center items-center py-20">
+          <Spin size="large" />
+        </div>
+      ) : (
+        <>
+          {/* Kanban 看板 */}
+          <div className="overflow-x-auto pb-4">
+            <DndContext collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
+              <div className="flex gap-4">
+                {columns.map((column) => {
+                  const columnTasks = tasks.filter((t) => t.columnId === column.id);
+                  return (
+                    <SortableColumn
+                      key={column.id}
+                      column={column}
+                      tasks={columnTasks}
+                      onTaskClick={handleTaskClick}
+                      onAddTask={handleAddTask}
+                    />
+                  );
+                })}
+              </div>
+            </DndContext>
           </div>
-        </DndContext>
-      </div>
+        </>
+      )}
 
       {/* 创建任务表单 */}
       <TaskFormModal
