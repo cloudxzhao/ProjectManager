@@ -1,8 +1,11 @@
 'use client';
 
-import { Avatar } from 'antd';
-import { useMemo } from 'react';
+import { Avatar, Spin } from 'antd';
+import { useMemo, useState, useEffect } from 'react';
 import type { CSSProperties } from 'react';
+import { getProjectStats, getProjects } from '@/lib/api/project';
+import { getTasks } from '@/lib/api/task';
+import type { Task } from '@/lib/api/task';
 
 // 图标组件 - 使用 useMemo 确保引用稳定
 const ProjectIcon = () => (
@@ -96,50 +99,6 @@ const ChartIcon = () => (
   </svg>
 );
 
-// Mock 数据 - 使用数字而不是 ReactNode 避免 SSR/CSR 不一致
-const metricsData = [
-  {
-    title: '进行中项目',
-    value: 12,
-    iconType: 'project' as const,
-    trend: 'up' as const,
-    trendValue: 12,
-    color: '#f97316',
-    colorDark: '#ea580c',
-    glow: 'rgba(249, 115, 22, 0.4)',
-  },
-  {
-    title: '待完成任务',
-    value: 48,
-    iconType: 'task' as const,
-    trend: 'up' as const,
-    trendValue: 8,
-    color: '#ec4899',
-    colorDark: '#db2777',
-    glow: 'rgba(236, 72, 153, 0.4)',
-  },
-  {
-    title: '本周已完成',
-    value: 156,
-    iconType: 'check' as const,
-    trend: 'up' as const,
-    trendValue: 24,
-    color: '#10b981',
-    colorDark: '#059669',
-    glow: 'rgba(16, 185, 129, 0.4)',
-  },
-  {
-    title: '逾期任务',
-    value: 8,
-    iconType: 'clock' as const,
-    trend: 'down' as const,
-    trendValue: 3,
-    color: '#8b5cf6',
-    colorDark: '#7c3aed',
-    glow: 'rgba(139, 92, 246, 0.4)',
-  },
-];
-
 // 图标类型映射
 const iconMap: Record<string, () => React.ReactNode> = {
   project: ProjectIcon,
@@ -148,57 +107,6 @@ const iconMap: Record<string, () => React.ReactNode> = {
   clock: ClockIcon,
 };
 
-const projectsData = [
-  {
-    id: '1',
-    name: '全球电商平台重构',
-    members: 12,
-    daysLeft: 24,
-    progress: 68,
-    status: 'active',
-    statusText: '进行中',
-    color: '#f97316',
-    colorDark: '#ea580c',
-    iconType: 'globe' as const,
-  },
-  {
-    id: '2',
-    name: '移动端 App 2.0',
-    members: 8,
-    daysLeft: 45,
-    progress: 42,
-    status: 'active',
-    statusText: '进行中',
-    color: '#8b5cf6',
-    colorDark: '#7c3aed',
-    iconType: 'mobile' as const,
-  },
-  {
-    id: '3',
-    name: '数据中台建设',
-    members: 15,
-    daysLeft: 60,
-    progress: 28,
-    status: 'delayed',
-    statusText: '延期',
-    color: '#06b6d4',
-    colorDark: '#0891b2',
-    iconType: 'layers' as const,
-  },
-  {
-    id: '4',
-    name: '营销自动化系统',
-    members: 6,
-    daysLeft: 12,
-    progress: 85,
-    status: 'review',
-    statusText: '评审中',
-    color: '#84cc16',
-    colorDark: '#65a30d',
-    iconType: 'marketing' as const,
-  },
-];
-
 // 项目图标类型映射
 const projectIconMap: Record<string, () => React.ReactNode> = {
   globe: GlobeIcon,
@@ -206,49 +114,6 @@ const projectIconMap: Record<string, () => React.ReactNode> = {
   layers: LayersIcon,
   marketing: MarketingIcon,
 };
-
-const tasksData = [
-  {
-    id: '1',
-    title: '完成用户模块 API 设计',
-    priority: 'high' as const,
-    priorityText: '高优先级',
-    dueDate: '今天截止',
-    checked: false,
-  },
-  {
-    id: '2',
-    title: 'Review 前端 PR #245',
-    priority: 'medium' as const,
-    priorityText: '中优先级',
-    dueDate: '明天截止',
-    checked: false,
-  },
-  {
-    id: '3',
-    title: '周会准备 Sprint 回顾材料',
-    priority: 'medium' as const,
-    priorityText: '中优先级',
-    dueDate: '本周五',
-    checked: false,
-  },
-  {
-    id: '4',
-    title: '更新项目文档',
-    priority: 'low' as const,
-    priorityText: '低优先级',
-    dueDate: '下周截止',
-    checked: false,
-  },
-  {
-    id: '5',
-    title: '数据库性能优化方案',
-    priority: 'high' as const,
-    priorityText: '高优先级',
-    dueDate: '3 天后截止',
-    checked: false,
-  },
-];
 
 const activitiesData = [
   {
@@ -311,6 +176,74 @@ const TaskCheckbox = () => (
 );
 
 export default function DashboardPage() {
+  const [loading, setLoading] = useState(true);
+  const [metricsData, setMetricsData] = useState([
+    {
+      title: '进行中项目',
+      value: 0,
+      iconType: 'project' as const,
+      trend: 'up' as const,
+      trendValue: 0,
+      color: '#f97316',
+      colorDark: '#ea580c',
+      glow: 'rgba(249, 115, 22, 0.4)',
+    },
+    {
+      title: '待完成任务',
+      value: 0,
+      iconType: 'task' as const,
+      trend: 'up' as const,
+      trendValue: 0,
+      color: '#ec4899',
+      colorDark: '#db2777',
+      glow: 'rgba(236, 72, 153, 0.4)',
+    },
+    {
+      title: '本周已完成',
+      value: 0,
+      iconType: 'check' as const,
+      trend: 'up' as const,
+      trendValue: 0,
+      color: '#10b981',
+      colorDark: '#059669',
+      glow: 'rgba(16, 185, 129, 0.4)',
+    },
+    {
+      title: '逾期任务',
+      value: 0,
+      iconType: 'clock' as const,
+      trend: 'down' as const,
+      trendValue: 0,
+      color: '#8b5cf6',
+      colorDark: '#7c3aed',
+      glow: 'rgba(139, 92, 246, 0.4)',
+    },
+  ]);
+  const [projectsData, setProjectsData] = useState([
+    {
+      id: '1',
+      name: '全球电商平台重构',
+      members: 12,
+      daysLeft: 24,
+      progress: 68,
+      status: 'active',
+      statusText: '进行中',
+      color: '#f97316',
+      colorDark: '#ea580c',
+      iconType: 'globe' as 'globe' | 'mobile' | 'layers' | 'marketing',
+    },
+  ]);
+  const [tasksData, setTasksData] = useState([
+    {
+      id: '1',
+      title: '完成用户模块 API 设计',
+      priority: 'high' as 'high' | 'medium' | 'low',
+      priorityText: '高优先级',
+      dueDate: '今天截止',
+      checked: false,
+    },
+  ]);
+
   // 使用 useMemo 缓存图标组件，确保 SSR/CSR 一致
   const metricIcons = useMemo(() => ({
     project: <ProjectIcon />,
@@ -326,19 +259,121 @@ export default function DashboardPage() {
     marketing: <MarketingIcon />,
   }), []);
 
+  // 加载仪表盘数据
+  useEffect(() => {
+    const loadDashboardData = async () => {
+      try {
+        // 获取项目统计数据
+        const stats = await getProjectStats();
+
+        // 获取项目列表（取前 4 个）
+        const projectsResult = await getProjects(1, 10);
+
+        // 获取任务列表（取第一个项目的前 5 个任务）
+        let tasksList: Task[] = [];
+        if (projectsResult.list.length > 0) {
+          const tasksResult = await getTasks(projectsResult.list[0].id);
+          tasksList = tasksResult.list.slice(0, 5);
+        }
+
+        // 更新指标数据
+        setMetricsData([
+          {
+            title: '进行中项目',
+            value: stats.activeCount || 0,
+            iconType: 'project' as const,
+            trend: 'up' as const,
+            trendValue: 12,
+            color: '#f97316',
+            colorDark: '#ea580c',
+            glow: 'rgba(249, 115, 22, 0.4)',
+          },
+          {
+            title: '待完成任务',
+            value: tasksList.filter((t) => t.status === 'todo').length || 0,
+            iconType: 'task' as const,
+            trend: 'up' as const,
+            trendValue: 8,
+            color: '#ec4899',
+            colorDark: '#db2777',
+            glow: 'rgba(236, 72, 153, 0.4)',
+          },
+          {
+            title: '本周已完成',
+            value: tasksList.filter((t) => t.status === 'done').length || 0,
+            iconType: 'check' as const,
+            trend: 'up' as const,
+            trendValue: 24,
+            color: '#10b981',
+            colorDark: '#059669',
+            glow: 'rgba(16, 185, 129, 0.4)',
+          },
+          {
+            title: '逾期任务',
+            value: 0, // 后端没有直接提供逾期任务统计，暂时为 0
+            iconType: 'clock' as const,
+            trend: 'down' as const,
+            trendValue: 3,
+            color: '#8b5cf6',
+            colorDark: '#7c3aed',
+            glow: 'rgba(139, 92, 246, 0.4)',
+          },
+        ]);
+
+        // 更新项目列表数据
+        const projectItems = projectsResult.list.slice(0, 4).map((project, index) => ({
+          id: String(project.id),
+          name: project.name,
+          members: project.memberCount,
+          daysLeft: project.endDate ? Math.max(0, Math.ceil((new Date(project.endDate).getTime() - Date.now()) / (1000 * 60 * 60 * 24))) : 0,
+          progress: project.taskCount > 0 ? Math.round((project.completedTaskCount / project.taskCount) * 100) : 0,
+          status: project.status === 'ACTIVE' ? 'active' : project.status === 'COMPLETED' ? 'completed' : 'active',
+          statusText: project.status === 'ACTIVE' ? '进行中' : project.status === 'COMPLETED' ? '已完成' : '规划中',
+          color: project.color,
+          colorDark: project.color,
+          iconType: (['globe', 'mobile', 'layers', 'marketing'][index % 4] as 'globe' | 'mobile' | 'layers' | 'marketing'),
+        }));
+        setProjectsData(projectItems);
+
+        // 更新任务列表数据
+        const taskItems = tasksList.map((task) => ({
+          id: String(task.id),
+          title: task.title,
+          priority: (task.priority === 'high' ? 'high' : task.priority === 'medium' ? 'medium' : 'low') as 'high' | 'medium' | 'low',
+          priorityText: task.priority === 'high' ? '高优先级' : task.priority === 'medium' ? '中优先级' : '低优先级',
+          dueDate: task.dueDate || '无截止日期',
+          checked: task.status === 'done',
+        }));
+        setTasksData(taskItems);
+      } catch (error) {
+        console.error('加载仪表盘数据失败:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    loadDashboardData();
+  }, []);
+
   return (
     <div className="dashboard">
-      {/* 背景图层 */}
-      <div className="bg-layer">
-        <div className="bg-overlay"></div>
-        <div className="grid-pattern"></div>
-      </div>
+      {loading ? (
+        <div className="flex justify-center items-center py-20">
+          <Spin size="large" />
+        </div>
+      ) : (
+        <div className="dashboard-content">
+          {/* 背景图层 */}
+          <div className="bg-layer">
+            <div className="bg-overlay"></div>
+            <div className="grid-pattern"></div>
+          </div>
 
-      {/* 页面标题 */}
-      <div className="dashboard-header">
-        <h1 className="dashboard-title">欢迎回来，张三丰</h1>
-        <p className="dashboard-subtitle">这里是您所有项目和任务的总览面板</p>
-      </div>
+          {/* 页面标题 */}
+          <div className="dashboard-header">
+            <h1 className="dashboard-title">欢迎回来，张三丰</h1>
+            <p className="dashboard-subtitle">这里是您所有项目和任务的总览面板</p>
+          </div>
 
       {/* 关键指标卡片 */}
       <div className="metrics-grid">
@@ -494,12 +529,25 @@ export default function DashboardPage() {
           </div>
         </div>
       </div>
+        </div>
+      )}
     </div>
   );
 }
 
 // 任务项组件 - 纯展示组件，避免 SSR/CSR 不一致
-function TaskItem({ task }: { task: typeof tasksData[0] }) {
+interface TaskItemProps {
+  task: {
+    id: string;
+    title: string;
+    priority: 'high' | 'medium' | 'low';
+    priorityText: string;
+    dueDate: string;
+    checked: boolean;
+  };
+}
+
+function TaskItem({ task }: TaskItemProps) {
   const priorityColors = useMemo(() => ({
     high: 'priority-high',
     medium: 'priority-medium',
