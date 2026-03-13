@@ -82,12 +82,16 @@ const mapProjectResponse = (response: ProjectResponse): Project => {
  * @param pageSize 每页数量
  * @param keyword 搜索关键词
  * @param status 状态过滤
+ * @param sort 排序字段
+ * @param order 排序方向
  */
 export const getProjects = async (
   page: number = 1,
   pageSize: number = 20,
   keyword?: string,
-  status?: ProjectStatus
+  status?: ProjectStatus,
+  sort?: string,
+  order?: string
 ) => {
   const params = new URLSearchParams();
   params.append('page', page.toString());
@@ -97,6 +101,12 @@ export const getProjects = async (
   }
   if (status) {
     params.append('status', status);
+  }
+  if (sort) {
+    params.append('sort', sort);
+  }
+  if (order) {
+    params.append('order', order);
   }
 
   const result = await api.get<{

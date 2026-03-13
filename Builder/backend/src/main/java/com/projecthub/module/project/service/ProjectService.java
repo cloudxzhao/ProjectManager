@@ -179,9 +179,15 @@ public class ProjectService {
   /** 获取项目列表（用户参与的） */
   @Transactional(readOnly = true)
   public PageResult<ProjectVO> getUserProjects(
-      Integer page, Integer size, String keyword, String status) {
+      Integer page, Integer size, String keyword, String status, String sort, String order) {
     Long userId = getCurrentUserId();
-    Pageable pageable = PageRequest.of(page - 1, size, Sort.by(Sort.Direction.DESC, "createdAt"));
+
+    // 验证排序字段
+    List<String> validSortFields = List.of("createdAt", "name", "startDate", "endDate");
+    String sortField = validSortFields.contains(sort) ? sort : "createdAt";
+    Sort.Direction sortDirection =
+        "asc".equalsIgnoreCase(order) ? Sort.Direction.ASC : Sort.Direction.DESC;
+    Pageable pageable = PageRequest.of(page - 1, size, Sort.by(sortDirection, sortField));
 
     // 查询用户参与的项目 ID 列表
     List<Long> projectIds = permissionService.getUserProjectIds(userId);
@@ -309,7 +315,13 @@ public class ProjectService {
     }
 
     // 统计各项目状态的数量
-    java.util.Map<String, Long> stats = projectRepository.countProjectsByStatus(projectIds);
+    List<Object[]> results = projectRepository.countProjectsByStatus(projectIds);
+
+    // 将查询结果转换为 Map
+    java.util.Map<String, Long> stats = new java.util.HashMap<>();
+    for (Object[] result : results) {
+      stats.put(result[0].toString(), (Long) result[1]);
+    }
 
     return ProjectStatsDTO.builder()
         .activeCount(stats.getOrDefault("ACTIVE", 0L))

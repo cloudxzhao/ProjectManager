@@ -193,6 +193,8 @@ export default function ProjectsPage() {
   const [activeTab, setActiveTab] = useState('all');
   const [searchValue, setSearchValue] = useState('');
   const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
+  const [sortField, setSortField] = useState('createdAt');
+  const [sortOrder, setSortOrder] = useState('desc');
 
   // API 状态
   const [projects, setProjects] = useState<Project[]>([]);
@@ -236,7 +238,7 @@ export default function ProjectsPage() {
       else if (activeTab === 'completed') status = 'COMPLETED';
       else if (activeTab === 'archived') status = 'ARCHIVED';
 
-      const result = await getProjects(currentPage, pageSize, searchValue || undefined, status);
+      const result = await getProjects(currentPage, pageSize, searchValue || undefined, status, sortField, sortOrder);
       console.log('[ProjectsPage] API result:', result);
 
       const projectList: Project[] = result.list || [];
@@ -254,7 +256,7 @@ export default function ProjectsPage() {
   useEffect(() => {
     fetchStats();
     fetchProjects();
-  }, [currentPage, pageSize, activeTab]);
+  }, [currentPage, pageSize, activeTab, sortField, sortOrder]);
 
   // 搜索（防抖）
   useEffect(() => {
@@ -333,17 +335,38 @@ export default function ProjectsPage() {
         </div>
 
         <div className="flex items-center gap-3">
+          {/* 排序下拉框 */}
           <Select
-            defaultValue="recent"
+            value={sortField}
+            onChange={(value) => {
+              setSortField(value);
+              setCurrentPage(1); // 重置到第一页
+            }}
             className="w-36"
             style={{ backgroundColor: 'rgba(255,255,255,0.03)' }}
             options={[
-              { value: 'recent', label: '最近更新' },
-              { value: 'created', label: '创建时间' },
+              { value: 'createdAt', label: '创建时间' },
               { value: 'name', label: '项目名称' },
-              { value: 'progress', label: '进度' },
+              { value: 'startDate', label: '开始日期' },
+              { value: 'endDate', label: '结束日期' },
             ]}
           />
+          {/* 排序方向切换按钮 */}
+          <Button
+            onClick={() => {
+              setSortOrder(sortOrder === 'asc' ? 'desc' : 'asc');
+              setCurrentPage(1); // 重置到第一页
+            }}
+            className="w-10 h-10 flex items-center justify-center"
+            style={{ backgroundColor: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.08)' }}
+            title={sortOrder === 'asc' ? '升序' : '降序'}
+          >
+            {sortOrder === 'asc' ? (
+              <span className="text-orange-500 text-lg">↑</span>
+            ) : (
+              <span className="text-orange-500 text-lg">↓</span>
+            )}
+          </Button>
           <div className="flex p-1 rounded-lg" style={{ backgroundColor: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.08)' }}>
             <button
               onClick={() => setViewMode('grid')}

@@ -63,10 +63,13 @@ public class ProjectController {
   @Operation(summary = "获取项目列表", description = "获取当前用户参与的项目列表")
   public Result<PageResult<ProjectVO>> listProjects(
       @RequestParam(defaultValue = "1") Integer page,
-      @RequestParam(defaultValue = "20") Integer size,
+      @RequestParam(defaultValue = "10") Integer size,
       @RequestParam(required = false) String keyword,
-      @RequestParam(required = false) String status) {
-    PageResult<ProjectVO> result = projectService.getUserProjects(page, size, keyword, status);
+      @RequestParam(required = false) String status,
+      @RequestParam(defaultValue = "createdAt") String sort,
+      @RequestParam(defaultValue = "desc") String order) {
+    PageResult<ProjectVO> result =
+        projectService.getUserProjects(page, size, keyword, status, sort, order);
     return Result.success(result);
   }
 
