@@ -16,12 +16,22 @@ const setAuthCookie = (token: string, expiresIn: number) => {
     const cookieValue = JSON.stringify({ token, isAuthenticated: true });
     // 不设置 domain，默认使用当前域名（包括 IP 地址访问）
     // 需要对 cookie 值进行编码，因为 JSON 包含特殊字符
-    document.cookie = `auth-storage=${encodeURIComponent(cookieValue)}; path=/; max-age=${maxAge}; SameSite=Lax`;
-    console.log('[Auth Cookie] Set cookie:', {
+    const encodedValue = encodeURIComponent(cookieValue);
+    const cookieString = `auth-storage=${encodedValue}; path=/; max-age=${maxAge}; SameSite=Lax`;
+    console.log('[Auth Cookie] Setting cookie:', {
       maxAge,
       value: cookieValue,
+      encodedValue,
+      cookieString,
       hostname: window.location.hostname
     });
+    document.cookie = cookieString;
+
+    // 验证 cookie 是否设置成功
+    setTimeout(() => {
+      const checkCookie = document.cookie.includes('auth-storage');
+      console.log('[Auth Cookie] Verification:', checkCookie ? 'Cookie set successfully' : 'Cookie NOT set', 'Current cookies:', document.cookie);
+    }, 100);
   }
 };
 
@@ -76,23 +86,29 @@ export const useAuthStore = create<AuthState>()(
 
       login: async (credentials: LoginCredentials) => {
         set({ isLoading: true, error: null });
+        console.log('[Auth] Login started with credentials:', { username: credentials.usernameOrEmail });
 
         try {
           // api.post 返回 Result<AuthTokens>，需要访问 .data 获取实际数据
           const result = await api.post<AuthTokens>(endpoints.auth.login, credentials);
-
-          console.log('Login token data:', result);
+          console.log('[Auth] Login API response:', result);
 
           // 检查是否有 accessToken 来判断登录是否成功
           if (result && result.data && result.data.accessToken) {
             const { accessToken, refreshToken, expiresIn } = result.data;
 
-            console.log('Token:', accessToken);
-            console.log('ExpiresIn:', expiresIn);
+            console.log('[Auth] Token received:', {
+              accessToken: accessToken.substring(0, 20) + '...',
+              expiresIn
+            });
 
             // 1. 先存储 token 到 localStorage (供 Axios 拦截器使用)
             localStorage.setItem('access_token', accessToken);
             localStorage.setItem('refresh_token', refreshToken);
+            console.log('[Auth] localStorage set:', {
+              access_token: localStorage.getItem('access_token') ? 'OK' : 'FAILED',
+              refresh_token: localStorage.getItem('refresh_token') ? 'OK' : 'FAILED'
+            });
 
             // 2. 同步到 cookie 供中间件使用
             setAuthCookie(accessToken, expiresIn);
@@ -101,8 +117,9 @@ export const useAuthStore = create<AuthState>()(
             let userProfile: User | undefined;
             try {
               userProfile = await api.get<User>(endpoints.user.profile).then(res => res.data);
+              console.log('[Auth] User profile fetched:', userProfile);
             } catch (profileError) {
-              console.warn('获取用户信息失败，但登录已完成:', profileError);
+              console.warn('[Auth] 获取用户信息失败，但登录已完成:', profileError);
             }
 
             // 4. 更新 Zustand store - 这会触发 persist 中间件保存到 localStorage
@@ -113,7 +130,7 @@ export const useAuthStore = create<AuthState>()(
               isLoading: false,
             });
 
-            console.log('Auth state after login:', get());
+            console.log('[Auth] Auth state after login:', get());
 
             // 5. 手动同步到 localStorage 的 auth-storage（双重保障）
             if (typeof window !== 'undefined') {
@@ -127,11 +144,18 @@ export const useAuthStore = create<AuthState>()(
                 version: 0,
               };
               localStorage.setItem('auth-storage', JSON.stringify(persistedState));
-              console.log('Manually synced auth-storage to localStorage');
+              console.log('[Auth] Manually synced auth-storage to localStorage:', {
+                token: state.token ? 'OK' : 'NULL',
+                isAuthenticated: state.isAuthenticated
+              });
             }
+          } else {
+            console.error('[Auth] Login response missing accessToken:', result);
+            throw new Error('登录响应格式错误');
           }
         } catch (error: unknown) {
           const message = error instanceof Error ? error.message : '登录失败';
+          console.error('[Auth] Login error:', error);
           set({ error: message, isLoading: false });
           throw error;
         }

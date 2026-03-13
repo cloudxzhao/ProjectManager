@@ -37,11 +37,10 @@ export default function LoginPage() {
       });
       message.success('登录成功');
       // 等待一小段时间确保 cookie 已经写入
-      await new Promise(resolve => setTimeout(resolve, 100));
-      // 使用 window.location.href 替代 router.push
-      // 因为 router.push 是客户端导航，不会触发 middleware
-      // 而 window.location.href 会触发完整页面加载，middleware 会正确读取 cookie
-      window.location.href = '/dashboard';
+      // 等待 cookie 写入和状态持久化完成
+      await new Promise(resolve => setTimeout(resolve, 500));
+      // 使用 window.location.replace 替代 href，避免浏览器后退按钮回到登录页
+      window.location.replace('/dashboard');
     } catch (error: unknown) {
       const errorMessage = error instanceof Error ? error.message : '登录失败，请检查用户名和密码';
       message.error(errorMessage);
