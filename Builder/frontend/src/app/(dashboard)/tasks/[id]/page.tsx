@@ -1,9 +1,9 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import {
-  Card, Tag, Avatar, Button, Input, List, Checkbox, Divider, Dropdown, MenuProps, message, Modal, Form, DatePicker, Select,
+  Card, Tag, Avatar, Button, Input, List, Checkbox, Divider, Dropdown, MenuProps, message, Modal, Form, DatePicker, Select, Spin,
 } from 'antd';
 import {
   ArrowLeftOutlined,
@@ -21,48 +21,19 @@ import {
 } from '@ant-design/icons';
 import Link from 'next/link';
 import dayjs from 'dayjs';
+import {
+  getTask,
+  toggleTaskComplete as toggleTaskCompleteApi,
+  getSubTasks,
+  createSubTask as createSubTaskApi,
+  deleteSubTask as deleteSubTaskApi,
+  getTaskComments,
+  createTaskComment as createTaskCommentApi,
+} from '@/lib/api/task';
+import type { Task, SubTask, TaskComment } from '@/lib/api/task';
 
 const { Option } = Select;
 const { TextArea } = Input;
-
-// Mock 数据
-const mockTask = {
-  id: '1',
-  title: '完成用户登录模块',
-  description: '## 任务描述\n\n实现用户登录功能，包括：\n- 邮箱密码输入\n- 表单验证\n- Token 存储\n- 错误处理\n\n## 技术要求\n\n- 使用 React Hook Form\n- Zod 验证\n- Axios 请求',
-  status: 'in-progress',
-  priority: 'high',
-  assignee: { id: '1', name: '张三', avatar: null },
-  reporter: { id: '2', name: '李四', avatar: null },
-  dueDate: '2024-03-15',
-  storyPoints: 5,
-  labels: ['前端', '认证模块'],
-  subtasks: [
-    { id: '1', title: '设计登录表单 UI', completed: true },
-    { id: '2', title: '实现表单验证逻辑', completed: true },
-    { id: '3', title: '调用登录 API', completed: false },
-    { id: '4', title: '处理错误状态', completed: false },
-  ],
-  comments: [
-    {
-      id: '1',
-      author: { name: '李四', avatar: null },
-      content: '这个任务优先级比较高，希望能在本周内完成。',
-      createdAt: '2024-03-10 10:30',
-    },
-    {
-      id: '2',
-      author: { name: '张三', avatar: null },
-      content: '好的，我正在处理中，预计明天可以完成。',
-      createdAt: '2024-03-10 14:20',
-    },
-  ],
-  activities: [
-    { id: '1', user: '张三', action: '将状态改为进行中', time: '2024-03-09 09:00' },
-    { id: '2', user: '李四', action: '指派给张三', time: '2024-03-08 15:00' },
-    { id: '3', user: '李四', action: '创建了任务', time: '2024-03-08 14:30' },
-  ],
-};
 
 const statusColorMap: Record<string, string> = {
   todo: 'default',
@@ -103,12 +74,43 @@ export default function TaskDetailPage() {
   const router = useRouter();
   const taskId = params.id as string;
 
-  const [task, setTask] = useState(mockTask);
-  const [loading, setLoading] = useState(false);
+  const [task, setTask] = useState<Task | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [subtasks, setSubtasks] = useState<SubTask[]>([]);
+  const [comments, setComments] = useState<TaskComment[]>([]);
   const [commentForm] = Form.useForm();
   const [subTaskForm] = Form.useForm();
   const [newComment, setNewComment] = useState('');
   const [newSubTask, setNewSubTask] = useState('');
+
+  // 加载任务详情
+  useEffect(() => {
+    const loadTaskDetail = async () => {
+      if (!taskId || isNaN(Number(taskId))) {
+        message.error('无效的任务 ID');
+        return;
+      }
+      setLoading(true);
+      try {
+        // 暂时使用固定的 projectId，后续可以通过任务详情获取
+        const projectId = 1;
+        const [taskData, subtasksData, commentsData] = await Promise.all([
+          getTask(projectId, Number(taskId)),
+          getSubTasks(projectId, Number(taskId)),
+          getTaskComments(projectId, Number(taskId)),
+        ]);
+        setTask(taskData);
+        setSubtasks(subtasksData);
+        setComments(commentsData);
+      } catch (error) {
+        console.error('加载任务详情失败:', error);
+        message.error('加载任务详情失败');
+      } finally {
+        setLoading(false);
+      }
+    };
+    loadTaskDetail();
+  }, [taskId]);
 
   // 任务操作菜单
   const taskMenuItems: MenuProps['items'] = [
@@ -128,94 +130,107 @@ export default function TaskDetailPage() {
   ];
 
   // 添加子任务
-  const handleAddSubTask = () => {
+  const handleAddSubTask = async () => {
     if (!newSubTask.trim()) {
       message.warning('请输入子任务标题');
       return;
     }
+    if (!task) return;
 
-    const subtask = {
-      id: String(task.subtasks.length + 1),
-      title: newSubTask,
-      completed: false,
-    };
-
-    setTask({
-      ...task,
-      subtasks: [...task.subtasks, subtask],
-    });
-    setNewSubTask('');
-    message.success('子任务添加成功');
+    try {
+      const projectId = task.projectId;
+      await createSubTaskApi(projectId, task.id, newSubTask);
+      // 重新加载子任务列表
+      const subtasksData = await getSubTasks(projectId, task.id);
+      setSubtasks(subtasksData);
+      setNewSubTask('');
+      message.success('子任务添加成功');
+    } catch (error) {
+      console.error('添加子任务失败:', error);
+      message.error('添加子任务失败');
+    }
   };
 
   // 切换子任务状态
-  const toggleSubTask = (subtaskId: string) => {
-    setTask({
-      ...task,
-      subtasks: task.subtasks.map((st) =>
-        st.id === subtaskId ? { ...st, completed: !st.completed } : st
-      ),
-    });
+  const toggleSubTask = async (subtaskId: number) => {
+    if (!task) return;
+    // 暂时只更新本地状态，后续可以添加 API 调用更新状态
+    setSubtasks(subtasks.map((st) =>
+      st.id === subtaskId ? { ...st, completed: !st.completed } : st
+    ));
   };
 
   // 删除子任务
-  const deleteSubTask = (subtaskId: string) => {
-    setTask({
-      ...task,
-      subtasks: task.subtasks.filter((st) => st.id !== subtaskId),
-    });
-    message.success('子任务已删除');
+  const handleDeleteSubTask = async (subtaskId: number) => {
+    if (!task) return;
+    try {
+      const projectId = task.projectId;
+      await deleteSubTaskApi(projectId, task.id, subtaskId);
+      // 重新加载子任务列表
+      const subtasksData = await getSubTasks(projectId, task.id);
+      setSubtasks(subtasksData);
+      message.success('子任务已删除');
+    } catch (error) {
+      console.error('删除子任务失败:', error);
+      message.error('删除子任务失败');
+    }
   };
 
   // 发表评论
-  const handlePostComment = () => {
+  const handlePostComment = async () => {
     if (!newComment.trim()) {
       message.warning('请输入评论内容');
       return;
     }
+    if (!task) return;
 
-    const comment = {
-      id: String(task.comments.length + 1),
-      author: { name: '当前用户', avatar: null },
-      content: newComment,
-      createdAt: '刚刚',
-    };
-
-    setTask({
-      ...task,
-      comments: [...task.comments, comment],
-    });
-    setNewComment('');
-    message.success('评论发表成功');
+    try {
+      const projectId = task.projectId;
+      await createTaskCommentApi(projectId, task.id, newComment);
+      // 重新加载评论列表
+      const commentsData = await getTaskComments(projectId, task.id);
+      setComments(commentsData);
+      setNewComment('');
+      message.success('评论发表成功');
+    } catch (error) {
+      console.error('发表评论失败:', error);
+      message.error('发表评论失败');
+    }
   };
 
   // 计算子任务进度
-  const completedSubTasks = task.subtasks.filter((st) => st.completed).length;
-  const subTaskProgress = task.subtasks.length > 0
-    ? Math.round((completedSubTasks / task.subtasks.length) * 100)
+  const completedSubTasks = subtasks.filter((st) => st.completed).length;
+  const subTaskProgress = subtasks.length > 0
+    ? Math.round((completedSubTasks / subtasks.length) * 100)
     : 0;
 
   return (
     <div className="space-y-6">
       {/* 页面导航 */}
-      <div className="flex items-center gap-4">
-        <Link href={`/projects/${taskId}/tasks`}>
-          <Button type="text" icon={<ArrowLeftOutlined />} className="text-gray-400 hover:text-white">
-            返回
-          </Button>
-        </Link>
-        <div className="flex-1">
-          <h1 className="text-2xl font-bold text-white">{task.title}</h1>
-          <div className="flex items-center gap-2 mt-1 text-sm text-gray-400">
-            <span>TASK-{taskId}</span>
-            <span>·</span>
-            <span>由 {task.reporter.name} 创建</span>
-          </div>
+      {loading ? (
+        <div className="flex justify-center items-center py-20">
+          <Spin size="large" />
         </div>
-        <Dropdown menu={{ items: taskMenuItems }} trigger={['click']}>
-          <Button icon={<MoreOutlined />} className="text-gray-400" />
-        </Dropdown>
-      </div>
+      ) : task ? (
+        <>
+          <div className="flex items-center gap-4">
+            <Link href={`/projects/${task.projectId}/tasks`}>
+              <Button type="text" icon={<ArrowLeftOutlined />} className="text-gray-400 hover:text-white">
+                返回
+              </Button>
+            </Link>
+            <div className="flex-1">
+              <h1 className="text-2xl font-bold text-white">{task.title}</h1>
+              <div className="flex items-center gap-2 mt-1 text-sm text-gray-400">
+                <span>TASK-{task.id}</span>
+                <span>·</span>
+                <span>由 {task.reporterId ? `用户 ${task.reporterId}` : '未知'} 创建</span>
+              </div>
+            </div>
+            <Dropdown menu={{ items: taskMenuItems }} trigger={['click']}>
+              <Button icon={<MoreOutlined />} className="text-gray-400" />
+            </Dropdown>
+          </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* 左侧主要内容 */}
@@ -245,7 +260,7 @@ export default function TaskDetailPage() {
               <div className="flex items-center gap-2">
                 <CheckCircleOutlined />
                 <span>子任务</span>
-                <span className="text-gray-400 text-sm">({completedSubTasks}/{task.subtasks.length})</span>
+                <span className="text-gray-400 text-sm">({completedSubTasks}/{subtasks.length})</span>
               </div>
             }
           >
@@ -266,7 +281,7 @@ export default function TaskDetailPage() {
               </div>
             </div>
             <List
-              dataSource={task.subtasks}
+              dataSource={subtasks}
               renderItem={(subtask) => (
                 <List.Item
                   className="border-gray-700 hover:bg-gray-700/30 transition-all px-0"
@@ -276,7 +291,7 @@ export default function TaskDetailPage() {
                       type="text"
                       size="small"
                       danger
-                      onClick={() => deleteSubTask(subtask.id)}
+                      onClick={() => handleDeleteSubTask(subtask.id)}
                     >
                       删除
                     </Button>,
@@ -301,12 +316,12 @@ export default function TaskDetailPage() {
               <div className="flex items-center gap-2">
                 <MessageOutlined />
                 <span>评论</span>
-                <span className="text-gray-400 text-sm">({task.comments.length})</span>
+                <span className="text-gray-400 text-sm">({comments.length})</span>
               </div>
             }
           >
             <List
-              dataSource={task.comments}
+              dataSource={comments}
               renderItem={(comment) => (
                 <List.Item className="border-gray-700 py-4">
                   <div className="flex gap-3 w-full">
@@ -314,12 +329,12 @@ export default function TaskDetailPage() {
                       size={36}
                       className="bg-gradient-to-br from-orange-400 to-amber-500 flex-shrink-0"
                     >
-                      {comment.author.name[0]}
+                      {String(comment.userId)[0]}
                     </Avatar>
                     <div className="flex-1">
                       <div className="flex items-center justify-between mb-1">
-                        <span className="font-medium text-white">{comment.author.name}</span>
-                        <span className="text-gray-500 text-sm">{comment.createdAt}</span>
+                        <span className="font-medium text-white">用户 {comment.userId}</span>
+                        <span className="text-gray-500 text-sm">{dayjs(comment.createdAt).format('YYYY-MM-DD HH:mm')}</span>
                       </div>
                       <p className="text-gray-300">{comment.content}</p>
                     </div>
@@ -396,16 +411,16 @@ export default function TaskDetailPage() {
                     className="bg-gradient-to-br from-orange-400 to-amber-500"
                     icon={<UserOutlined />}
                   >
-                    {task.assignee?.name[0]}
+                    {task.assigneeId ? String(task.assigneeId)[0] : '未'}
                   </Avatar>
-                  <span className="text-white">{task.assignee?.name || '未分配'}</span>
+                  <span className="text-white">{task.assigneeId ? `用户 ${task.assigneeId}` : '未分配'}</span>
                 </div>
               </div>
               <div>
                 <label className="text-gray-400 text-sm block mb-2">截止日期</label>
                 <div className="flex items-center gap-2 text-white">
                   <ClockCircleOutlined />
-                  <span>{task.dueDate}</span>
+                  <span>{task.dueDate || '-'}</span>
                 </div>
               </div>
             </div>
@@ -415,11 +430,15 @@ export default function TaskDetailPage() {
           <Card className="bg-gray-800/50 border-gray-700">
             <label className="text-gray-400 text-sm block mb-2">标签</label>
             <div className="flex flex-wrap gap-2">
-              {task.labels.map((label) => (
-                <Tag key={label} color="blue" className="cursor-pointer hover:opacity-80">
-                  {label}
-                </Tag>
-              ))}
+              {task.tags && task.tags.length > 0 ? (
+                task.tags.map((label) => (
+                  <Tag key={label} color="blue" className="cursor-pointer hover:opacity-80">
+                    {label}
+                  </Tag>
+                ))
+              ) : (
+                <span className="text-gray-500 text-sm">暂无标签</span>
+              )}
               <Button size="small" icon={<PlusOutlined />} className="h-6">
                 添加
               </Button>
@@ -429,21 +448,20 @@ export default function TaskDetailPage() {
           {/* 活动历史 */}
           <Card className="bg-gray-800/50 border-gray-700" title="活动历史">
             <List
-              dataSource={task.activities}
+              dataSource={[]}
               split={false}
-              renderItem={(activity) => (
-                <List.Item className="border-gray-700 py-2">
-                  <div className="text-sm">
-                    <span className="text-white font-medium">{activity.user}</span>{' '}
-                    <span className="text-gray-400">{activity.action}</span>
-                    <div className="text-gray-500 text-xs mt-1">{activity.time}</div>
-                  </div>
-                </List.Item>
-              )}
+              renderItem={() => null}
+              locale={{ emptyText: '暂无活动历史' }}
             />
           </Card>
         </div>
       </div>
+      </>
+    ) : (
+      <div className="flex justify-center items-center py-20">
+        <Spin size="large" />
+      </div>
+    )}
     </div>
   );
 }

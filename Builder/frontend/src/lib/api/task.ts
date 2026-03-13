@@ -3,8 +3,7 @@
 import { api } from './axios';
 import { endpoints } from './endpoints';
 import type { CreateTaskDto, UpdateTaskDto, TaskStatus, Priority, SubTask, TaskComment, Task } from '@/types/task';
-export type { TaskStatus, Priority, CreateTaskDto, UpdateTaskDto };
-export type { SubTask, TaskComment };
+export type { TaskStatus, Priority, CreateTaskDto, UpdateTaskDto, Task, SubTask, TaskComment };
 
 /** 后端返回的任务数据结构 */
 interface TaskResponse {
