@@ -1,107 +1,50 @@
 'use client';
 
-import { useState } from 'react';
-import { Card, Input, Select, Button, Avatar, Tag, Progress, Empty } from 'antd';
+import { useState, useEffect } from 'react';
+import { Card, Input, Select, Button, Avatar, Tag, Empty, Spin, message } from 'antd';
 import { PlusOutlined, SearchOutlined, AppstoreOutlined, UnorderedListOutlined } from '@ant-design/icons';
 import Link from 'next/link';
+import { getProjects } from '@/lib/api/project';
+import type { Project, ProjectStatus } from '@/types/project';
 
 const { Option } = Select;
 
-// Mock 数据
-const projectsData = [
-  {
-    id: '1',
-    name: '全球电商平台重构',
-    description: '新一代电商平台架构升级，支持千万级并发，提升用户体验和系统稳定性。',
-    progress: 68,
-    members: 5,
-    tasks: 24,
-    status: 'active',
-    color: '#f97316',
-    icon: '🛒',
-  },
-  {
-    id: '2',
-    name: '移动端 APP 开发',
-    description: '开发 iOS 和 Android 双平台移动应用，采用 React Native 框架',
-    progress: 40,
-    members: 3,
-    tasks: 18,
-    status: 'active',
-    color: '#8b5cf6',
-    icon: '📱',
-  },
-  {
-    id: '3',
-    name: '数据分析平台',
-    description: '构建数据分析和可视化平台，支持实时数据处理和图表展示',
-    progress: 80,
-    members: 4,
-    tasks: 12,
-    status: 'active',
-    color: '#06b6d4',
-    icon: '📊',
-  },
-  {
-    id: '4',
-    name: 'CRM 系统升级',
-    description: '升级客户关系管理系统，集成 AI 智能推荐功能',
-    progress: 25,
-    members: 2,
-    tasks: 30,
-    status: 'active',
-    color: '#ec4899',
-    icon: '🤝',
-  },
-  {
-    id: '5',
-    name: '官网改版',
-    description: '公司官网视觉和内容重构，采用最新的设计理念',
-    progress: 100,
-    members: 3,
-    tasks: 8,
-    status: 'completed',
-    color: '#22c55e',
-    icon: '🌐',
-  },
-  {
-    id: '6',
-    name: '内部工具集',
-    description: '开发内部效率工具集合，提升团队协作效率',
-    progress: 100,
-    members: 2,
-    tasks: 15,
-    status: 'completed',
-    color: '#6366f1',
-    icon: '🔧',
-  },
-];
-
-// 统计卡片数据
-const statsData = [
-  { label: '进行中', value: 5, color: '#10b981', gradient: 'from-emerald-500 to-emerald-600' },
-  { label: '已完成', value: 12, color: '#3b82f6', gradient: 'from-blue-500 to-blue-600' },
-  { label: '已归档', value: 8, color: '#64748b', gradient: 'from-slate-500 to-slate-600' },
-];
+// 统计数据结构
+interface StatData {
+  label: string;
+  value: number;
+  color: string;
+  gradient: string;
+}
 
 const statusColorMap: Record<string, string> = {
   active: 'processing',
   completed: 'success',
   archived: 'default',
+  planning: 'default',
 };
 
 const statusTextMap: Record<string, string> = {
   active: '进行中',
   completed: '已完成',
   archived: '已归档',
+  planning: '规划中',
 };
 
 interface ProjectCardProps {
-  project: typeof projectsData[0];
+  project: Project;
   index: number;
 }
 
 const ProjectCard: React.FC<ProjectCardProps> = ({ project, index }) => {
+  // 计算进度百分比
+  const calculateProgress = () => {
+    if (project.taskCount === 0) return 0;
+    return Math.round((project.completedTaskCount / project.taskCount) * 100);
+  };
+
+  const progress = calculateProgress();
+
   return (
     <Link href={`/projects/${project.id}`}>
       <Card
@@ -117,7 +60,7 @@ const ProjectCard: React.FC<ProjectCardProps> = ({ project, index }) => {
         <div
           className="h-1 w-full transition-opacity duration-300 group-hover:opacity-100"
           style={{
-            background: `linear-gradient(90deg, ${project.color} 0%, ${project.color}cc 100%)`,
+            background: `linear-gradient(90deg, ${project.color || '#f97316'} 0%, ${project.color || '#f97316'}cc 100%)`,
             opacity: 0.8,
           }}
         />
@@ -128,11 +71,11 @@ const ProjectCard: React.FC<ProjectCardProps> = ({ project, index }) => {
             <div
               className="w-14 h-14 rounded-2xl flex items-center justify-center text-2xl shadow-lg"
               style={{
-                background: `linear-gradient(135deg, ${project.color} 0%, ${project.color}cc 100%)`,
-                boxShadow: `0 8px 16px -4px ${project.color}40`,
+                background: `linear-gradient(135deg, ${project.color || '#f97316'} 0%, ${project.color || '#f97316'}cc 100%)`,
+                boxShadow: `0 8px 16px -4px ${project.color || '#f97316'}40`,
               }}
             >
-              {project.icon}
+              {project.icon || '📁'}
             </div>
             <Tag
               color={statusColorMap[project.status] as any}
@@ -153,13 +96,13 @@ const ProjectCard: React.FC<ProjectCardProps> = ({ project, index }) => {
             <div className="flex flex-col gap-1">
               <span className="text-xs text-gray-500 uppercase tracking-wider">成员</span>
               <span className="text-sm text-white font-medium flex items-center gap-1">
-                <span>👥</span> {project.members} 人
+                <span>👥</span> {project.memberCount} 人
               </span>
             </div>
             <div className="flex flex-col gap-1">
               <span className="text-xs text-gray-500 uppercase tracking-wider">任务</span>
               <span className="text-sm text-white font-medium flex items-center gap-1">
-                <span>📋</span> {project.tasks} 个
+                <span>📋</span> {project.taskCount} 个
               </span>
             </div>
           </div>
@@ -169,14 +112,14 @@ const ProjectCard: React.FC<ProjectCardProps> = ({ project, index }) => {
         <div className="px-6 py-4 bg-black/20">
           <div className="flex justify-between items-center mb-2">
             <span className="text-sm text-gray-400">项目进度</span>
-            <span className="text-sm font-mono font-semibold text-orange-400">{project.progress}%</span>
+            <span className="text-sm font-mono font-semibold text-orange-400">{progress}%</span>
           </div>
           <div className="h-2 bg-white/10 rounded-full overflow-hidden">
             <div
               className="h-full rounded-full transition-all duration-700"
               style={{
-                width: `${project.progress}%`,
-                background: `linear-gradient(90deg, ${project.color} 0%, ${project.color}cc 100%)`,
+                width: `${progress}%`,
+                background: `linear-gradient(90deg, ${project.color || '#f97316'} 0%, ${project.color || '#f97316'}cc 100%)`,
               }}
             />
           </div>
@@ -186,21 +129,21 @@ const ProjectCard: React.FC<ProjectCardProps> = ({ project, index }) => {
         <div className="px-6 py-4 flex items-center justify-between border-t border-white/5">
           <div className="flex items-center">
             <div className="flex -space-x-2">
-              {Array.from({ length: Math.min(project.members, 4) }).map((_, i) => (
+              {Array.from({ length: Math.min(project.memberCount || 1, 4) }).map((_, i) => (
                 <Avatar
                   key={i}
                   size={28}
                   className="border-2 border-primary"
-                  style={{ backgroundColor: `${project.color}40`, marginLeft: i > 0 ? '-8px' : 0 }}
+                  style={{ backgroundColor: `${project.color || '#f97316'}40`, marginLeft: i > 0 ? '-8px' : 0 }}
                   icon={<span className="text-xs">U{i + 1}</span>}
                 />
               ))}
-              {project.members > 4 && (
+              {(project.memberCount || 0) > 4 && (
                 <Avatar
                   size={28}
                   className="border-2 border-primary border-dashed"
                   style={{ backgroundColor: 'rgba(255,255,255,0.05)', marginLeft: '-8px' }}
-                  icon={<span className="text-xs text-gray-400">+{project.members - 4}</span>}
+                  icon={<span className="text-xs text-gray-400">+{(project.memberCount || 0) - 4}</span>}
                 />
               )}
             </div>
@@ -215,13 +158,7 @@ const ProjectCard: React.FC<ProjectCardProps> = ({ project, index }) => {
 };
 
 // 统计卡片组件
-const StatCard: React.FC<{ label: string; value: number; color: string; gradient: string; index: number }> = ({
-  label,
-  value,
-  color,
-  gradient,
-  index,
-}) => (
+const StatCard: React.FC<{ stat: StatData; index: number }> = ({ stat, index }) => (
   <div
     className="p-6 rounded-2xl transition-all duration-300 hover:-translate-y-0.5 animate-fade-in-up"
     style={{
@@ -236,17 +173,17 @@ const StatCard: React.FC<{ label: string; value: number; color: string; gradient
       <div
         className="w-12 h-12 rounded-xl flex items-center justify-center text-xl shadow-lg"
         style={{
-          background: `linear-gradient(135deg, ${color} 0%, ${color}cc 100%)`,
-          boxShadow: `0 6px 12px -4px ${color}40`,
+          background: `linear-gradient(135deg, ${stat.color} 0%, ${stat.color}cc 100%)`,
+          boxShadow: `0 6px 12px -4px ${stat.color}40`,
         }}
       >
-        {label === '进行中' && '📁'}
-        {label === '已完成' && '✓'}
-        {label === '已归档' && '📦'}
+        {stat.label === '进行中' && '📁'}
+        {stat.label === '已完成' && '✓'}
+        {stat.label === '已归档' && '📦'}
       </div>
       <div>
-        <div className="text-3xl font-bold text-white font-display">{value}</div>
-        <div className="text-sm text-gray-400">{label}</div>
+        <div className="text-3xl font-bold text-white font-display">{stat.value}</div>
+        <div className="text-sm text-gray-400">{stat.label}</div>
       </div>
     </div>
   </div>
@@ -257,7 +194,51 @@ export default function ProjectsPage() {
   const [searchValue, setSearchValue] = useState('');
   const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
 
-  const filteredProjects = projectsData.filter((project) => {
+  // API 状态
+  const [projects, setProjects] = useState<Project[]>([]);
+  const [loading, setLoading] = useState(false);
+  const [stats, setStats] = useState<{ active: number; completed: number; archived: number }>({
+    active: 0,
+    completed: 0,
+    archived: 0,
+  });
+
+  // 统计卡片数据
+  const statsData: StatData[] = [
+    { label: '进行中', value: stats.active, color: '#10b981', gradient: 'from-emerald-500 to-emerald-600' },
+    { label: '已完成', value: stats.completed, color: '#3b82f6', gradient: 'from-blue-500 to-blue-600' },
+    { label: '已归档', value: stats.archived, color: '#64748b', gradient: 'from-slate-500 to-slate-600' },
+  ];
+
+  // 获取项目列表
+  const fetchProjects = async () => {
+    setLoading(true);
+    try {
+      const response = await getProjects(1, 100, searchValue || undefined);
+      const projectList: Project[] = response.data?.list || [];
+      setProjects(projectList);
+
+      // 计算统计数据
+      setStats({
+        active: projectList.filter((p: Project) => p.status === 'active').length,
+        completed: projectList.filter((p: Project) => p.status === 'completed').length,
+        archived: projectList.filter((p: Project) => p.status === 'archived').length,
+      });
+    } catch (error) {
+      console.error('获取项目列表失败:', error);
+      message.error('获取项目列表失败');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // 初始化加载
+  useEffect(() => {
+    fetchProjects();
+  }, []);
+
+  // 筛选项目
+  const filteredProjects = projects.filter((project) => {
     const matchesSearch =
       project.name.toLowerCase().includes(searchValue.toLowerCase()) ||
       project.description.toLowerCase().includes(searchValue.toLowerCase());
@@ -270,10 +251,10 @@ export default function ProjectsPage() {
   });
 
   const tabItems = [
-    { key: 'all', label: '全部', count: projectsData.length },
-    { key: 'active', label: '进行中', count: projectsData.filter((p) => p.status === 'active').length },
-    { key: 'completed', label: '已完成', count: projectsData.filter((p) => p.status === 'completed').length },
-    { key: 'archived', label: '已归档', count: projectsData.filter((p) => p.status === 'archived').length },
+    { key: 'all', label: '全部', count: projects.length },
+    { key: 'active', label: '进行中', count: stats.active },
+    { key: 'completed', label: '已完成', count: stats.completed },
+    { key: 'archived', label: '已归档', count: stats.archived },
   ];
 
   return (
@@ -299,7 +280,7 @@ export default function ProjectsPage() {
       {/* 统计概览 */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
         {statsData.map((stat, index) => (
-          <StatCard key={stat.label} {...stat} index={index} />
+          <StatCard key={stat.label} stat={stat} index={index} />
         ))}
       </div>
 
@@ -378,7 +359,11 @@ export default function ProjectsPage() {
       </div>
 
       {/* 项目列表 */}
-      {filteredProjects.length > 0 ? (
+      {loading ? (
+        <div className="flex justify-center items-center py-20">
+          <Spin size="large" tip="加载中..." />
+        </div>
+      ) : filteredProjects.length > 0 ? (
         <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
           {filteredProjects.map((project, index) => (
             <div
@@ -397,17 +382,19 @@ export default function ProjectsPage() {
         >
           <Empty
             description={
-              <span className="text-gray-400">暂无项目</span>
+              <span className="text-gray-400">{searchValue ? '未找到匹配的项目' : '暂无项目'}</span>
             }
             image={Empty.PRESENTED_IMAGE_SIMPLE}
           />
-          <div className="mt-4">
-            <Link href="/projects/new">
-              <Button type="primary" icon={<PlusOutlined />} className="bg-orange-500 border-none">
-                创建第一个项目
-              </Button>
-            </Link>
-          </div>
+          {!searchValue && (
+            <div className="mt-4">
+              <Link href="/projects/new">
+                <Button type="primary" icon={<PlusOutlined />} className="bg-orange-500 border-none">
+                  创建第一个项目
+                </Button>
+              </Link>
+            </div>
+          )}
         </Card>
       )}
     </div>
