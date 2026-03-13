@@ -59,18 +59,18 @@ const mapProjectResponse = (response: ProjectResponse): Project => {
   };
 
   return {
-    id: typeof response.id === 'string' ? parseInt(response.id, 10) : response.id,
-    name: response.name,
-    description: response.description,
-    status: response.status as ProjectStatus,
+    id: typeof response.id === 'string' ? parseInt(response.id, 10) : (response.id as number),
+    name: response.name || '',
+    description: response.description || '',
+    status: (response.status as ProjectStatus) || 'active',
     startDate: formatDate(response.startDate),
     endDate: formatDate(response.endDate),
-    color: response.themeColor, // 后端 themeColor -> 前端 color
-    icon: response.icon,
+    color: response.themeColor || '#1677FF', // 后端 themeColor -> 前端 color，默认蓝色
+    icon: response.icon || '🛒', // 默认图标
     memberCount: response.memberCount || 0,
     taskCount: response.taskCount || 0,
     completedTaskCount: response.completedTaskCount || 0,
-    ownerId: typeof response.ownerId === 'string' ? parseInt(response.ownerId, 10) : response.ownerId,
+    ownerId: typeof response.ownerId === 'string' ? parseInt(response.ownerId, 10) : (response.ownerId as number),
     createdAt: formatDate(response.createdAt),
     updatedAt: response.updatedAt,
   };

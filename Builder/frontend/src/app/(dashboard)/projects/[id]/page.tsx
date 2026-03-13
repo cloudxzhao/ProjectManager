@@ -165,8 +165,7 @@ export default function ProjectDetailPage() {
   const fetchProject = async () => {
     setFetchLoading(true);
     try {
-      const response = await getProject(Number(projectId));
-      const projectData = response.data;
+      const projectData = await getProject(Number(projectId));
       setProject(projectData);
       setSelectedIcon(projectData.icon || '🛒');
     } catch (error: unknown) {
