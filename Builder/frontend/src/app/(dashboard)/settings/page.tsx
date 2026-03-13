@@ -1,7 +1,7 @@
 'use client';
 
-import { useState } from 'react';
-import { Card, Form, Input, Button, Avatar, Upload, message, Tabs, Space, Tag } from 'antd';
+import { useState, useEffect } from 'react';
+import { Card, Form, Input, Button, Avatar, message, Tabs, Space, Tag, Spin } from 'antd';
 import {
   UserOutlined,
   LockOutlined,
@@ -13,7 +13,8 @@ import {
   SaveOutlined,
 } from '@ant-design/icons';
 import { useAuth } from '@/lib/hooks/useAuth';
-import type { UploadFile } from 'antd';
+import { getUserProfile, updateProfile, uploadAvatar, changePassword } from '@/lib/api/user';
+import type { User } from '@/lib/api/user';
 
 const { Password } = Input;
 
@@ -30,10 +31,12 @@ const mockUser = {
 };
 
 export default function SettingsPage() {
-  const { user } = useAuth();
+  const { user, updateUser } = useAuth();
   const [loading, setLoading] = useState(false);
-  const [avatarFile, setAvatarFile] = useState<UploadFile | null>(null);
+  const [fetchingProfile, setFetchingProfile] = useState(true);
+  const [avatarFile, setAvatarFile] = useState<any>(null);
   const [previewOpen, setPreviewOpen] = useState(false);
+  const [userProfile, setUserProfile] = useState<User | null>(null);
 
   // 个人资料表单
   const [profileForm] = Form.useForm();
@@ -41,8 +44,37 @@ export default function SettingsPage() {
   // 修改密码表单
   const [passwordForm] = Form.useForm();
 
+  // 加载用户资料
+  useEffect(() => {
+    const loadUserProfile = async () => {
+      try {
+        setFetchingProfile(true);
+        const result = await getUserProfile();
+        const profile = result.data;
+        setUserProfile(profile);
+
+        // 填充表单
+        profileForm.setFieldsValue({
+          username: profile.username,
+          email: profile.email,
+          phone: profile.phone,
+          bio: profile.bio,
+          company: profile.company,
+          location: profile.location,
+        });
+      } catch (error) {
+        console.error('加载用户资料失败:', error);
+        message.error('加载用户资料失败');
+      } finally {
+        setFetchingProfile(false);
+      }
+    };
+
+    loadUserProfile();
+  }, []);
+
   // 头像上传处理
-  const handleAvatarChange = (info: { file: UploadFile }) => {
+  const handleAvatarChange = async (info: any) => {
     if (info.file.status === 'uploading') {
       return;
     }
@@ -56,8 +88,20 @@ export default function SettingsPage() {
   const handleProfileUpdate = async (values: Record<string, unknown>) => {
     setLoading(true);
     try {
-      // 模拟 API 调用
-      await new Promise((resolve) => setTimeout(resolve, 500));
+      await updateProfile({
+        username: values.username as string,
+        bio: values.bio as string,
+        company: values.company as string,
+        location: values.location as string,
+      });
+
+      // 更新本地用户信息
+      if (userProfile) {
+        const updatedProfile = { ...userProfile, ...values };
+        setUserProfile(updatedProfile);
+        updateUser(updatedProfile);
+      }
+
       message.success('个人资料更新成功');
     } catch (error: unknown) {
       const errorMessage = error instanceof Error ? error.message : '更新失败，请稍后重试';
@@ -72,12 +116,14 @@ export default function SettingsPage() {
     setLoading(true);
     try {
       // 验证两次密码是否一致
-      if (values.password !== values.confirmPassword) {
+      if (values.newPassword !== values.confirmPassword) {
         message.error('两次输入的密码不一致');
         return;
       }
-      // 模拟 API 调用
-      await new Promise((resolve) => setTimeout(resolve, 500));
+      await changePassword({
+        currentPassword: values.currentPassword as string,
+        newPassword: values.newPassword as string,
+      });
       message.success('密码修改成功，请重新登录');
       passwordForm.resetFields();
     } catch (error: unknown) {
@@ -97,14 +143,18 @@ export default function SettingsPage() {
         个人资料
       </span>
     ),
-    children: (
+    children: fetchingProfile ? (
+      <div className="flex justify-center items-center py-20">
+        <Spin size="large" />
+      </div>
+    ) : (
       <div className="max-w-2xl">
         {/* 头像上传区 */}
         <div className="flex items-center gap-6 mb-8 p-6 bg-gray-800/30 rounded-lg">
           <div className="relative">
             <Avatar
               size={100}
-              src={avatarFile?.thumbUrl || user?.avatar}
+              src={avatarFile?.thumbUrl || userProfile?.avatar || user?.avatar}
               icon={<UserOutlined />}
               className="bg-gradient-to-br from-orange-400 to-amber-500"
             />
@@ -114,9 +164,10 @@ export default function SettingsPage() {
                 type="file"
                 accept="image/*"
                 className="hidden"
-                onChange={(e) => {
+                onChange={async (e) => {
                   const file = e.target.files?.[0];
                   if (file) {
+                    // 先显示预览
                     const reader = new FileReader();
                     reader.onload = (e) => {
                       setAvatarFile({
@@ -124,9 +175,26 @@ export default function SettingsPage() {
                         name: file.name,
                         status: 'done',
                         thumbUrl: e.target?.result as string,
-                      } as UploadFile);
+                      });
                     };
                     reader.readAsDataURL(file);
+
+                    // 上传头像
+                    try {
+                      const formData = new FormData();
+                      formData.append('avatar', file);
+                      const result = await uploadAvatar(formData);
+                      if (result && result.data) {
+                        message.success('头像上传成功');
+                        // 更新用户信息
+                        const updatedProfile = { ...userProfile, avatar: result.data.avatar } as User;
+                        setUserProfile(updatedProfile);
+                        updateUser(updatedProfile);
+                      }
+                    } catch (error) {
+                      console.error('头像上传失败:', error);
+                      message.error('头像上传失败');
+                    }
                   }
                 }}
               />
@@ -148,14 +216,6 @@ export default function SettingsPage() {
           layout="vertical"
           onFinish={handleProfileUpdate}
           size="large"
-          initialValues={{
-            username: mockUser.username,
-            email: mockUser.email,
-            phone: mockUser.phone,
-            bio: mockUser.bio,
-            company: mockUser.company,
-            location: mockUser.location,
-          }}
         >
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <Form.Item
