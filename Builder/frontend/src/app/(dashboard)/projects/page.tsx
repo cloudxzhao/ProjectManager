@@ -18,16 +18,18 @@ interface StatData {
 }
 
 const statusColorMap: Record<string, string> = {
-  active: 'processing',
-  completed: 'success',
-  archived: 'default',
-  planning: 'default',
+  ACTIVE: 'processing',
+  COMPLETED: 'success',
+  ARCHIVED: 'default',
+  PLANNING: 'default',
 };
 
 const statusTextMap: Record<string, string> = {
-  active: '进行中',
-  completed: '已完成',
-  archived: '已归档',
+  ACTIVE: '进行中',
+  COMPLETED: '已完成',
+  ARCHIVED: '已归档',
+  PLANNING: '规划中',
+};
   planning: '规划中',
 };
 
@@ -223,9 +225,9 @@ export default function ProjectsPage() {
 
       // 计算统计数据
       setStats({
-        active: projectList.filter((p: Project) => p.status === 'active').length,
-        completed: projectList.filter((p: Project) => p.status === 'completed').length,
-        archived: projectList.filter((p: Project) => p.status === 'archived').length,
+        active: projectList.filter((p: Project) => p.status === 'ACTIVE').length,
+        completed: projectList.filter((p: Project) => p.status === 'COMPLETED').length,
+        archived: projectList.filter((p: Project) => p.status === 'ARCHIVED').length,
       });
     } catch (error) {
       console.error('获取项目列表失败:', error);
@@ -247,9 +249,9 @@ export default function ProjectsPage() {
       project.description.toLowerCase().includes(searchValue.toLowerCase());
 
     if (activeTab === 'all') return matchesSearch;
-    if (activeTab === 'active') return matchesSearch && project.status === 'active';
-    if (activeTab === 'completed') return matchesSearch && project.status === 'completed';
-    if (activeTab === 'archived') return matchesSearch && project.status === 'archived';
+    if (activeTab === 'active') return matchesSearch && project.status === 'ACTIVE';
+    if (activeTab === 'completed') return matchesSearch && project.status === 'COMPLETED';
+    if (activeTab === 'archived') return matchesSearch && project.status === 'ARCHIVED';
     return matchesSearch;
   });
 

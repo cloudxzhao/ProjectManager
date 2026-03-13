@@ -32,15 +32,17 @@ const { Option } = Select;
 const { TextArea } = Input;
 
 const statusColorMap: Record<string, string> = {
-  active: 'processing',
-  completed: 'success',
-  archived: 'default',
+  ACTIVE: 'processing',
+  COMPLETED: 'success',
+  ARCHIVED: 'default',
+  PLANNING: 'default',
 };
 
 const statusTextMap: Record<string, string> = {
-  active: '进行中',
-  completed: '已完成',
-  archived: '已归档',
+  ACTIVE: '进行中',
+  COMPLETED: '已完成',
+  ARCHIVED: '已归档',
+  PLANNING: '规划中',
 };
 
 const roleColorMap: Record<string, string> = {
@@ -700,9 +702,9 @@ export default function ProjectDetailPage() {
             label="项目状态"
           >
             <Select className="bg-gray-700/50 border-gray-600">
-              <Option value="active">进行中</Option>
-              <Option value="completed">已完成</Option>
-              <Option value="archived">已归档</Option>
+              <Option value="ACTIVE">进行中</Option>
+              <Option value="COMPLETED">已完成</Option>
+              <Option value="ARCHIVED">已归档</Option>
             </Select>
           </Form.Item>
 

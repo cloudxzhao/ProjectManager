@@ -16,7 +16,7 @@ export interface Epic {
   updatedAt?: string;
 }
 
-export type EpicStatus = 'planning' | 'active' | 'completed' | 'archived';
+export type EpicStatus = 'PLANNING' | 'ACTIVE' | 'COMPLETED' | 'ARCHIVED';
 
 export interface CreateEpicDto {
   projectId: number;

@@ -35,7 +35,7 @@ export interface ProjectResponse {
   updatedAt?: string;
 }
 
-export type ProjectStatus = 'planning' | 'active' | 'completed' | 'archived';
+export type ProjectStatus = 'PLANNING' | 'ACTIVE' | 'COMPLETED' | 'ARCHIVED';
 
 export interface CreateProjectDto {
   name: string;

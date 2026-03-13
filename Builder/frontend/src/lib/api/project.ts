@@ -62,7 +62,7 @@ const mapProjectResponse = (response: ProjectResponse): Project => {
     id: typeof response.id === 'string' ? parseInt(response.id, 10) : (response.id as number),
     name: response.name || '',
     description: response.description || '',
-    status: (response.status as ProjectStatus) || 'active',
+    status: (response.status as ProjectStatus) || 'ACTIVE',
     startDate: formatDate(response.startDate),
     endDate: formatDate(response.endDate),
     color: response.themeColor || '#1677FF', // 后端 themeColor -> 前端 color，默认蓝色
