@@ -1,5 +1,7 @@
 package com.projecthub.module.wiki.dto;
 
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.Size;
 import java.time.LocalDateTime;
 import java.util.List;
 import lombok.AllArgsConstructor;
@@ -50,7 +52,8 @@ public class WikiVO {
     /** 父文档 ID */
     private Long parentId;
 
-    /** 标题 */
+    @NotBlank(message = "文档标题不能为空")
+    @Size(max = 200, message = "文档标题最多 200 字符")
     private String title;
 
     /** 内容 */
@@ -63,7 +66,7 @@ public class WikiVO {
   @NoArgsConstructor
   @AllArgsConstructor
   public static class UpdateRequest {
-    /** 标题 */
+    @Size(max = 200, message = "文档标题最多 200 字符")
     private String title;
 
     /** 内容 */

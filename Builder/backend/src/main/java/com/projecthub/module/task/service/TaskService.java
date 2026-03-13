@@ -89,6 +89,9 @@ public class TaskService {
             .orElseThrow(() -> new BusinessException(ErrorCode.TASK_NOT_FOUND));
 
     TaskVO taskVO = BeanCopyUtil.copyProperties(task, TaskVO.class);
+    // 手动设置枚举字段的字符串表示
+    taskVO.setStatus(task.getStatus().name());
+    taskVO.setPriority(task.getPriority().name());
     populateTaskStats(taskVO);
     return taskVO;
   }

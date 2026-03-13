@@ -1,5 +1,7 @@
 package com.projecthub.module.story.dto;
 
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.Size;
 import java.time.LocalDateTime;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -64,7 +66,8 @@ public class UserStoryVO {
     /** 史诗 ID */
     private Long epicId;
 
-    /** 标题 */
+    @NotBlank(message = "用户故事标题不能为空")
+    @Size(max = 200, message = "用户故事标题最多 200 字符")
     private String title;
 
     /** 描述 */
@@ -92,7 +95,7 @@ public class UserStoryVO {
     /** 史诗 ID */
     private Long epicId;
 
-    /** 标题 */
+    @Size(max = 200, message = "用户故事标题最多 200 字符")
     private String title;
 
     /** 描述 */

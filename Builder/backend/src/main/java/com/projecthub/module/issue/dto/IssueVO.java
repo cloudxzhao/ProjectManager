@@ -1,6 +1,8 @@
 package com.projecthub.module.issue.dto;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.Size;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import lombok.AllArgsConstructor;
@@ -68,7 +70,8 @@ public class IssueVO {
   @NoArgsConstructor
   @AllArgsConstructor
   public static class CreateRequest {
-    /** 标题 */
+    @NotBlank(message = "问题标题不能为空")
+    @Size(max = 200, message = "问题标题最多 200 字符")
     private String title;
 
     /** 描述 */
@@ -94,7 +97,7 @@ public class IssueVO {
   @NoArgsConstructor
   @AllArgsConstructor
   public static class UpdateRequest {
-    /** 标题 */
+    @Size(max = 200, message = "问题标题最多 200 字符")
     private String title;
 
     /** 描述 */

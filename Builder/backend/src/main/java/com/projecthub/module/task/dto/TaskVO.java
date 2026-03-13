@@ -4,6 +4,7 @@ import com.fasterxml.jackson.annotation.JsonAlias;
 import com.fasterxml.jackson.annotation.JsonFormat;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.Size;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import lombok.AllArgsConstructor;
@@ -82,6 +83,7 @@ public class TaskVO {
   @AllArgsConstructor
   public static class CreateRequest {
     @NotBlank(message = "任务标题不能为空")
+    @Size(max = 200, message = "任务标题最多 200 字符")
     private String title;
 
     private String description;
@@ -105,6 +107,7 @@ public class TaskVO {
   @NoArgsConstructor
   @AllArgsConstructor
   public static class UpdateRequest {
+    @Size(max = 200, message = "任务标题最多 200 字符")
     private String title;
 
     private String description;
