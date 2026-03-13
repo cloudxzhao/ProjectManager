@@ -5,8 +5,7 @@ import { useRouter } from 'next/navigation';
 import { Form, Input, Button, DatePicker, Select, ColorPicker, message, Card } from 'antd';
 import { ArrowLeftOutlined, ProjectOutlined } from '@ant-design/icons';
 import { useAuth } from '@/lib/hooks/useAuth';
-import { api } from '@/lib/api/axios';
-import { endpoints } from '@/lib/api/endpoints';
+import { createProject } from '@/lib/api/project';
 import Link from 'next/link';
 import dayjs from 'dayjs';
 
@@ -18,15 +17,13 @@ interface ProjectFormValues {
   description: string;
   startDate?: dayjs.Dayjs;
   endDate?: dayjs.Dayjs;
-  color?: string;
-  icon?: string;
 }
 
 const projectIcons = ['🛒', '📱', '📊', '🤝', '🌐', '🔧', '💼', '🎯', '🚀', '💡'];
 
 export default function NewProjectPage() {
   const router = useRouter();
-  const { isAuthenticated, token } = useAuth();
+  const { isAuthenticated } = useAuth();
   const [loading, setLoading] = useState(false);
   const [selectedIcon, setSelectedIcon] = useState('🛒');
   const [selectedColor, setSelectedColor] = useState('#f97316');
@@ -47,23 +44,19 @@ export default function NewProjectPage() {
   const onFinish = async (values: ProjectFormValues) => {
     setLoading(true);
     try {
-      console.log('Form values:', values, 'selectedColor:', selectedColor, 'selectedIcon:', selectedIcon);
       const payload = {
         name: values.name,
         description: values.description,
-        startDate: values.startDate?.format('YYYY-MM-DD'),
-        endDate: values.endDate?.format('YYYY-MM-DD'),
+        startDate: values.startDate?.format('YYYY-MM-DD') || '',
+        endDate: values.endDate?.format('YYYY-MM-DD') || values.startDate?.format('YYYY-MM-DD') || '',
         color: selectedColor,
         icon: selectedIcon,
       };
-      console.log('Submitting payload:', payload);
-      const response = await api.post(endpoints.project.create, payload);
 
-      if (response.code === 200) {
-        message.success('项目创建成功');
-        const data = response.data as { id: string };
-        router.push(`/projects/${data.id}`);
-      }
+      const response = await createProject(payload);
+
+      message.success('项目创建成功');
+      router.push(`/projects/${response.data.id}`);
     } catch (error: unknown) {
       const errorMessage = error instanceof Error ? error.message : '创建失败，请稍后重试';
       message.error(errorMessage);
