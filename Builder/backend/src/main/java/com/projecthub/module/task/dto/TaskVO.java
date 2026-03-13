@@ -1,9 +1,9 @@
 package com.projecthub.module.task.dto;
 
+import com.fasterxml.jackson.annotation.JsonAlias;
 import com.fasterxml.jackson.annotation.JsonFormat;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import jakarta.validation.constraints.NotBlank;
-import jakarta.validation.constraints.NotNull;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import lombok.AllArgsConstructor;
@@ -127,11 +127,11 @@ public class TaskVO {
   @AllArgsConstructor
   public static class MoveRequest {
     /** 目标状态 */
-    @NotNull(message = "目标状态不能为空")
     private String status;
 
     /** 目标位置 */
     @JsonProperty("order")
+    @JsonAlias("newOrder")
     private Integer position;
   }
 

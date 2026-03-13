@@ -39,10 +39,15 @@ public class UserService {
 
     // 设置用户角色
     String roleCode = userRepository.findRoleCodeByUserId(user.getId());
-    if (roleCode != null && roleCode.startsWith("ROLE_")) {
-      userVO.setRole(roleCode.substring(5)); // 去掉 ROLE_ 前缀
+    if (roleCode != null && !roleCode.isEmpty()) {
+      userVO.setRole(roleCode); // 直接使用数据库中的角色 code，如 "ADMIN"
     } else {
       userVO.setRole("MEMBER"); // 默认为 MEMBER
+    }
+
+    // 设置用户状态
+    if (user.getStatus() != null) {
+      userVO.setStatus(user.getStatus().name());
     }
 
     return userVO;
@@ -50,11 +55,11 @@ public class UserService {
 
   /** 更新用户资料 */
   @Transactional
-  public UserVO updateProfile(String username, String avatar) {
+  public UserVO updateProfile(String nickname, String avatar) {
     User user = getCurrentUser();
 
-    if (username != null) {
-      user.setUsername(username);
+    if (nickname != null) {
+      user.setNickname(nickname);
     }
     if (avatar != null) {
       user.setAvatar(avatar);
@@ -64,6 +69,8 @@ public class UserService {
     log.info("更新用户资料成功：{}", user.getUsername());
 
     UserVO userVO = BeanCopyUtil.copyProperties(user, UserVO.class);
+    // 手动设置枚举字段的字符串表示
+    userVO.setStatus(user.getStatus().name());
     setUserRole(userVO, user.getId());
     return userVO;
   }
@@ -100,6 +107,8 @@ public class UserService {
       log.info("上传头像成功：{}", user.getUsername());
 
       UserVO userVO = BeanCopyUtil.copyProperties(user, UserVO.class);
+      // 手动设置枚举字段的字符串表示
+      userVO.setStatus(user.getStatus().name());
       setUserRole(userVO, user.getId());
       return userVO;
 
@@ -131,6 +140,8 @@ public class UserService {
   public UserVO getUserById(Long userId) {
     User user = userRepository.findById(userId).orElseThrow(() -> new BusinessException("用户不存在"));
     UserVO userVO = BeanCopyUtil.copyProperties(user, UserVO.class);
+    // 手动设置枚举字段的字符串表示
+    userVO.setStatus(user.getStatus().name());
     setUserRole(userVO, userId);
     return userVO;
   }
@@ -138,8 +149,8 @@ public class UserService {
   /** 设置用户角色 */
   private void setUserRole(UserVO userVO, Long userId) {
     String roleCode = userRepository.findRoleCodeByUserId(userId);
-    if (roleCode != null && roleCode.startsWith("ROLE_")) {
-      userVO.setRole(roleCode.substring(5)); // 去掉 ROLE_ 前缀，如 ROLE_ADMIN -> ADMIN
+    if (roleCode != null && !roleCode.isEmpty()) {
+      userVO.setRole(roleCode); // 直接使用数据库中的角色 code，如 "ADMIN"
     } else {
       userVO.setRole("MEMBER"); // 默认为 MEMBER
     }

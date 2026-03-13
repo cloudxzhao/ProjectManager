@@ -34,10 +34,13 @@ public class CommentService {
     Long userId = getCurrentUserId();
 
     // 检查任务是否存在
-    taskRepository.findById(taskId).orElseThrow(() -> new BusinessException("任务不存在"));
+    var taskOpt = taskRepository.findById(taskId);
+    if (taskOpt.isEmpty()) {
+      throw new BusinessException(404, "任务不存在");
+    }
 
     // 权限校验
-    Long projectId = taskRepository.findById(taskId).get().getProjectId();
+    Long projectId = taskOpt.get().getProjectId();
     if (!permissionService.hasPermission(userId, projectId, "TASK_COMMENT")) {
       throw new BusinessException(403, "无评论权限");
     }

@@ -97,9 +97,22 @@ public class TaskController {
 
   /** 切换子任务完成状态 */
   @PostMapping("/{id}/toggle-complete")
-  @Operation(summary = "切换子任务完成状态", description = "切换子任务的完成状态（完成/未完成）")
+  @Operation(summary = "切换任务完成状态", description = "切换任务的完成状态（完成/未完成）")
   public Result<TaskVO> toggleSubTaskComplete(@PathVariable Long id) {
     TaskVO task = taskService.toggleSubTaskComplete(id);
+    return Result.success(task);
+  }
+
+  /** 添加子任务 */
+  @PostMapping("/{id}/subtasks")
+  @Operation(summary = "添加子任务", description = "为任务添加子任务")
+  public Result<TaskVO> addSubTask(
+      @PathVariable Long projectId,
+      @PathVariable Long id,
+      @Valid @RequestBody TaskVO.CreateRequest request) {
+    // 设置父任务 ID
+    request.setParentId(id);
+    TaskVO task = taskService.createTask(projectId, request);
     return Result.success(task);
   }
 }

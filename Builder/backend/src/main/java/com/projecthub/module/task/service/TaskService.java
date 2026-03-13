@@ -1,5 +1,6 @@
 package com.projecthub.module.task.service;
 
+import com.projecthub.common.constant.ErrorCode;
 import com.projecthub.common.exception.BusinessException;
 import com.projecthub.common.response.PageResult;
 import com.projecthub.common.util.BeanCopyUtil;
@@ -42,7 +43,7 @@ public class TaskService {
 
     // 权限校验
     if (!permissionService.hasPermission(userId, projectId, "TASK_CREATE")) {
-      throw new BusinessException(403, "无创建任务权限");
+      throw new BusinessException(ErrorCode.TASK_PERMISSION_DENIED, "无创建任务权限");
     }
 
     // 获取最大位置
@@ -72,6 +73,9 @@ public class TaskService {
     log.info("创建任务成功：taskId={}, projectId={}", task.getId(), projectId);
 
     TaskVO taskVO = BeanCopyUtil.copyProperties(task, TaskVO.class);
+    // 手动设置枚举字段的字符串表示
+    taskVO.setStatus(task.getStatus().name());
+    taskVO.setPriority(task.getPriority().name());
     populateTaskStats(taskVO);
     return taskVO;
   }
@@ -79,7 +83,10 @@ public class TaskService {
   /** 获取任务详情 */
   @Transactional(readOnly = true)
   public TaskVO getTask(Long taskId) {
-    Task task = taskRepository.findById(taskId).orElseThrow(() -> new BusinessException("任务不存在"));
+    Task task =
+        taskRepository
+            .findById(taskId)
+            .orElseThrow(() -> new BusinessException(ErrorCode.TASK_NOT_FOUND));
 
     TaskVO taskVO = BeanCopyUtil.copyProperties(task, TaskVO.class);
     populateTaskStats(taskVO);
@@ -89,7 +96,10 @@ public class TaskService {
   /** 更新任务 */
   @Transactional
   public TaskVO updateTask(Long taskId, TaskVO.UpdateRequest request) {
-    Task task = taskRepository.findById(taskId).orElseThrow(() -> new BusinessException("任务不存在"));
+    Task task =
+        taskRepository
+            .findById(taskId)
+            .orElseThrow(() -> new BusinessException(ErrorCode.TASK_NOT_FOUND));
 
     // 权限校验
     checkTaskPermission(task.getProjectId(), "TASK_EDIT");
@@ -121,6 +131,9 @@ public class TaskService {
     log.info("更新任务成功：taskId={}", taskId);
 
     TaskVO taskVO = BeanCopyUtil.copyProperties(task, TaskVO.class);
+    // 手动设置枚举字段的字符串表示
+    taskVO.setStatus(task.getStatus().name());
+    taskVO.setPriority(task.getPriority().name());
     populateTaskStats(taskVO);
     return taskVO;
   }
@@ -128,7 +141,10 @@ public class TaskService {
   /** 删除任务 */
   @Transactional
   public void deleteTask(Long taskId) {
-    Task task = taskRepository.findById(taskId).orElseThrow(() -> new BusinessException("任务不存在"));
+    Task task =
+        taskRepository
+            .findById(taskId)
+            .orElseThrow(() -> new BusinessException(ErrorCode.TASK_NOT_FOUND));
 
     // 权限校验
     checkTaskPermission(task.getProjectId(), "TASK_DELETE");
@@ -140,7 +156,10 @@ public class TaskService {
   /** 移动任务（状态变更） */
   @Transactional
   public TaskVO moveTask(Long taskId, TaskVO.MoveRequest request) {
-    Task task = taskRepository.findById(taskId).orElseThrow(() -> new BusinessException("任务不存在"));
+    Task task =
+        taskRepository
+            .findById(taskId)
+            .orElseThrow(() -> new BusinessException(ErrorCode.TASK_NOT_FOUND));
 
     // 权限校验
     checkTaskPermission(task.getProjectId(), "TASK_MOVE");
@@ -159,6 +178,9 @@ public class TaskService {
     log.info("移动任务成功：taskId={}, status={}", taskId, task.getStatus());
 
     TaskVO taskVO = BeanCopyUtil.copyProperties(task, TaskVO.class);
+    // 手动设置枚举字段的字符串表示
+    taskVO.setStatus(task.getStatus().name());
+    taskVO.setPriority(task.getPriority().name());
     populateTaskStats(taskVO);
     return taskVO;
   }
@@ -208,6 +230,9 @@ public class TaskService {
             .map(
                 task -> {
                   TaskVO taskVO = BeanCopyUtil.copyProperties(task, TaskVO.class);
+                  // 手动设置枚举字段的字符串表示
+                  taskVO.setStatus(task.getStatus().name());
+                  taskVO.setPriority(task.getPriority().name());
                   populateTaskStats(taskVO);
                   return taskVO;
                 })
@@ -240,7 +265,7 @@ public class TaskService {
     Long userId = getCurrentUserId();
 
     if (!permissionService.hasPermission(userId, projectId, permissionCode)) {
-      throw new BusinessException(403, "权限不足");
+      throw new BusinessException(ErrorCode.TASK_PERMISSION_DENIED, "权限不足");
     }
   }
 
@@ -250,7 +275,7 @@ public class TaskService {
     if (principal instanceof UserDetailsImpl) {
       return ((UserDetailsImpl) principal).getId();
     }
-    throw new BusinessException("用户未登录");
+    throw new BusinessException(ErrorCode.UNAUTHORIZED, "用户未登录");
   }
 
   /** 获取任务的子任务列表 */
@@ -267,20 +292,19 @@ public class TaskService {
         .map(
             task -> {
               TaskVO taskVO = BeanCopyUtil.copyProperties(task, TaskVO.class);
+              // 手动设置枚举字段的字符串表示
+              taskVO.setStatus(task.getStatus().name());
+              taskVO.setPriority(task.getPriority().name());
               populateTaskStats(taskVO);
               return taskVO;
             })
         .collect(Collectors.toList());
   }
 
-  /** 切换子任务完成状态 */
+  /** 切换任务完成状态（主任务和子任务通用） */
   @Transactional
   public TaskVO toggleSubTaskComplete(Long taskId) {
-    Task task = taskRepository.findById(taskId).orElseThrow(() -> new BusinessException("子任务不存在"));
-
-    if (task.getParentId() == null) {
-      throw new BusinessException("只有子任务才能切换完成状态");
-    }
+    Task task = taskRepository.findById(taskId).orElseThrow(() -> new BusinessException("任务不存在"));
 
     // 权限校验
     checkTaskPermission(task.getProjectId(), "TASK_EDIT");
@@ -293,9 +317,12 @@ public class TaskService {
     }
 
     taskRepository.save(task);
-    log.info("切换子任务完成状态：taskId={}, status={}", taskId, task.getStatus());
+    log.info("切换任务完成状态：taskId={}, status={}", taskId, task.getStatus());
 
     TaskVO taskVO = BeanCopyUtil.copyProperties(task, TaskVO.class);
+    // 手动设置枚举字段的字符串表示
+    taskVO.setStatus(task.getStatus().name());
+    taskVO.setPriority(task.getPriority().name());
     populateTaskStats(taskVO);
     return taskVO;
   }

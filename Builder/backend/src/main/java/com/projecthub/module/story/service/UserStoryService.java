@@ -196,6 +196,9 @@ public class UserStoryService {
   /** 构建用户故事 VO */
   private UserStoryVO buildUserStoryVO(UserStory userStory) {
     UserStoryVO vo = BeanCopyUtil.copyProperties(userStory, UserStoryVO.class);
+    // 手动设置枚举字段的字符串表示
+    vo.setStatus(userStory.getStatus().name());
+    vo.setPriority(userStory.getPriority().name());
 
     // 查询负责人姓名
     if (userStory.getAssigneeId() != null) {

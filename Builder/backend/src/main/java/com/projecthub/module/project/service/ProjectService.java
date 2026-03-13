@@ -1,5 +1,6 @@
 package com.projecthub.module.project.service;
 
+import com.projecthub.common.constant.ErrorCode;
 import com.projecthub.common.exception.BusinessException;
 import com.projecthub.common.response.PageResult;
 import com.projecthub.common.util.BeanCopyUtil;
@@ -60,7 +61,7 @@ public class ProjectService {
 
     // 验证日期
     if (request.getEndDate().isBefore(request.getStartDate())) {
-      throw new BusinessException("结束日期不能早于开始日期");
+      throw new BusinessException(ErrorCode.PROJECT_DATE_INVALID, "结束日期不能早于开始日期");
     }
 
     // 创建项目
@@ -70,7 +71,12 @@ public class ProjectService {
     project.setStartDate(request.getStartDate());
     project.setEndDate(request.getEndDate());
     project.setOwnerId(ownerId);
-    project.setStatus(Project.ProjectStatus.ACTIVE);
+    // 支持传入 status，如果没有传入则默认为 ACTIVE
+    if (request.getStatus() != null) {
+      project.setStatus(Project.ProjectStatus.valueOf(request.getStatus()));
+    } else {
+      project.setStatus(Project.ProjectStatus.ACTIVE);
+    }
     project.setIcon(request.getIcon());
     project.setThemeColor(request.getThemeColor());
 
@@ -78,6 +84,8 @@ public class ProjectService {
     log.info("创建项目成功：projectId={}, ownerId={}", project.getId(), ownerId);
 
     ProjectVO projectVO = BeanCopyUtil.copyProperties(project, ProjectVO.class);
+    // 手动设置枚举字段的字符串表示
+    projectVO.setStatus(project.getStatus().name());
     populateProjectStats(projectVO);
     return projectVO;
   }
@@ -86,9 +94,13 @@ public class ProjectService {
   @Transactional(readOnly = true)
   public ProjectVO getProject(Long projectId) {
     Project project =
-        projectRepository.findById(projectId).orElseThrow(() -> new BusinessException("项目不存在"));
+        projectRepository
+            .findById(projectId)
+            .orElseThrow(() -> new BusinessException(ErrorCode.PROJECT_NOT_FOUND));
 
     ProjectVO projectVO = BeanCopyUtil.copyProperties(project, ProjectVO.class);
+    // 手动设置枚举字段的字符串表示
+    projectVO.setStatus(project.getStatus().name());
     populateProjectStats(projectVO);
     return projectVO;
   }
@@ -97,18 +109,20 @@ public class ProjectService {
   @Transactional
   public ProjectVO updateProject(Long projectId, UpdateProjectRequest request) {
     Project project =
-        projectRepository.findById(projectId).orElseThrow(() -> new BusinessException("项目不存在"));
+        projectRepository
+            .findById(projectId)
+            .orElseThrow(() -> new BusinessException(ErrorCode.PROJECT_NOT_FOUND));
 
     // 权限校验：只有项目所有者可以更新
     if (!project.getOwnerId().equals(getCurrentUserId())) {
-      throw new BusinessException(403, "只有项目所有者可以更新项目");
+      throw new BusinessException(ErrorCode.PROJECT_PERMISSION_DENIED, "只有项目所有者可以更新项目");
     }
 
     // 验证日期
     if (request.getEndDate() != null
         && request.getStartDate() != null
         && request.getEndDate().isBefore(request.getStartDate())) {
-      throw new BusinessException("结束日期不能早于开始日期");
+      throw new BusinessException(ErrorCode.PROJECT_DATE_INVALID, "结束日期不能早于开始日期");
     }
 
     // 更新字段
@@ -138,6 +152,8 @@ public class ProjectService {
     log.info("更新项目成功：projectId={}", projectId);
 
     ProjectVO projectVO = BeanCopyUtil.copyProperties(project, ProjectVO.class);
+    // 手动设置枚举字段的字符串表示
+    projectVO.setStatus(project.getStatus().name());
     populateProjectStats(projectVO);
     return projectVO;
   }
@@ -146,11 +162,13 @@ public class ProjectService {
   @Transactional
   public void deleteProject(Long projectId) {
     Project project =
-        projectRepository.findById(projectId).orElseThrow(() -> new BusinessException("项目不存在"));
+        projectRepository
+            .findById(projectId)
+            .orElseThrow(() -> new BusinessException(ErrorCode.PROJECT_NOT_FOUND));
 
     // 权限校验：只有项目所有者可以删除
     if (!project.getOwnerId().equals(getCurrentUserId())) {
-      throw new BusinessException(403, "只有项目所有者可以删除项目");
+      throw new BusinessException(ErrorCode.PROJECT_PERMISSION_DENIED, "只有项目所有者可以删除项目");
     }
 
     projectRepository.delete(project);
@@ -206,6 +224,8 @@ public class ProjectService {
             .map(
                 project -> {
                   ProjectVO projectVO = BeanCopyUtil.copyProperties(project, ProjectVO.class);
+                  // 手动设置枚举字段的字符串表示
+                  projectVO.setStatus(project.getStatus().name());
                   populateProjectStats(projectVO);
                   return projectVO;
                 })
@@ -222,11 +242,13 @@ public class ProjectService {
 
     // 检查项目是否存在
     Project project =
-        projectRepository.findById(projectId).orElseThrow(() -> new BusinessException("项目不存在"));
+        projectRepository
+            .findById(projectId)
+            .orElseThrow(() -> new BusinessException(ErrorCode.PROJECT_NOT_FOUND));
 
     // 检查用户是否已是成员
     if (memberRepository.findByProjectIdAndUserId(projectId, request.getUserId()).isPresent()) {
-      throw new BusinessException("该用户已是项目成员");
+      throw new BusinessException(ErrorCode.PROJECT_MEMBER_ALREADY_EXISTS);
     }
 
     // 添加成员
@@ -265,7 +287,9 @@ public class ProjectService {
 
     // 检查是否是项目所有者
     Project project =
-        projectRepository.findById(projectId).orElseThrow(() -> new BusinessException("项目不存在"));
+        projectRepository
+            .findById(projectId)
+            .orElseThrow(() -> new BusinessException(ErrorCode.PROJECT_NOT_FOUND));
 
     if (project.getOwnerId().equals(userId)) {
       return; // 所有者拥有全部权限
@@ -275,12 +299,12 @@ public class ProjectService {
     ProjectMember member =
         memberRepository
             .findByProjectIdAndUserId(projectId, userId)
-            .orElseThrow(() -> new BusinessException(403, "无项目访问权限"));
+            .orElseThrow(() -> new BusinessException(ErrorCode.PROJECT_PERMISSION_DENIED));
 
     // 根据角色判断权限
     if (permissionCode.equals("PROJECT_MEMBER_MANAGE")
         && member.getRole() != ProjectMember.ProjectMemberRole.OWNER) {
-      throw new BusinessException(403, "权限不足");
+      throw new BusinessException(ErrorCode.PROJECT_PERMISSION_DENIED, "权限不足");
     }
   }
 
@@ -290,6 +314,6 @@ public class ProjectService {
     if (principal instanceof UserDetailsImpl) {
       return ((UserDetailsImpl) principal).getId();
     }
-    throw new BusinessException("用户未登录");
+    throw new BusinessException(ErrorCode.UNAUTHORIZED, "用户未登录");
   }
 }

@@ -25,6 +25,8 @@ public class CreateProjectRequest {
   @NotNull(message = "结束日期不能为空")
   private LocalDate endDate;
 
+  private String status;
+
   private String icon;
 
   private String themeColor;

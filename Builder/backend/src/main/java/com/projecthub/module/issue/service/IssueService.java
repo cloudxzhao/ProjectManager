@@ -196,6 +196,10 @@ public class IssueService {
   /** 构建问题 VO */
   private IssueVO buildIssueVO(Issue issue) {
     IssueVO vo = BeanCopyUtil.copyProperties(issue, IssueVO.class);
+    // 手动设置枚举字段的字符串表示
+    vo.setType(issue.getType().name());
+    vo.setSeverity(issue.getSeverity().name());
+    vo.setStatus(issue.getStatus().name());
 
     // 查询负责人姓名
     if (issue.getAssigneeId() != null) {

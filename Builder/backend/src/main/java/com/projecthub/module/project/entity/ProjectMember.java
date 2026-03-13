@@ -39,6 +39,7 @@ public class ProjectMember {
 
   public enum ProjectMemberRole {
     OWNER,
+    ADMIN,
     MANAGER,
     MEMBER
   }
