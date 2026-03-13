@@ -215,7 +215,13 @@ export default function ProjectsPage() {
     setLoading(true);
     try {
       const response = await getProjects(1, 100, searchValue || undefined);
+      console.log('[ProjectsPage] API response:', response);
+      console.log('[ProjectsPage] response.data:', response.data);
+      console.log('[ProjectsPage] response.data.list:', response.data?.list);
+
       const projectList: Project[] = response.data?.list || [];
+      console.log('[ProjectsPage] projectList:', projectList);
+
       setProjects(projectList);
 
       // 计算统计数据

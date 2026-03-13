@@ -10,19 +10,19 @@ export type { ProjectStatus };
 
 /** 后端返回的项目数据结构 */
 interface ProjectResponse {
-  id: number;
+  id: number | string;
   name: string;
   description: string;
   status: ProjectStatus;
-  startDate: string;
-  endDate: string;
+  startDate: string | { year: number; month: number; day: number };
+  endDate: string | { year: number; month: number; day: number };
   themeColor: string;
   icon?: string;
   memberCount: number;
   taskCount: number;
   completedTaskCount: number;
-  ownerId: number;
-  createdAt: string;
+  ownerId: number | string;
+  createdAt: string | { year: number; month: number; day: number; hour: number; minute: number; second: number };
   updatedAt?: string;
 }
 
@@ -45,10 +45,36 @@ export interface Project {
 }
 
 /** 将后端数据转换为前端格式 */
-const mapProjectResponse = (response: ProjectResponse): Project => ({
-  ...response,
-  color: response.themeColor, // 后端 themeColor -> 前端 color
-});
+const mapProjectResponse = (response: ProjectResponse): Project => {
+  // 处理日期格式（后端可能返回 LocalDate 对象或字符串）
+  const formatDate = (date: any): string => {
+    if (!date) return '';
+    if (typeof date === 'string') return date;
+    if (typeof date === 'object' && date.year) {
+      const month = String(date.month || 1).padStart(2, '0');
+      const day = String(date.day || 1).padStart(2, '0');
+      return `${date.year}-${month}-${day}`;
+    }
+    return String(date);
+  };
+
+  return {
+    id: typeof response.id === 'string' ? parseInt(response.id, 10) : response.id,
+    name: response.name,
+    description: response.description,
+    status: response.status as ProjectStatus,
+    startDate: formatDate(response.startDate),
+    endDate: formatDate(response.endDate),
+    color: response.themeColor, // 后端 themeColor -> 前端 color
+    icon: response.icon,
+    memberCount: response.memberCount || 0,
+    taskCount: response.taskCount || 0,
+    completedTaskCount: response.completedTaskCount || 0,
+    ownerId: typeof response.ownerId === 'string' ? parseInt(response.ownerId, 10) : response.ownerId,
+    createdAt: formatDate(response.createdAt),
+    updatedAt: response.updatedAt,
+  };
+};
 
 /**
  * 获取项目列表

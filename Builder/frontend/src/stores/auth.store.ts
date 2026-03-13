@@ -77,17 +77,14 @@ export const useAuthStore = create<AuthState>()(
         set({ isLoading: true, error: null });
 
         try {
-          // api.post 返回 Result<AuthTokens>，需要访问 data 字段获取实际的 token 数据
+          // api.post 已经返回了 Result.data，所以 result 直接就是 AuthTokens
           const result = await api.post<AuthTokens>(endpoints.auth.login, credentials);
 
-          // result.data 才是 AuthTokens
-          const tokenData = result.data;
-
-          console.log('Login token data:', tokenData);
+          console.log('Login token data:', result);
 
           // 检查是否有 accessToken 来判断登录是否成功
-          if (tokenData && tokenData.accessToken) {
-            const { accessToken, refreshToken, expiresIn } = tokenData;
+          if (result && result.accessToken) {
+            const { accessToken, refreshToken, expiresIn } = result;
 
             console.log('Token:', accessToken);
             console.log('ExpiresIn:', expiresIn);
@@ -143,19 +140,16 @@ export const useAuthStore = create<AuthState>()(
         set({ isLoading: true, error: null });
 
         try {
-          // api.post 返回 Result<AuthTokens>，需要访问 data 字段获取实际的 token 数据
+          // api.post 已经返回了 Result.data，所以 result 直接就是 AuthTokens
           const result = await api.post<AuthTokens>(endpoints.auth.register, {
             username: data.username,
             email: data.email,
             password: data.password,
           });
 
-          // result.data 才是 AuthTokens
-          const tokenData = result.data;
-
           // 检查是否有 accessToken 来判断注册是否成功
-          if (tokenData && tokenData.accessToken) {
-            const { accessToken, refreshToken, expiresIn } = tokenData;
+          if (result && result.accessToken) {
+            const { accessToken, refreshToken, expiresIn } = result;
 
             // 1. 先存储 token 到 localStorage
             localStorage.setItem('access_token', accessToken);
