@@ -23,6 +23,7 @@ import lombok.ToString;
 public class ProjectVO {
 
   /** 项目 ID */
+  @JsonFormat(shape = JsonFormat.Shape.STRING)  // 将数字格式化为字符串
   private Long id;
 
   /** 项目名称 */
