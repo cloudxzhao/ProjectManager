@@ -53,14 +53,9 @@ public class IssueService {
             .projectId(projectId)
             .title(request.getTitle())
             .description(request.getDescription())
-            .type(
-                request.getType() != null
-                    ? Issue.IssueType.valueOf(request.getType())
-                    : Issue.IssueType.BUG)
-            .severity(
-                request.getSeverity() != null
-                    ? Issue.Severity.valueOf(request.getSeverity())
-                    : Issue.Severity.NORMAL)
+            .type(parseIssueType(request.getType()))
+            .severity(parseSeverity(request.getSeverity()))
+            .status(Issue.IssueStatus.NEW)
             .assigneeId(request.getAssigneeId())
             .reporterId(userId)
             .foundDate(request.getFoundDate() != null ? request.getFoundDate() : LocalDate.now())
@@ -70,6 +65,30 @@ public class IssueService {
     log.info("创建问题成功：issueId={}, projectId={}", issue.getId(), projectId);
 
     return buildIssueVO(issue);
+  }
+
+  /** 解析问题类型，处理 null 和空字符串情况 */
+  private Issue.IssueType parseIssueType(String type) {
+    if (type == null || type.trim().isEmpty()) {
+      return Issue.IssueType.BUG;
+    }
+    try {
+      return Issue.IssueType.valueOf(type);
+    } catch (IllegalArgumentException e) {
+      throw new BusinessException(400, "无效的问题类型：" + type);
+    }
+  }
+
+  /** 解析严重程度，处理 null 和空字符串情况 */
+  private Issue.Severity parseSeverity(String severity) {
+    if (severity == null || severity.trim().isEmpty()) {
+      return Issue.Severity.NORMAL;
+    }
+    try {
+      return Issue.Severity.valueOf(severity);
+    } catch (IllegalArgumentException e) {
+      throw new BusinessException(400, "无效的严重程度：" + severity);
+    }
   }
 
   /** 获取问题详情 */

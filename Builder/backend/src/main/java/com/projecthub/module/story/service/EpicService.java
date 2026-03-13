@@ -43,6 +43,9 @@ public class EpicService {
 
     // 获取最大位置
     Integer maxPosition = epicRepository.findMaxPosition(projectId);
+    if (maxPosition == null) {
+      maxPosition = 0;
+    }
 
     // 创建史诗
     Epic epic =

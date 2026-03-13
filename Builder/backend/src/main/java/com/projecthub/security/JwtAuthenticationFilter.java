@@ -8,6 +8,7 @@ import jakarta.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.lang.NonNull;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -26,9 +27,13 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
   private final JwtUtil jwtUtil;
   private final UserDetailsService userDetailsService;
+  private final RedisTemplate<String, Object> redisTemplate;
 
   /** Token 前缀 */
   private static final String BEARER_PREFIX = "Bearer ";
+
+  /** Token 黑名单前缀 */
+  private static final String TOKEN_BLACKLIST_PREFIX = "token:blacklist:";
 
   @Override
   protected void doFilterInternal(
@@ -42,6 +47,15 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
       String token = extractTokenFromRequest(request);
 
       if (StringUtils.hasText(token)) {
+        // 检查 Token 是否在黑名单中
+        if (isTokenBlacklisted(token)) {
+          log.debug("Token 在黑名单中，拒绝请求");
+          response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+          response.setContentType("application/json;charset=UTF-8");
+          response.getWriter().write("{\"code\":401,\"message\":\"Token 已失效\"}");
+          return;
+        }
+
         String username = jwtUtil.getUsernameFromToken(token);
 
         if (StringUtils.hasText(username)
@@ -66,6 +80,12 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
     }
 
     filterChain.doFilter(request, response);
+  }
+
+  /** 检查 Token 是否在黑名单中 */
+  private boolean isTokenBlacklisted(String token) {
+    String blacklistKey = TOKEN_BLACKLIST_PREFIX + token;
+    return Boolean.TRUE.equals(redisTemplate.hasKey(blacklistKey));
   }
 
   /** 从请求中提取 Token */
