@@ -2,7 +2,11 @@
 
 import { api } from './axios';
 import { endpoints } from './endpoints';
-import type { CreateProjectDto, UpdateProjectDto, ProjectMember, MemberRole, Project, ProjectStatus } from '@/types/project';
+import type { CreateProjectDto, UpdateProjectDto, ProjectMember, MemberRole } from '@/types/project';
+import type { ProjectStatus } from '@/types/project';
+
+// 导出类型供外部使用
+export type { ProjectStatus };
 
 /** 后端返回的项目数据结构 */
 interface ProjectResponse {
@@ -13,6 +17,24 @@ interface ProjectResponse {
   startDate: string;
   endDate: string;
   themeColor: string;
+  icon?: string;
+  memberCount: number;
+  taskCount: number;
+  completedTaskCount: number;
+  ownerId: number;
+  createdAt: string;
+  updatedAt?: string;
+}
+
+/** 前端项目数据结构 */
+export interface Project {
+  id: number;
+  name: string;
+  description: string;
+  status: ProjectStatus;
+  startDate: string;
+  endDate: string;
+  color: string;
   icon?: string;
   memberCount: number;
   taskCount: number;
