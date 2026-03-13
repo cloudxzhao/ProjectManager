@@ -120,11 +120,11 @@ export const getProjects = async (
   console.log('[project.api] getProjects result:', result);
 
   return {
-    list: result.list.map(mapProjectResponse),
-    total: result.total,
-    page: result.page,
-    size: result.size,
-    pages: result.pages,
+    list: result.data.list.map(mapProjectResponse),
+    total: result.data.total,
+    page: result.data.page,
+    size: result.data.size,
+    pages: result.data.pages,
   };
 };
 
@@ -134,7 +134,7 @@ export const getProjects = async (
  */
 export const getProject = async (id: number) => {
   const result = await api.get<ProjectResponse>(endpoints.project.detail(id));
-  return mapProjectResponse(result);
+  return mapProjectResponse(result.data);
 };
 
 /**
@@ -196,7 +196,7 @@ export const deleteProject = async (id: number) => {
  * @param id 项目 ID
  */
 export const getProjectMembers = async (id: number) => {
-  return api.get<ProjectMember[]>(endpoints.project.members(id));
+  return api.get<ProjectMember[]>(endpoints.project.members(id)).then((res) => res.data);
 };
 
 /**
@@ -224,5 +224,5 @@ export const removeProjectMember = async (projectId: number, userId: number) => 
  * 获取项目统计信息
  */
 export const getProjectStats = async () => {
-  return api.get<{ activeCount: number; completedCount: number; archivedCount: number; planningCount: number }>(endpoints.project.stats);
+  return api.get<{ activeCount: number; completedCount: number; archivedCount: number; planningCount: number }>(endpoints.project.stats).then((res) => res.data);
 };

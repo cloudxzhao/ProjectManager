@@ -1,7 +1,7 @@
 'use client';
 
-import { useState } from 'react';
-import { Card, List, Button, Tag, Avatar, Input, Space, Popconfirm, message as antdMessage, Empty as AntEmpty, Dropdown, MenuProps } from 'antd';
+import { useState, useEffect } from 'react';
+import { Card, List, Button, Tag, Avatar, Input, Space, Popconfirm, message as antdMessage, Empty as AntEmpty, Dropdown, MenuProps, Spin } from 'antd';
 import { Empty as AppEmpty } from '@/components/common';
 import {
   BellOutlined,
@@ -18,79 +18,18 @@ import {
 import dayjs from 'dayjs';
 import relativeTime from 'dayjs/plugin/relativeTime';
 import 'dayjs/locale/zh-cn';
+import {
+  getNotifications,
+  getUnreadNotifications,
+  markAsRead,
+  markAllAsRead as markAllReadApi,
+  deleteNotification as deleteNotificationApi,
+  toggleStar as toggleStarApi,
+} from '@/lib/api/notification';
+import type { Notification } from '@/lib/api/notification';
 
 dayjs.extend(relativeTime);
 dayjs.locale('zh-cn');
-
-// Mock 通知数据
-const mockNotifications = [
-  {
-    id: '1',
-    type: 'task',
-    title: '新任务分配',
-    content: '李四将任务「完成用户登录模块」分配给你',
-    projectId: '1',
-    projectName: '电商平台重构',
-    isRead: false,
-    isStarred: true,
-    createdAt: dayjs().subtract(10, 'minute'),
-  },
-  {
-    id: '2',
-    type: 'comment',
-    title: '新评论',
-    content: '张三评论了任务「设计数据库架构」',
-    projectId: '1',
-    projectName: '电商平台重构',
-    isRead: false,
-    isStarred: false,
-    createdAt: dayjs().subtract(30, 'minute'),
-  },
-  {
-    id: '3',
-    type: 'project',
-    title: '项目更新',
-    content: '「移动端 APP 开发」项目状态已更新为进行中',
-    projectId: '2',
-    projectName: '移动端 APP 开发',
-    isRead: false,
-    isStarred: false,
-    createdAt: dayjs().subtract(2, 'hour'),
-  },
-  {
-    id: '4',
-    type: 'mention',
-    title: '有人@你',
-    content: '王五在评论中提到了你',
-    projectId: '1',
-    projectName: '电商平台重构',
-    isRead: true,
-    isStarred: false,
-    createdAt: dayjs().subtract(1, 'day'),
-  },
-  {
-    id: '5',
-    type: 'system',
-    title: '系统通知',
-    content: '系统将于本周六凌晨进行维护，预计持续 2 小时',
-    projectId: null,
-    projectName: null,
-    isRead: true,
-    isStarred: false,
-    createdAt: dayjs().subtract(2, 'day'),
-  },
-  {
-    id: '6',
-    type: 'task',
-    title: '任务已完成',
-    content: '赵六完成了任务「API 接口设计」',
-    projectId: '3',
-    projectName: '数据分析平台',
-    isRead: true,
-    isStarred: false,
-    createdAt: dayjs().subtract(3, 'day'),
-  },
-];
 
 const typeConfig: Record<string, { icon: React.ReactNode; color: string; bgClass: string }> = {
   task: {
@@ -121,9 +60,27 @@ const typeConfig: Record<string, { icon: React.ReactNode; color: string; bgClass
 };
 
 export default function MessagesPage() {
-  const [notifications, setNotifications] = useState(mockNotifications);
+  const [notifications, setNotifications] = useState<Notification[]>([]);
+  const [loading, setLoading] = useState(true);
   const [filter, setFilter] = useState<'all' | 'unread' | 'starred'>('all');
   const [searchValue, setSearchValue] = useState('');
+
+  // 加载通知列表
+  useEffect(() => {
+    const loadNotifications = async () => {
+      try {
+        setLoading(true);
+        const data = await getNotifications();
+        setNotifications(data);
+      } catch (error) {
+        console.error('加载通知失败:', error);
+        antdMessage.error('加载通知失败');
+      } finally {
+        setLoading(false);
+      }
+    };
+    loadNotifications();
+  }, []);
 
   // 计算未读数
   const unreadCount = notifications.filter((n) => !n.isRead).length;
@@ -148,32 +105,54 @@ export default function MessagesPage() {
   });
 
   // 标记为已读
-  const markAsRead = (id: string) => {
-    setNotifications(
-      notifications.map((n) => (n.id === id ? { ...n, isRead: true } : n))
-    );
-    antdMessage.success('已标记为已读');
+  const handleMarkAsRead = async (id: number) => {
+    try {
+      await markAsRead(id);
+      setNotifications(notifications.map((n) => (n.id === id ? { ...n, isRead: true } : n)));
+      antdMessage.success('已标记为已读');
+    } catch (error) {
+      console.error('标记已读失败:', error);
+      antdMessage.error('标记已读失败');
+    }
   };
 
   // 全部标记为已读
-  const markAllAsRead = () => {
-    setNotifications(notifications.map((n) => ({ ...n, isRead: true })));
-    antdMessage.success('全部标记为已读');
+  const handleMarkAllAsRead = async () => {
+    try {
+      await markAllReadApi();
+      setNotifications(notifications.map((n) => ({ ...n, isRead: true })));
+      antdMessage.success('全部标记为已读');
+    } catch (error) {
+      console.error('全部标记已读失败:', error);
+      antdMessage.error('全部标记已读失败');
+    }
   };
 
   // 切换收藏状态
-  const toggleStar = (id: string) => {
-    setNotifications(
-      notifications.map((n) =>
-        n.id === id ? { ...n, isStarred: !n.isStarred } : n
-      )
-    );
+  const handleToggleStar = async (id: number) => {
+    try {
+      await toggleStarApi(id);
+      setNotifications(
+        notifications.map((n) =>
+          n.id === id ? { ...n, isStarred: !n.isStarred } : n
+        )
+      );
+    } catch (error) {
+      console.error('切换收藏失败:', error);
+      antdMessage.error('切换收藏失败');
+    }
   };
 
   // 删除通知
-  const deleteNotification = (id: string) => {
-    setNotifications(notifications.filter((n) => n.id !== id));
-    antdMessage.success('通知已删除');
+  const handleDeleteNotification = async (id: number) => {
+    try {
+      await deleteNotificationApi(id);
+      setNotifications(notifications.filter((n) => n.id !== id));
+      antdMessage.success('通知已删除');
+    } catch (error) {
+      console.error('删除通知失败:', error);
+      antdMessage.error('删除通知失败');
+    }
   };
 
   // 批量操作菜单
@@ -182,7 +161,7 @@ export default function MessagesPage() {
       key: 'markAllRead',
       icon: <CheckCircleOutlined />,
       label: '全部标记为已读',
-      onClick: markAllAsRead,
+      onClick: handleMarkAllAsRead,
     },
   ];
 
@@ -264,7 +243,11 @@ export default function MessagesPage() {
 
       {/* 通知列表 */}
       <Card className="bg-gray-800/50 border-gray-700">
-        {filteredNotifications.length > 0 ? (
+        {loading ? (
+          <div className="flex justify-center items-center py-20">
+            <Spin size="large" />
+          </div>
+        ) : filteredNotifications.length > 0 ? (
           <List
             dataSource={filteredNotifications}
             renderItem={(notification) => {
@@ -283,7 +266,7 @@ export default function MessagesPage() {
                           type="link"
                           size="small"
                           icon={<CheckCircleOutlined />}
-                          onClick={() => markAsRead(notification.id)}
+                          onClick={() => handleMarkAsRead(notification.id)}
                           className="text-gray-400 hover:text-green-400"
                         >
                           已读
@@ -293,13 +276,13 @@ export default function MessagesPage() {
                         type="link"
                         size="small"
                         icon={<StarOutlined className={notification.isStarred ? 'text-yellow-400 fill-yellow-400' : ''} />}
-                        onClick={() => toggleStar(notification.id)}
+                        onClick={() => handleToggleStar(notification.id)}
                         className="text-gray-400"
                       />
                       <Popconfirm
                         title="确认删除"
                         description="确定要删除这条通知吗？"
-                        onConfirm={() => deleteNotification(notification.id)}
+                        onConfirm={() => handleDeleteNotification(notification.id)}
                         okText="确认"
                         cancelText="取消"
                       >

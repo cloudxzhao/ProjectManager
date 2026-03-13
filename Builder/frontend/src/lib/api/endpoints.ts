@@ -97,5 +97,6 @@ export const endpoints = {
     unread: '/notifications/unread',
     markRead: (id: number) => `/notifications/${id}/read`,
     markAllRead: '/notifications/read-all',
+    delete: (id: number) => `/notifications/${id}`,
   },
 } as const;
