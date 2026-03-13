@@ -1,0 +1,28 @@
+{
+  "id": "BACKEND-V2-013",
+  "title": "登录失败返回 HTTP 500 错误码",
+  "severity": "low",
+  "category": "error_handling",
+  "description": "当用户名或密码错误时，登录接口返回 HTTP 500 状态码，而不是更合适的 401 Unauthorized。这不符合 RESTful API 最佳实践。",
+  "assignee": "",
+  "affected_apis": [
+    "POST /api/v1/auth/login"
+  ],
+  "status": "analysis",
+  "current_state": {
+    "code": 500,
+    "message": "用户名或密码错误",
+    "httpStatus": 500
+  },
+  "expected_state": {
+    "code": 401,
+    "message": "用户名或密码错误",
+    "httpStatus": 401
+  },
+  "reproduction_steps": [
+    "1. 调用 POST /api/v1/auth/login",
+    "2. 传入错误的密码",
+    "3. 返回 500 错误而非 401"
+  ],
+  "labels": ["api", "auth", "error-handling"]
+}

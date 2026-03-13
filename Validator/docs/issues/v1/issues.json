@@ -1,0 +1,357 @@
+{
+  "issues": [
+    {
+      "id": "BACKEND-001",
+      "title": "Task 状态(status)和优先级(priority)未正确保存和返回",
+      "severity": "high",
+      "category": "data_persistence",
+      "description": "创建任务时传入的 status (如 'TODO') 和 priority (如 'HIGH') 没有被正确保存到数据库，返回的响应中这些字段始终为 null。更新任务和移动任务后同样无法正确保存。",
+      "assignee": "",
+      "affected_apis": [
+        "POST /api/v1/projects/{projectId}/tasks",
+        "PUT /api/v1/projects/{projectId}/tasks/{id}",
+        "POST /api/v1/projects/{projectId}/tasks/{id}/move"
+      ],
+      "status": "analysis",
+      "current_state": {
+        "task": {
+          "status": null,
+          "priority": null
+        }
+      },
+      "expected_state": {
+        "task": {
+          "status": "TODO",
+          "priority": "HIGH"
+        }
+      },
+      "solution": {
+        "type": "fix",
+        "description": "检查 TaskService 创建和更新任务的逻辑，确认 status 和 priority 字段是否正确保存到数据库。检查 Task 实体类的字段映射。",
+        "files_to_modify": [
+          "src/main/java/com/projecthub/module/task/service/TaskService.java",
+          "src/main/java/com/projecthub/module/task/entity/Task.java",
+          "src/main/java/com/projecthub/module/task/mapper/TaskMapper.java"
+        ]
+      },
+      "related_issues": ["BACKEND-007"],
+      "labels": ["api", "data"]
+    },
+    {
+      "id": "BACKEND-002",
+      "title": "用户更新 profile 时 nickname 参数错误地覆盖了 username",
+      "severity": "critical",
+      "category": "data_integrity",
+      "description": "UserController 的 updateProfile 方法接受 nickname 参数，但实际上错误地将其设置为 username 字段，导致用户无法使用原用户名登录。这是一个严重的数据完整性问题。",
+      "assignee": "",
+      "affected_apis": [
+        "PUT /api/v1/user/profile"
+      ],
+      "status": "analysis",
+      "current_state": {
+        "profile": {
+          "username": "AdminUser (被错误修改)",
+          "nickname": "未存储"
+        }
+      },
+      "expected_state": {
+        "profile": {
+          "username": "admin (保持不变)",
+          "nickname": "AdminUser"
+        }
+      },
+      "solution": {
+        "type": "fix",
+        "description": "在 UserVO 中添加 nickname 字段，修改 UserService.updateProfile 方法正确处理 nickname 参数。",
+        "files_to_modify": [
+          "src/main/java/com/projecthub/module/user/dto/UserVO.java",
+          "src/main/java/com/projecthub/module/user/service/UserService.java",
+          "src/main/java/com/projecthub/module/user/controller/UserController.java"
+        ]
+      },
+      "related_issues": ["BACKEND-003", "BACKEND-009"],
+      "labels": ["api", "data", "critical"]
+    },
+    {
+      "id": "BACKEND-003",
+      "title": "用户角色(role)字段在 API 响应中始终显示为 MEMBER",
+      "severity": "medium",
+      "category": "response",
+      "description": "超级管理员账户的角色应该是 ADMIN，但 API 返回的 role 字段始终显示为 MEMBER。UserVO.fromEntity() 方法已废弃但可能仍在使用，导致 role 字段没有被正确映射。",
+      "assignee": "",
+      "affected_apis": [
+        "GET /api/v1/user/profile"
+      ],
+      "status": "analysis",
+      "current_state": {
+        "response": {
+          "id": 1,
+          "username": "admin",
+          "role": "MEMBER"
+        }
+      },
+      "expected_state": {
+        "response": {
+          "id": 1,
+          "username": "admin",
+          "role": "ADMIN"
+        }
+      },
+      "solution": {
+        "type": "fix",
+        "description": "修改 UserVO 添加 role 字段，使用 BeanCopyUtil 正确复制 role 属性。",
+        "files_to_modify": [
+          "src/main/java/com/projecthub/module/user/dto/UserVO.java"
+        ]
+      },
+      "related_issues": [],
+      "labels": ["api", "response"]
+    },
+    {
+      "id": "BACKEND-004",
+      "title": "资源不存在时返回 500 错误而非 404",
+      "severity": "medium",
+      "category": "error_handling",
+      "description": "当请求的资源不存在（如项目、任务等）时，后端返回 HTTP 500 状态码而不是更准确的 404 Not Found。这不符合 RESTful API 最佳实践。",
+      "assignee": "",
+      "affected_apis": [
+        "GET /api/v1/projects/{id}",
+        "PUT /api/v1/projects/{id}",
+        "DELETE /api/v1/projects/{id}",
+        "PUT /api/v1/projects/{projectId}/tasks/{id}",
+        "DELETE /api/v1/projects/{projectId}/tasks/{id}",
+        "POST /api/v1/tasks/{taskId}/comments"
+      ],
+      "status": "analysis",
+      "current_state": {
+        "http_status": 500,
+        "error_message": "项目不存在/任务不存在"
+      },
+      "expected_state": {
+        "http_status": 404,
+        "error_message": "项目不存在/任务不存在"
+      },
+      "solution": {
+        "type": "fix",
+        "description": "在 Service 层捕获 NotFoundException 或类似异常时，设置 HTTP 状态码为 404。",
+        "files_to_modify": [
+          "src/main/java/com/projecthub/module/project/service/ProjectService.java",
+          "src/main/java/com/projecthub/module/task/service/TaskService.java",
+          "src/main/java/com/projecthub/common/exception/GlobalExceptionHandler.java"
+        ]
+      },
+      "related_issues": [],
+      "labels": ["api", "error-handling"]
+    },
+    {
+      "id": "BACKEND-005",
+      "title": "未认证用户访问受保护接口返回 HTTP 403",
+      "severity": "medium",
+      "category": "security",
+      "description": "当用户未提供 token 或 token 无效时访问受保护接口，应返回 HTTP 401 Unauthorized 而不是 HTTP 403 Forbidden。",
+      "assignee": "",
+      "affected_apis": [
+        "所有需要认证的接口"
+      ],
+      "status": "analysis",
+      "current_state": {
+        "http_status": 403,
+        "description": "无token或无效token访问"
+      },
+      "expected_state": {
+        "http_status": 401,
+        "description": "未授权访问"
+      },
+      "solution": {
+        "type": "fix",
+        "description": "在 Spring Security 配置中，正确区分 AuthenticationException (401) 和 AccessDeniedException (403)。",
+        "files_to_modify": [
+          "src/main/java/com/projecthub/security/*.java",
+          "src/main/java/com/projecthub/common/config/SecurityConfig.java"
+        ]
+      },
+      "related_issues": [],
+      "labels": ["api", "security"]
+    },
+    {
+      "id": "BACKEND-006",
+      "title": "创建用户故事接口返回服务器内部错误",
+      "severity": "high",
+      "category": "functionality",
+      "description": "POST /api/v1/projects/{projectId}/stories 接口返回 500 服务器内部错误，无法创建用户故事。",
+      "assignee": "",
+      "affected_apis": [
+        "POST /api/v1/projects/{projectId}/stories"
+      ],
+      "status": "analysis",
+      "current_state": {
+        "http_status": 500,
+        "response": {
+          "code": 500,
+          "message": "服务器内部错误"
+        }
+      },
+      "expected_state": {
+        "http_status": 200,
+        "response": {
+          "code": 200,
+          "data": {
+            "id": "...",
+            "title": "..."
+          }
+        }
+      },
+      "solution": {
+        "type": "fix",
+        "description": "检查 UserStoryService.createUserStory 方法，定位并修复导致 500 错误的原因。",
+        "files_to_modify": [
+          "src/main/java/com/projecthub/module/story/service/UserStoryService.java"
+        ]
+      },
+      "related_issues": [],
+      "labels": ["api", "functionality"]
+    },
+    {
+      "id": "BACKEND-007",
+      "title": "任务列表筛选功能没有正确过滤结果",
+      "severity": "medium",
+      "category": "functionality",
+      "description": "使用 status、priority 等参数筛选任务时，返回的结果不准确。虽然请求参数被接受，但由于 status 和 priority 没有正确存储（见问题1），筛选功能实际上没有生效。",
+      "assignee": "",
+      "affected_apis": [
+        "GET /api/v1/projects/{projectId}/tasks"
+      ],
+      "status": "analysis",
+      "current_state": {
+        "behavior": "筛选参数被接受，但由于数据未正确存储，返回所有任务"
+      },
+      "expected_state": {
+        "behavior": "只返回符合筛选条件的任务"
+      },
+      "solution": {
+        "type": "fix",
+        "description": "此问题依赖于问题 1 的修复。修复任务状态存储后，筛选功能应自动生效。",
+        "files_to_modify": [],
+        "related_issue": "BACKEND-001"
+      },
+      "related_issues": ["BACKEND-001"],
+      "labels": ["api", "functionality"]
+    },
+    {
+      "id": "BACKEND-008",
+      "title": "Token 刷新接口返回 500 错误",
+      "severity": "high",
+      "category": "authentication",
+      "description": "使用 refreshToken 刷新访问令牌时返回 500 错误。用户需要频繁重新登录，影响用户体验。",
+      "assignee": "",
+      "affected_apis": [
+        "POST /api/v1/auth/refresh"
+      ],
+      "status": "analysis",
+      "current_state": {
+        "http_status": 500,
+        "response": {
+          "code": 500,
+          "message": "刷新 Token 失败"
+        }
+      },
+      "expected_state": {
+        "http_status": 200,
+        "response": {
+          "code": 200,
+          "data": {
+            "accessToken": "...",
+            "refreshToken": "..."
+          }
+        }
+      },
+      "solution": {
+        "type": "fix",
+        "description": "检查 AuthService.refreshToken 方法，定位并修复导致刷新失败的原因。可能是 token 解析或验证逻辑的问题。",
+        "files_to_modify": [
+          "src/main/java/com/projecthub/module/auth/service/AuthService.java",
+          "src/main/java/com/projecthub/common/util/JwtUtil.java"
+        ]
+      },
+      "related_issues": [],
+      "labels": ["api", "authentication"]
+    },
+    {
+      "id": "BACKEND-009",
+      "title": "UserVO 缺少 nickname 字段定义",
+      "severity": "low",
+      "category": "response",
+      "description": "UserController.updateProfile 接受 nickname 参数，但 UserVO 中没有定义 nickname 字段，导致无法正确返回用户昵称。",
+      "assignee": "",
+      "affected_apis": [
+        "GET /api/v1/user/profile",
+        "PUT /api/v1/user/profile"
+      ],
+      "status": "analysis",
+      "current_state": {
+        "user_vo_fields": [
+          "id",
+          "username",
+          "email",
+          "avatar",
+          "status",
+          "role",
+          "createdAt"
+        ],
+        "missing_field": "nickname"
+      },
+      "expected_state": {
+        "user_vo_fields": [
+          "id",
+          "username",
+          "nickname",
+          "email",
+          "avatar",
+          "status",
+          "role",
+          "createdAt"
+        ]
+      },
+      "solution": {
+        "type": "add",
+        "description": "在 UserVO 中添加 nickname 字段。",
+        "files_to_modify": [
+          "src/main/java/com/projecthub/module/user/dto/UserVO.java"
+        ]
+      },
+      "related_issues": ["BACKEND-002"],
+      "labels": ["api", "response"]
+    },
+    {
+      "id": "BACKEND-010",
+      "title": "更新项目时传入的 status 字段被忽略",
+      "severity": "low",
+      "category": "data_persistence",
+      "description": "在 UpdateProjectRequest 中传入 status 字段（如 'ACTIVE'），更新后该字段仍然为 null。",
+      "assignee": "",
+      "affected_apis": [
+        "PUT /api/v1/projects/{id}"
+      ],
+      "status": "analysis",
+      "current_state": {
+        "project": {
+          "status": null
+        }
+      },
+      "expected_state": {
+        "project": {
+          "status": "ACTIVE"
+        }
+      },
+      "solution": {
+        "type": "fix",
+        "description": "检查 ProjectService.updateProject 方法，确认 status 字段是否被正确更新。",
+        "files_to_modify": [
+          "src/main/java/com/projecthub/module/project/service/ProjectService.java"
+        ]
+      },
+      "related_issues": [],
+      "labels": ["api", "data"]
+    }
+  ]
+}

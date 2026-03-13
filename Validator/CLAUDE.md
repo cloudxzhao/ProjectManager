@@ -9,7 +9,7 @@
 | 模块 | Backend (Spring Boot + Java 21) |
 | 问题数量 | 5 个 |
 | 数据库 | PostgreSQL |
-| API 基础地址 | `http://localhost:8080/api/v1` |
+| API 基础地址 | `http://localhost:9527/api/v1` |
 
 
 ## 接口信息

@@ -1,0 +1,28 @@
+{
+  "id": "BACKEND-V2-014",
+  "title": "资源不存在时 HTTP 状态码正确但业务码不标准",
+  "severity": "low",
+  "category": "error_handling",
+  "description": "请求不存在的项目时，HTTP 状态码返回 404（正确），但响应 body 中的 code 字段为 4001 而非标准的 404。业务错误码与 HTTP 状态码应保持一致。",
+  "assignee": "",
+  "affected_apis": [
+    "GET /api/v1/projects/{id}"
+  ],
+  "status": "analysis",
+  "current_state": {
+    "code": 4001,
+    "message": "项目不存在",
+    "httpStatus": 404
+  },
+  "expected_state": {
+    "code": 404,
+    "message": "项目不存在",
+    "httpStatus": 404
+  },
+  "reproduction_steps": [
+    "1. 调用 GET /api/v1/projects/9999",
+    "2. 观察 HTTP 状态码和响应 body",
+    "3. HTTP 状态码为 404，但 code 字段为 4001"
+  ],
+  "labels": ["api", "project", "error-handling"]
+}

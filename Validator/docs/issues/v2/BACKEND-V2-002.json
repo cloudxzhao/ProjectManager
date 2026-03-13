@@ -1,0 +1,28 @@
+{
+  "id": "BACKEND-V2-002",
+  "title": "用户角色 (role) 字段在 API 响应中始终显示为 MEMBER",
+  "severity": "medium",
+  "category": "response",
+  "description": "超级管理员账户的角色应该是 ADMIN，但 API 返回的 role 字段始终显示为 MEMBER。这可能导致前端权限判断错误。",
+  "assignee": "",
+  "affected_apis": [
+    "GET /api/v1/user/profile"
+  ],
+  "status": "analysis",
+  "current_state": {
+    "response": {
+      "role": "MEMBER"
+    }
+  },
+  "expected_state": {
+    "response": {
+      "role": "ADMIN"
+    }
+  },
+  "reproduction_steps": [
+    "1. 使用 admin 账户登录",
+    "2. 调用 GET /api/v1/user/profile",
+    "3. 观察返回的 role 字段值"
+  ],
+  "labels": ["api", "user", "role"]
+}

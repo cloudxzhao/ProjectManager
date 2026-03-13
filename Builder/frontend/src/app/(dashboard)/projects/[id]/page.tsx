@@ -409,7 +409,7 @@ export default function ProjectDetailPage() {
   if (fetchLoading) {
     return (
       <div className="flex justify-center items-center py-20">
-        <Spin size="large" tip="加载项目中..." />
+        <Spin size="large" description="加载项目中..." />
       </div>
     );
   }
@@ -654,7 +654,7 @@ export default function ProjectDetailPage() {
       <Drawer
         title="编辑项目"
         placement="right"
-        width={600}
+        size="large"
         open={editDrawerOpen}
         onClose={() => setEditDrawerOpen(false)}
         className="glass-dark"

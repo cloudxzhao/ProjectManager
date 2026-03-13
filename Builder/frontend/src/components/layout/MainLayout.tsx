@@ -156,7 +156,7 @@ export const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
         onClose={() => setDrawerOpen(false)}
         open={drawerOpen}
         className="bg-[var(--primary)]"
-        width={280}
+        size="large"
       >
         <div className="flex flex-col h-full">
           {/* Logo 区域 */}

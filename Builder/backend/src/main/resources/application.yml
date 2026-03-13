@@ -17,7 +17,7 @@ logging:
     root: INFO
     com.projecthub: DEBUG
   pattern:
-    console: "%clr(%d{yyyy-MM-dd HH:mm:ss.SSS}){faint} %clr([%thread]){magenta} %clr(%-5level){highlight} %clr(%logger{36}){cyan} - %clr(%msg){white}%n"
+    console: "%clr(%d{yyyy-MM-dd HH:mm:ss.SSS}){faint} %clr([%thread]){magenta} %clr(%-5level){highlight} %clr(%logger{36}){cyan} - %clr(%msg){faint}%n"
 
 # JWT 配置
 jwt:
@@ -41,7 +41,7 @@ springdoc:
 # 应用配置
 app:
   name: ProjectHub
-  url: http://localhost:8080
+  url: http://localhost:9527
   frontend-url: http://localhost:3000
 
 # 邮件配置

@@ -1,0 +1,27 @@
+{
+  "id": "BACKEND-V2-009",
+  "title": "创建用户故事接口返回服务器内部错误",
+  "severity": "high",
+  "category": "functionality",
+  "description": "POST /api/v1/projects/{projectId}/stories 接口返回 500 服务器内部错误，无法创建用户故事。这是一个高优先级问题，影响用户故事功能的可用性。",
+  "assignee": "",
+  "affected_apis": [
+    "POST /api/v1/projects/{projectId}/stories"
+  ],
+  "status": "analysis",
+  "current_state": {
+    "code": 500,
+    "message": "服务器内部错误"
+  },
+  "expected_state": {
+    "response": {
+      "success": true
+    }
+  },
+  "reproduction_steps": [
+    "1. 调用 POST /api/v1/projects/{projectId}/stories",
+    "2. 传入参数 {\"title\":\"User Story\",\"description\":\"Description\",\"priority\":\"MEDIUM\"}",
+    "3. 返回 500 服务器内部错误"
+  ],
+  "labels": ["api", "user-story", "critical"]
+}

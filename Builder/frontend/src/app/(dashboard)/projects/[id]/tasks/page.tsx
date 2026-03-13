@@ -159,7 +159,7 @@ const TaskFormModal: React.FC<TaskFormModalProps> = ({ open, onClose, onSubmit, 
     <Drawer
       title="创建任务"
       placement="right"
-      width={500}
+      size="large"
       open={open}
       onClose={onClose}
       className="bg-gray-800"

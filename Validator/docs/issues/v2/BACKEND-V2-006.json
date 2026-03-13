@@ -1,0 +1,28 @@
+{
+  "id": "BACKEND-V2-006",
+  "title": "切换任务完成状态接口返回错误",
+  "severity": "medium",
+  "category": "functionality",
+  "description": "切换任务完成状态时返回\"只有子任务才能切换完成状态\"错误，但操作的是主任务。接口逻辑可能存在错误，不应该限制主任务切换完成状态。",
+  "assignee": "",
+  "affected_apis": [
+    "POST /api/v1/projects/{projectId}/tasks/{id}/toggle-complete"
+  ],
+  "status": "analysis",
+  "current_state": {
+    "code": 500,
+    "message": "只有子任务才能切换完成状态"
+  },
+  "expected_state": {
+    "response": {
+      "success": true,
+      "isCompleted": true
+    }
+  },
+  "reproduction_steps": [
+    "1. 调用 POST /api/v1/projects/{projectId}/tasks/{id}/toggle-complete",
+    "2. 对主任务进行操作",
+    "3. 返回\"只有子任务才能切换完成状态\"错误"
+  ],
+  "labels": ["api", "task", "complete"]
+}

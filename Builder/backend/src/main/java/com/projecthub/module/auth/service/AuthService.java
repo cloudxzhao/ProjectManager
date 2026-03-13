@@ -1,5 +1,6 @@
 package com.projecthub.module.auth.service;
 
+import com.projecthub.common.constant.ErrorCode;
 import com.projecthub.common.exception.BusinessException;
 import com.projecthub.common.util.JwtUtil;
 import com.projecthub.common.util.PasswordUtil;
@@ -126,11 +127,13 @@ public class AuthService {
 
       // 检查 Token 是否在黑名单中
       if (isTokenBlacklisted(refreshToken)) {
-        throw new BusinessException("Token 已失效");
+        throw new BusinessException(ErrorCode.TOKEN_INVALID, "Token 已失效");
       }
 
       User user =
-          userRepository.findByUsername(username).orElseThrow(() -> new BusinessException("用户不存在"));
+          userRepository
+              .findByUsername(username)
+              .orElseThrow(() -> new BusinessException(ErrorCode.USER_NOT_FOUND));
 
       // 生成新的 Token
       String newAccessToken = jwtUtil.generateToken(username, user.getId());
@@ -146,9 +149,11 @@ public class AuthService {
               jwtUtil.getExpirationDate(newAccessToken).getTime() - System.currentTimeMillis())
           .build();
 
+    } catch (BusinessException e) {
+      throw e; // 重新抛出业务异常
     } catch (Exception e) {
       log.error("刷新 Token 失败：{}", e.getMessage());
-      throw new BusinessException("刷新 Token 失败");
+      throw new BusinessException(ErrorCode.TOKEN_INVALID, "Token 无效或已过期");
     }
   }
 

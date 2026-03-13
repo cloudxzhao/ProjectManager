@@ -20,12 +20,14 @@ import org.springframework.web.bind.annotation.RestControllerAdvice;
 @RestControllerAdvice
 public class GlobalExceptionHandler {
 
-  /** 处理业务异常 */
+  /** 处理业务异常 - 根据 httpStatus 返回对应的 HTTP 状态码 */
   @ExceptionHandler(BusinessException.class)
-  @ResponseStatus(HttpStatus.OK)
-  public Result<Void> handleBusinessException(BusinessException e) {
+  public org.springframework.http.ResponseEntity<Result<Void>> handleBusinessException(
+      BusinessException e) {
     log.warn("业务异常：{}", e.getMessage());
-    return Result.error(e.getCode(), e.getMessage());
+    HttpStatus httpStatus = HttpStatus.valueOf(e.getHttpStatus() != null ? e.getHttpStatus() : 200);
+    Result<Void> result = Result.error(e.getCode(), e.getMessage());
+    return org.springframework.http.ResponseEntity.status(httpStatus).body(result);
   }
 
   /** 处理参数校验异常 (MethodArgumentNotValidException) */

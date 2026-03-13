@@ -214,14 +214,11 @@ export default function ProjectsPage() {
   const fetchProjects = async () => {
     setLoading(true);
     try {
-      const response = await getProjects(1, 100, searchValue || undefined);
-      console.log('[ProjectsPage] API response:', response);
-      console.log('[ProjectsPage] response.data:', response.data);
-      console.log('[ProjectsPage] response.data.list:', response.data?.list);
+      const result = await getProjects(1, 100, searchValue || undefined);
+      console.log('[ProjectsPage] API result:', result);
+      console.log('[ProjectsPage] result.list:', result.list);
 
-      const projectList: Project[] = response.data?.list || [];
-      console.log('[ProjectsPage] projectList:', projectList);
-
+      const projectList: Project[] = result.list || [];
       setProjects(projectList);
 
       // 计算统计数据
@@ -367,7 +364,7 @@ export default function ProjectsPage() {
       {/* 项目列表 */}
       {loading ? (
         <div className="flex justify-center items-center py-20">
-          <Spin size="large" tip="加载中..." />
+          <Spin size="large" description="加载中..." />
         </div>
       ) : filteredProjects.length > 0 ? (
         <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">

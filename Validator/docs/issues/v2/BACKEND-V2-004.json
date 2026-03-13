@@ -1,0 +1,26 @@
+{
+  "id": "BACKEND-V2-004",
+  "title": "添加项目成员时角色枚举值 ADMIN 不被识别",
+  "severity": "medium",
+  "category": "functionality",
+  "description": "添加项目成员时传递 role=\"ADMIN\"，后端返回\"No enum constant com.projecthub.module.project.entity.ProjectMember.ProjectMemberRole.ADMIN\"错误。枚举值可能与前端传递的值不匹配。",
+  "assignee": "",
+  "affected_apis": [
+    "POST /api/v1/projects/{id}/members"
+  ],
+  "status": "analysis",
+  "current_state": {
+    "error": "No enum constant com.projecthub.module.project.entity.ProjectMember.ProjectMemberRole.ADMIN"
+  },
+  "expected_state": {
+    "response": {
+      "success": true
+    }
+  },
+  "reproduction_steps": [
+    "1. 调用 POST /api/v1/projects/{id}/members",
+    "2. 传入参数 {\"userId\":1,\"role\":\"ADMIN\"}",
+    "3. 返回枚举值不匹配错误"
+  ],
+  "labels": ["api", "project", "enum"]
+}

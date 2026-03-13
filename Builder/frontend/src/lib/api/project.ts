@@ -95,19 +95,23 @@ export const getProjects = async (
   }
 
   const url = `${endpoints.project.list}${params.toString() ? `?${params.toString()}` : ''}`;
-  return api.get<{
+  const result = await api.get<{
     list: ProjectResponse[];
     total: number;
     page: number;
     size: number;
     pages: number;
-  }>(url, { params }).then((res) => ({
-    ...res,
-    data: {
-      ...res.data,
-      list: res.data.list.map(mapProjectResponse),
-    },
-  }));
+  }>(url, { params });
+
+  console.log('[project.api] getProjects result:', result);
+
+  return {
+    list: result.list.map(mapProjectResponse),
+    total: result.total,
+    page: result.page,
+    size: result.size,
+    pages: result.pages,
+  };
 };
 
 /**
@@ -115,10 +119,8 @@ export const getProjects = async (
  * @param id 项目 ID
  */
 export const getProject = async (id: number) => {
-  return api.get<ProjectResponse>(endpoints.project.detail(id)).then((res) => ({
-    ...res,
-    data: mapProjectResponse(res.data),
-  }));
+  const result = await api.get<ProjectResponse>(endpoints.project.detail(id));
+  return mapProjectResponse(result.data);
 };
 
 /**

@@ -1,0 +1,31 @@
+{
+  "id": "BACKEND-V2-001",
+  "title": "Task 状态 (status) 和优先级 (priority) 未正确保存和返回",
+  "severity": "high",
+  "category": "data_persistence",
+  "description": "创建/更新任务时传入的 status (如\"TODO\") 和 priority (如\"HIGH\") 没有被正确保存到数据库，返回的响应中这些字段始终为 null。这是从 V1 测试以来持续存在的问题。",
+  "assignee": "",
+  "affected_apis": [
+    "POST /api/v1/projects/{projectId}/tasks",
+    "PUT /api/v1/projects/{projectId}/tasks/{id}"
+  ],
+  "status": "analysis",
+  "current_state": {
+    "response": {
+      "status": null,
+      "priority": null
+    }
+  },
+  "expected_state": {
+    "response": {
+      "status": "TODO",
+      "priority": "HIGH"
+    }
+  },
+  "reproduction_steps": [
+    "1. 创建任务时传入 status 和 priority 字段",
+    "2. 观察响应中的 status 和 priority 值",
+    "3. 发现两个字段的值均为 null"
+  ],
+  "labels": ["api", "data-persistence", "task"]
+}

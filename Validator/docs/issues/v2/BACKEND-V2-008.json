@@ -1,0 +1,28 @@
+{
+  "id": "BACKEND-V2-008",
+  "title": "评论到不存在的任务返回 500 错误而非 404",
+  "severity": "low",
+  "category": "error_handling",
+  "description": "向不存在的任务添加评论时，返回 500 错误而不是更准确的 404 Not Found。这不符合 RESTful API 最佳实践。",
+  "assignee": "",
+  "affected_apis": [
+    "POST /api/v1/tasks/{taskId}/comments"
+  ],
+  "status": "analysis",
+  "current_state": {
+    "code": 500,
+    "message": "任务不存在",
+    "httpStatus": 500
+  },
+  "expected_state": {
+    "code": 404,
+    "message": "任务不存在",
+    "httpStatus": 404
+  },
+  "reproduction_steps": [
+    "1. 调用 POST /api/v1/tasks/9999/comments",
+    "2. 传入有效的评论内容",
+    "3. 返回 500 错误而非 404"
+  ],
+  "labels": ["api", "comment", "error-handling"]
+}

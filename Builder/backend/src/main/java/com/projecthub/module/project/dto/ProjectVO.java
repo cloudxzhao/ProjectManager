@@ -49,7 +49,6 @@ public class ProjectVO {
   private String icon;
 
   /** 主题颜色 */
-  @JsonProperty("color")
   private String themeColor;
 
   /** 项目成员数 */

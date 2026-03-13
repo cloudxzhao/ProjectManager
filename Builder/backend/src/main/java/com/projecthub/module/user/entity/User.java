@@ -30,6 +30,9 @@ public class User {
   @Column(nullable = false, unique = true, length = 50)
   private String username;
 
+  @Column(length = 50)
+  private String nickname;
+
   @Column(nullable = false, unique = true, length = 100)
   private String email;
 
