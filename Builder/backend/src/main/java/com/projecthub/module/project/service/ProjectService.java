@@ -262,16 +262,28 @@ public class ProjectService {
     // 权限校验
     checkProjectPermission(projectId, "PROJECT_MEMBER_MANAGE", project);
 
+    // 检查角色参数是否有效
+    if (request.getRole() == null || request.getRole().trim().isEmpty()) {
+      throw new BusinessException(400, "角色不能为空");
+    }
+
     // 检查用户是否已是成员
     if (memberRepository.findByProjectIdAndUserId(projectId, request.getUserId()).isPresent()) {
       throw new BusinessException(ErrorCode.PROJECT_MEMBER_ALREADY_EXISTS);
     }
 
-    // 添加成员
+    // 添加成员 - 添加空值检查
+    ProjectMember.ProjectMemberRole role;
+    try {
+      role = ProjectMember.ProjectMemberRole.valueOf(request.getRole());
+    } catch (IllegalArgumentException e) {
+      throw new BusinessException(400, "无效的角色：" + request.getRole());
+    }
+
     ProjectMember member = new ProjectMember();
     member.setProjectId(projectId);
     member.setUserId(request.getUserId());
-    member.setRole(ProjectMember.ProjectMemberRole.valueOf(request.getRole()));
+    member.setRole(role);
 
     memberRepository.save(member);
     log.info(

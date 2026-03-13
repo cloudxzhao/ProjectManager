@@ -157,6 +157,90 @@ const ProjectCard: React.FC<ProjectCardProps> = ({ project, index }) => {
   );
 };
 
+// 列表视图项目组件
+const ProjectListItem: React.FC<ProjectCardProps> = ({ project, index }) => {
+  // 计算进度百分比
+  const calculateProgress = () => {
+    if (project.taskCount === 0) return 0;
+    return Math.round((project.completedTaskCount / project.taskCount) * 100);
+  };
+
+  const progress = calculateProgress();
+
+  return (
+    <Link href={`/projects/${project.id}`}>
+      <Card
+        hoverable
+        className="transition-all duration-300 hover:bg-white/5 group"
+        style={{
+          backgroundColor: 'rgba(255, 255, 255, 0.03)',
+          borderColor: 'rgba(255, 255, 255, 0.08)',
+        }}
+      >
+        <div className="flex items-center gap-4 py-4">
+          {/* 项目图标 */}
+          <div
+            className="w-12 h-12 rounded-xl flex items-center justify-center text-xl flex-shrink-0"
+            style={{
+              background: `linear-gradient(135deg, ${project.color || '#f97316'} 0%, ${project.color || '#f97316'}cc 100%)`,
+              boxShadow: `0 6px 12px -4px ${project.color || '#f97316'}40`,
+            }}
+          >
+            {project.icon || '📁'}
+          </div>
+
+          {/* 项目信息 */}
+          <div className="flex-1 min-w-0">
+            <div className="flex items-center gap-3 mb-1">
+              <h3 className="text-base font-semibold text-white font-display truncate">{project.name}</h3>
+              <Tag
+                color={statusColorMap[project.status] as any}
+                className="text-xs font-bold uppercase tracking-wider flex-shrink-0"
+              >
+                {statusTextMap[project.status]}
+              </Tag>
+            </div>
+            <p className="text-sm text-gray-400 truncate">{project.description}</p>
+          </div>
+
+          {/* 成员和任务数 */}
+          <div className="flex items-center gap-6 flex-shrink-0">
+            <div className="flex items-center gap-2">
+              <span className="text-xs text-gray-500 uppercase">👥</span>
+              <span className="text-sm text-white font-medium">{project.memberCount} 人</span>
+            </div>
+            <div className="flex items-center gap-2">
+              <span className="text-xs text-gray-500 uppercase">📋</span>
+              <span className="text-sm text-white font-medium">{project.taskCount} 任务</span>
+            </div>
+          </div>
+
+          {/* 进度条 */}
+          <div className="w-32 flex-shrink-0">
+            <div className="flex justify-between items-center mb-1">
+              <span className="text-xs text-gray-400">{progress}%</span>
+            </div>
+            <div className="h-1.5 bg-white/10 rounded-full overflow-hidden">
+              <div
+                className="h-full rounded-full transition-all duration-700"
+                style={{
+                  width: `${progress}%`,
+                  background: `linear-gradient(90deg, ${project.color || '#f97316'} 0%, ${project.color || '#f97316'}cc 100%)`,
+                }}
+              />
+            </div>
+          </div>
+
+          {/* 查看箭头 */}
+          <span className="text-orange-400 text-sm font-semibold flex-shrink-0 group-hover:translate-x-1 transition-all">
+            →
+          </span>
+        </div>
+      </Card>
+    </Link>
+  );
+};
+
 // 统计卡片组件
 const StatCard: React.FC<{ stat: StatData; index: number }> = ({ stat, index }) => (
   <div
