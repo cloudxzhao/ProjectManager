@@ -76,7 +76,7 @@ export interface ProjectMember {
   joinedAt: string;
 }
 
-export type MemberRole = 'owner' | 'admin' | 'member';
+export type MemberRole = 'owner' | 'admin' | 'manager' | 'member';
 
 /** 项目统计信息 */
 export interface ProjectStats {

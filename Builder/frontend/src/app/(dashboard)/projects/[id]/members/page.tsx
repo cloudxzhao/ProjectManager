@@ -1,21 +1,24 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useParams } from 'next/navigation';
-import { Card, Avatar, Tag, Button, Table, Modal, Form, Select, Input, message, Popconfirm, Space } from 'antd';
+import { Card, Avatar, Tag, Button, Table, Modal, Form, Select, Input, message, Popconfirm, Space, Spin } from 'antd';
 import { PlusOutlined, DeleteOutlined, EditOutlined, UserAddOutlined } from '@ant-design/icons';
-import { api } from '@/lib/api/axios';
-import { endpoints } from '@/lib/api/endpoints';
+import { getProjectMembers, addProjectMember, removeProjectMember } from '@/lib/api/project';
+import type { MemberRole } from '@/types/project';
 
 const { Option } = Select;
 
-// Mock 数据
-const initialMembers = [
-  { id: '1', userId: 'u1', name: '张三', email: 'zhangsan@example.com', avatar: null, role: 'admin', joinedAt: '2024-01-01' },
-  { id: '2', userId: 'u2', name: '李四', email: 'lisi@example.com', avatar: null, role: 'manager', joinedAt: '2024-01-05' },
-  { id: '3', userId: 'u3', name: '王五', email: 'wangwu@example.com', avatar: null, role: 'member', joinedAt: '2024-01-10' },
-  { id: '4', userId: 'u4', name: '赵六', email: 'zhaoliu@example.com', avatar: null, role: 'member', joinedAt: '2024-01-15' },
-];
+// 前端成员数据结构
+interface Member {
+  id: string;
+  userId: string;
+  name: string;
+  email: string;
+  avatar: string | null;
+  role: MemberRole;
+  joinedAt: string;
+}
 
 const roleColorMap: Record<string, string> = {
   admin: 'purple',
@@ -36,33 +39,65 @@ interface AddMemberFormValues {
 
 export default function ProjectMembersPage() {
   const params = useParams();
-  const projectId = params.id as string;
+  const projectIdNum = Number(params.id);
 
-  const [members, setMembers] = useState(initialMembers);
-  const [loading, setLoading] = useState(false);
+  const [members, setMembers] = useState<Member[]>([]);
+  const [loading, setLoading] = useState(true);
   const [addModalOpen, setAddModalOpen] = useState(false);
   const [editModalOpen, setEditModalOpen] = useState(false);
-  const [editingMember, setEditingMember] = useState<typeof initialMembers[0] | null>(null);
+  const [editingMember, setEditingMember] = useState<Member | null>(null);
   const [form] = Form.useForm();
+
+  // 加载成员列表
+  useEffect(() => {
+    const loadMembers = async () => {
+      if (!projectIdNum || isNaN(projectIdNum)) return;
+      setLoading(true);
+      try {
+        const data = await getProjectMembers(projectIdNum);
+        // 将后端数据转换为前端格式
+        const memberList: Member[] = (data || []).map((item, index) => ({
+          id: String(item.id || index + 1),
+          userId: String(item.userId),
+          name: `用户 ${item.userId}`,
+          email: '',
+          avatar: null,
+          role: item.role,
+          joinedAt: item.joinedAt ? new Date(item.joinedAt).toISOString().split('T')[0] : '',
+        }));
+        setMembers(memberList);
+      } catch (error) {
+        console.error('加载成员列表失败:', error);
+        message.error('加载成员列表失败');
+      } finally {
+        setLoading(false);
+      }
+    };
+    loadMembers();
+  }, [projectIdNum]);
 
   // 添加成员
   const handleAddMember = async (values: AddMemberFormValues) => {
     setLoading(true);
     try {
-      // 模拟 API 调用
-      await new Promise((resolve) => setTimeout(resolve, 500));
+      await addProjectMember(projectIdNum, {
+        userId: Number(values.userId),
+        role: values.role as MemberRole,
+      });
 
-      const newMember = {
-        id: String(members.length + 1),
-        userId: values.userId,
-        name: `用户${values.userId}`,
-        email: `user${values.userId}@example.com`,
+      // 重新加载成员列表
+      const data = await getProjectMembers(projectIdNum);
+      const memberList: Member[] = (data || []).map((item, index) => ({
+        id: String(item.id || index + 1),
+        userId: String(item.userId),
+        name: `用户 ${item.userId}`,
+        email: '',
         avatar: null,
-        role: values.role,
-        joinedAt: new Date().toISOString().split('T')[0],
-      };
+        role: item.role,
+        joinedAt: item.joinedAt ? new Date(item.joinedAt).toISOString().split('T')[0] : '',
+      }));
+      setMembers(memberList);
 
-      setMembers([...members, newMember]);
       message.success('成员添加成功');
       setAddModalOpen(false);
       form.resetFields();
@@ -80,13 +115,14 @@ export default function ProjectMembersPage() {
 
     setLoading(true);
     try {
-      await api.put(endpoints.project.addMember(Number(projectId)), {
+      // 使用 addProjectMember 来更新角色（后端 PUT /projects/{id}/members）
+      await addProjectMember(projectIdNum, {
         userId: Number(editingMember.userId),
-        role: values.role,
+        role: values.role as MemberRole,
       });
 
       setMembers(members.map((m) =>
-        m.id === editingMember.id ? { ...m, role: values.role } : m
+        m.userId === editingMember.userId ? { ...m, role: values.role as MemberRole } : m
       ));
 
       message.success('角色修改成功');
@@ -102,7 +138,7 @@ export default function ProjectMembersPage() {
   };
 
   // 移除成员
-  const handleRemoveMember = async (memberId: string, memberIdName: string) => {
+  const handleRemoveMember = async (memberId: string, memberName: string) => {
     setLoading(true);
     try {
       const member = members.find((m) => m.id === memberId);
@@ -111,7 +147,8 @@ export default function ProjectMembersPage() {
         return;
       }
 
-      await api.delete(endpoints.project.removeMember(Number(projectId), Number(memberId)));
+      await removeProjectMember(projectIdNum, Number(member?.userId));
+
       setMembers(members.filter((m) => m.id !== memberId));
       message.success('成员已移除');
     } catch (error: unknown) {
@@ -123,7 +160,7 @@ export default function ProjectMembersPage() {
   };
 
   // 打开编辑对话框
-  const openEditModal = (member: typeof initialMembers[0]) => {
+  const openEditModal = (member: Member) => {
     setEditingMember(member);
     form.setFieldsValue({ role: member.role });
     setEditModalOpen(true);
@@ -135,7 +172,7 @@ export default function ProjectMembersPage() {
       title: '成员',
       dataIndex: 'name',
       key: 'name',
-      render: (_: unknown, record: typeof initialMembers[0]) => (
+      render: (_: unknown, record: Member) => (
         <div className="flex items-center gap-3">
           <Avatar
             size={40}
@@ -169,7 +206,7 @@ export default function ProjectMembersPage() {
     {
       title: '操作',
       key: 'action',
-      render: (_: unknown, record: typeof initialMembers[0]) => (
+      render: (_: unknown, record: Member) => (
         <Space size="middle">
           {record.role !== 'admin' && (
             <>
@@ -267,6 +304,7 @@ export default function ProjectMembersPage() {
           columns={columns}
           dataSource={members}
           rowKey="id"
+          loading={loading}
           pagination={false}
           className="project-members-table"
           scroll={{ x: 600 }}
