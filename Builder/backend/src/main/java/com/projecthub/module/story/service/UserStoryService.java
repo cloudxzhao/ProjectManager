@@ -3,6 +3,7 @@ package com.projecthub.module.story.service;
 import com.projecthub.common.exception.BusinessException;
 import com.projecthub.common.response.PageResult;
 import com.projecthub.common.util.BeanCopyUtil;
+import com.projecthub.module.project.repository.ProjectRepository;
 import com.projecthub.module.project.service.PermissionService;
 import com.projecthub.module.story.dto.UserStoryVO;
 import com.projecthub.module.story.entity.UserStory;
@@ -34,11 +35,17 @@ public class UserStoryService {
   private final UserStoryRepository userStoryRepository;
   private final UserRepository userRepository;
   private final PermissionService permissionService;
+  private final ProjectRepository projectRepository;
 
   /** 创建用户故事 */
   @Transactional
   public UserStoryVO createUserStory(Long projectId, UserStoryVO.CreateRequest request) {
     Long userId = getCurrentUserId();
+
+    // 检查项目是否存在
+    if (!projectRepository.existsById(projectId)) {
+      throw new BusinessException(404, 404, "项目不存在");
+    }
 
     // 权限校验
     if (!permissionService.hasPermission(userId, projectId, "STORY_CREATE")) {
@@ -56,10 +63,7 @@ public class UserStoryService {
             .title(request.getTitle())
             .description(request.getDescription())
             .acceptanceCriteria(request.getAcceptanceCriteria())
-            .priority(
-                request.getPriority() != null
-                    ? UserStory.Priority.valueOf(request.getPriority())
-                    : UserStory.Priority.MEDIUM)
+            .priority(getPriorityFromString(request.getPriority()))
             .storyPoints(request.getStoryPoints())
             .assigneeId(request.getAssigneeId())
             .position(maxPosition + 1)
@@ -71,11 +75,37 @@ public class UserStoryService {
     return buildUserStoryVO(userStory);
   }
 
+  /** 从字符串获取优先级，处理 null 和空字符串情况 */
+  private UserStory.Priority getPriorityFromString(String priority) {
+    if (priority == null || priority.trim().isEmpty()) {
+      return UserStory.Priority.MEDIUM;
+    }
+    try {
+      return UserStory.Priority.valueOf(priority);
+    } catch (IllegalArgumentException e) {
+      throw new BusinessException(400, "无效的优先级：" + priority);
+    }
+  }
+
+  /** 从字符串获取任务状态，处理 null 和空字符串情况 */
+  private UserStory.TaskStatus getTaskStatusFromString(String status) {
+    if (status == null || status.trim().isEmpty()) {
+      return UserStory.TaskStatus.TODO;
+    }
+    try {
+      return UserStory.TaskStatus.valueOf(status);
+    } catch (IllegalArgumentException e) {
+      throw new BusinessException(400, "无效的状态：" + status);
+    }
+  }
+
   /** 获取用户故事详情 */
   @Transactional(readOnly = true)
   public UserStoryVO getUserStory(Long storyId) {
     UserStory userStory =
-        userStoryRepository.findById(storyId).orElseThrow(() -> new BusinessException("用户故事不存在"));
+        userStoryRepository
+            .findById(storyId)
+            .orElseThrow(() -> new BusinessException(404, 404, "用户故事不存在"));
 
     return buildUserStoryVO(userStory);
   }
@@ -137,7 +167,9 @@ public class UserStoryService {
     Long userId = getCurrentUserId();
 
     UserStory userStory =
-        userStoryRepository.findById(storyId).orElseThrow(() -> new BusinessException("用户故事不存在"));
+        userStoryRepository
+            .findById(storyId)
+            .orElseThrow(() -> new BusinessException(404, 404, "用户故事不存在"));
 
     // 权限校验
     if (!permissionService.hasPermission(userId, userStory.getProjectId(), "STORY_EDIT")) {
@@ -158,7 +190,7 @@ public class UserStoryService {
       userStory.setAcceptanceCriteria(request.getAcceptanceCriteria());
     }
     if (request.getPriority() != null) {
-      userStory.setPriority(UserStory.Priority.valueOf(request.getPriority()));
+      userStory.setPriority(getPriorityFromString(request.getPriority()));
     }
     if (request.getStoryPoints() != null) {
       userStory.setStoryPoints(request.getStoryPoints());
@@ -167,7 +199,7 @@ public class UserStoryService {
       userStory.setAssigneeId(request.getAssigneeId());
     }
     if (request.getStatus() != null) {
-      userStory.setStatus(UserStory.TaskStatus.valueOf(request.getStatus()));
+      userStory.setStatus(getTaskStatusFromString(request.getStatus()));
     }
 
     userStoryRepository.save(userStory);
@@ -182,7 +214,9 @@ public class UserStoryService {
     Long userId = getCurrentUserId();
 
     UserStory userStory =
-        userStoryRepository.findById(storyId).orElseThrow(() -> new BusinessException("用户故事不存在"));
+        userStoryRepository
+            .findById(storyId)
+            .orElseThrow(() -> new BusinessException(404, 404, "用户故事不存在"));
 
     // 权限校验
     if (!permissionService.hasPermission(userId, userStory.getProjectId(), "STORY_DELETE")) {

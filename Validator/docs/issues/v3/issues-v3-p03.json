@@ -1,0 +1,112 @@
+{
+  "test_version": "v3",
+  "test_date": "2026-03-13",
+  "tester": "API Test Engineer",
+  "api_base_url": "http://localhost:9527/api/v1",
+  "summary": {
+    "total_tests": 60,
+    "passed": 45,
+    "failed": 15,
+    "pass_rate": "75%"
+  },
+  "issues": [
+    {
+      "id": "BACKEND-V3-011",
+      "title": "Issue 创建返回 HTTP 500 错误",
+      "severity": "high",
+      "category": "functionality",
+      "description": "调用 POST /api/v1/projects/{projectId}/issues 创建问题时，返回 HTTP 500 服务器内部错误。",
+      "affected_apis": ["POST /api/v1/projects/{projectId}/issues"],
+      "current_state": "返回 {\"code\":500,\"message\":\"服务器内部错误\"}",
+      "expected_state": "创建成功后返回 200 和问题数据",
+      "reproduction_steps": [
+        "1. 登录获取 token",
+        "2. 发送 POST /api/v1/projects/9/issues with valid data",
+        "3. 观察返回 500 错误"
+      ],
+      "labels": ["issue", "functionality"]
+    },
+    {
+      "id": "BACKEND-V3-012",
+      "title": "获取不存在的 Issue 返回 HTTP 500",
+      "severity": "medium",
+      "category": "response",
+      "description": "调用 GET /api/v1/projects/{projectId}/issues/{id} 获取不存在的问题是，返回 HTTP 500 而非 HTTP 404。",
+      "affected_apis": ["GET /api/v1/projects/{projectId}/issues/{id}"],
+      "current_state": "返回 {\"code\":500,\"message\":\"问题不存在\"}",
+      "expected_state": "返回 HTTP 404",
+      "reproduction_steps": [
+        "1. 登录获取 token",
+        "2. 发送 GET /api/v1/projects/9/issues/99999",
+        "3. 观察返回 500 错误"
+      ],
+      "labels": ["issue", "http-status"]
+    },
+    {
+      "id": "BACKEND-V3-013",
+      "title": "项目成员添加返回 HTTP 500 错误",
+      "severity": "high",
+      "category": "functionality",
+      "description": "调用 POST /api/v1/projects/{id}/members 添加项目成员时，返回 HTTP 500 服务器内部错误。",
+      "affected_apis": ["POST /api/v1/projects/{id}/members"],
+      "current_state": "返回 {\"code\":500,\"message\":\"服务器内部错误\"}",
+      "expected_state": "添加成员成功后返回 200",
+      "reproduction_steps": [
+        "1. 登录获取 token",
+        "2. 发送 POST /api/v1/projects/9/members with {\"userId\":2,\"role\":\"MEMBER\"}",
+        "3. 观察返回 500 错误"
+      ],
+      "labels": ["project", "member", "functionality"]
+    },
+    {
+      "id": "BACKEND-V3-014",
+      "title": "评论更新/删除不存在返回 HTTP 500",
+      "severity": "medium",
+      "category": "response",
+      "description": "调用 PUT 或 DELETE /api/v1/tasks/{taskId}/comments/{id} 操作不存在的评论时，返回 HTTP 500 而非 HTTP 404。",
+      "affected_apis": [
+        "PUT /api/v1/tasks/{taskId}/comments/{id}",
+        "DELETE /api/v1/tasks/{taskId}/comments/{id}"
+      ],
+      "current_state": "返回 {\"code\":500,\"message\":\"评论不存在\"}",
+      "expected_state": "返回 HTTP 404",
+      "reproduction_steps": [
+        "1. 登录获取 token",
+        "2. 发送 PUT /api/v1/tasks/9/comments/99999",
+        "3. 观察返回 500 错误"
+      ],
+      "labels": ["comment", "http-status"]
+    },
+    {
+      "id": "BACKEND-V3-015",
+      "title": "通知标记已读返回 HTTP 500 当通知不存在",
+      "severity": "low",
+      "category": "response",
+      "description": "调用 POST /api/v1/notifications/{id}/read 标记不存在的通知为已读时，返回 HTTP 500 而非 HTTP 404。",
+      "affected_apis": ["POST /api/v1/notifications/{id}/read"],
+      "current_state": "返回 {\"code\":500,\"message\":\"通知不存在\"}",
+      "expected_state": "返回 HTTP 404",
+      "reproduction_steps": [
+        "1. 登录获取 token",
+        "2. 发送 POST /api/v1/notifications/1/read (不存在或已删除的通知)",
+        "3. 观察返回 500 错误"
+      ],
+      "labels": ["notification", "http-status"]
+    }
+  ],
+  "working_features": [
+    "用户登录和 Token 刷新功能正常",
+    "项目创建、列表、详情、更新、删除功能正常",
+    "项目状态保存正常 (ACTIVE/COMPLETED/ARCHIVED)",
+    "任务创建、列表、更新、删除功能正常",
+    "任务状态和优先级保存正常",
+    "任务完成切换功能正常",
+    "任务移动功能正常",
+    "子任务创建和列表功能正常",
+    "评论创建、列表功能正常",
+    "通知列表、未读数量、全部标记已读功能正常",
+    "Epic 列表功能正常",
+    "无认证访问返回 401 (已修复)",
+    "分页参数验证正常 (负数页码、size=0 返回 400)"
+  ]
+}

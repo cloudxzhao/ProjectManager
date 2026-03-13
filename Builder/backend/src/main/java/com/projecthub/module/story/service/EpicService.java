@@ -2,6 +2,7 @@ package com.projecthub.module.story.service;
 
 import com.projecthub.common.exception.BusinessException;
 import com.projecthub.common.util.BeanCopyUtil;
+import com.projecthub.module.project.repository.ProjectRepository;
 import com.projecthub.module.project.service.PermissionService;
 import com.projecthub.module.story.dto.EpicVO;
 import com.projecthub.module.story.entity.Epic;
@@ -23,11 +24,17 @@ public class EpicService {
 
   private final EpicRepository epicRepository;
   private final PermissionService permissionService;
+  private final ProjectRepository projectRepository;
 
   /** 创建史诗 */
   @Transactional
   public EpicVO createEpic(Long projectId, EpicVO.CreateRequest request) {
     Long userId = getCurrentUserId();
+
+    // 检查项目是否存在
+    if (!projectRepository.existsById(projectId)) {
+      throw new BusinessException(404, 404, "项目不存在");
+    }
 
     // 权限校验
     if (!permissionService.hasPermission(userId, projectId, "EPIC_CREATE")) {
@@ -56,7 +63,8 @@ public class EpicService {
   /** 获取史诗详情 */
   @Transactional(readOnly = true)
   public EpicVO getEpic(Long epicId) {
-    Epic epic = epicRepository.findById(epicId).orElseThrow(() -> new BusinessException("史诗不存在"));
+    Epic epic =
+        epicRepository.findById(epicId).orElseThrow(() -> new BusinessException(404, 404, "史诗不存在"));
 
     return BeanCopyUtil.copyProperties(epic, EpicVO.class);
   }
@@ -76,7 +84,8 @@ public class EpicService {
   public EpicVO updateEpic(Long epicId, EpicVO.UpdateRequest request) {
     Long userId = getCurrentUserId();
 
-    Epic epic = epicRepository.findById(epicId).orElseThrow(() -> new BusinessException("史诗不存在"));
+    Epic epic =
+        epicRepository.findById(epicId).orElseThrow(() -> new BusinessException(404, 404, "史诗不存在"));
 
     // 权限校验
     if (!permissionService.hasPermission(userId, epic.getProjectId(), "EPIC_EDIT")) {
@@ -105,7 +114,8 @@ public class EpicService {
   public void deleteEpic(Long epicId) {
     Long userId = getCurrentUserId();
 
-    Epic epic = epicRepository.findById(epicId).orElseThrow(() -> new BusinessException("史诗不存在"));
+    Epic epic =
+        epicRepository.findById(epicId).orElseThrow(() -> new BusinessException(404, 404, "史诗不存在"));
 
     // 权限校验
     if (!permissionService.hasPermission(userId, epic.getProjectId(), "EPIC_DELETE")) {

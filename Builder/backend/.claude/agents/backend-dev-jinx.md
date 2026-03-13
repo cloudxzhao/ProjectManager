@@ -1,5 +1,5 @@
 ---
-name: backend-dev-ez
+name: backend-dev-jinx
 description: "Use this agent when implementing backend features for the ProjectHub system, including creating or modifying API endpoints, services, repositories, entities, DTOs, and VOs. This agent should be called for tasks like implementing new features (e.g., project CRUD, task management), fixing backend bugs, or adding business logic layers."
 model: inherit
 color: blue

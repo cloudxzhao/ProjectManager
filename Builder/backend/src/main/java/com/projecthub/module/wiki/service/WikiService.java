@@ -2,6 +2,7 @@ package com.projecthub.module.wiki.service;
 
 import com.projecthub.common.exception.BusinessException;
 import com.projecthub.common.util.BeanCopyUtil;
+import com.projecthub.module.project.repository.ProjectRepository;
 import com.projecthub.module.project.service.PermissionService;
 import com.projecthub.module.wiki.dto.WikiVO;
 import com.projecthub.module.wiki.entity.WikiDocument;
@@ -26,11 +27,17 @@ public class WikiService {
   private final WikiRepository wikiRepository;
   private final WikiHistoryRepository wikiHistoryRepository;
   private final PermissionService permissionService;
+  private final ProjectRepository projectRepository;
 
   /** 创建文档 */
   @Transactional
   public WikiVO createDocument(Long projectId, WikiVO.CreateRequest request) {
     Long userId = getCurrentUserId();
+
+    // 检查项目是否存在
+    if (!projectRepository.existsById(projectId)) {
+      throw new BusinessException(404, 404, "项目不存在");
+    }
 
     // 权限校验
     if (!permissionService.hasPermission(userId, projectId, "WIKI_CREATE")) {
@@ -41,7 +48,7 @@ public class WikiService {
     if (request.getParentId() != null) {
       wikiRepository
           .findById(request.getParentId())
-          .orElseThrow(() -> new BusinessException("父文档不存在"));
+          .orElseThrow(() -> new BusinessException(404, 404, "父文档不存在"));
     }
 
     // 创建文档
@@ -105,7 +112,9 @@ public class WikiService {
     Long userId = getCurrentUserId();
 
     WikiDocument document =
-        wikiRepository.findById(documentId).orElseThrow(() -> new BusinessException("文档不存在"));
+        wikiRepository
+            .findById(documentId)
+            .orElseThrow(() -> new BusinessException(404, 404, "文档不存在"));
 
     // 权限校验
     if (!permissionService.hasPermission(userId, document.getProjectId(), "WIKI_EDIT")) {
@@ -139,7 +148,9 @@ public class WikiService {
   @Transactional(readOnly = true)
   public WikiVO getDocument(Long documentId) {
     WikiDocument document =
-        wikiRepository.findById(documentId).orElseThrow(() -> new BusinessException("文档不存在"));
+        wikiRepository
+            .findById(documentId)
+            .orElseThrow(() -> new BusinessException(404, 404, "文档不存在"));
 
     return BeanCopyUtil.copyProperties(document, WikiVO.class);
   }
@@ -150,7 +161,9 @@ public class WikiService {
     Long userId = getCurrentUserId();
 
     WikiDocument document =
-        wikiRepository.findById(documentId).orElseThrow(() -> new BusinessException("文档不存在"));
+        wikiRepository
+            .findById(documentId)
+            .orElseThrow(() -> new BusinessException(404, 404, "文档不存在"));
 
     // 权限校验
     if (!permissionService.hasPermission(userId, document.getProjectId(), "WIKI_DELETE")) {
@@ -164,7 +177,7 @@ public class WikiService {
   /** 获取文档历史记录 */
   @Transactional(readOnly = true)
   public List<WikiHistory> getDocumentHistory(Long documentId) {
-    wikiRepository.findById(documentId).orElseThrow(() -> new BusinessException("文档不存在"));
+    wikiRepository.findById(documentId).orElseThrow(() -> new BusinessException(404, 404, "文档不存在"));
 
     return wikiHistoryRepository.findByDocumentIdOrderByCreatedAtDesc(documentId);
   }

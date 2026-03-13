@@ -36,7 +36,7 @@ public class CommentService {
     // 检查任务是否存在
     var taskOpt = taskRepository.findById(taskId);
     if (taskOpt.isEmpty()) {
-      throw new BusinessException(404, "任务不存在");
+      throw new BusinessException(404, 404, "任务不存在");
     }
 
     // 权限校验
@@ -49,7 +49,7 @@ public class CommentService {
     if (request.getParentId() != null) {
       commentRepository
           .findById(request.getParentId())
-          .orElseThrow(() -> new BusinessException("父评论不存在"));
+          .orElseThrow(() -> new BusinessException(404, 404, "父评论不存在"));
     }
 
     // 创建评论
@@ -71,7 +71,7 @@ public class CommentService {
   @Transactional(readOnly = true)
   public List<CommentVO> getComments(Long taskId) {
     // 检查任务是否存在
-    taskRepository.findById(taskId).orElseThrow(() -> new BusinessException("任务不存在"));
+    taskRepository.findById(taskId).orElseThrow(() -> new BusinessException(404, 404, "任务不存在"));
 
     List<Comment> comments = commentRepository.findByTaskIdOrderByCreatedAtAsc(taskId);
 
@@ -84,7 +84,9 @@ public class CommentService {
     Long userId = getCurrentUserId();
 
     Comment comment =
-        commentRepository.findById(commentId).orElseThrow(() -> new BusinessException("评论不存在"));
+        commentRepository
+            .findById(commentId)
+            .orElseThrow(() -> new BusinessException(404, 404, "评论不存在"));
 
     // 检查是否是评论作者
     if (!comment.getUserId().equals(userId)) {
@@ -104,7 +106,9 @@ public class CommentService {
     Long userId = getCurrentUserId();
 
     Comment comment =
-        commentRepository.findById(commentId).orElseThrow(() -> new BusinessException("评论不存在"));
+        commentRepository
+            .findById(commentId)
+            .orElseThrow(() -> new BusinessException(404, 404, "评论不存在"));
 
     // 检查是否是评论作者
     if (!comment.getUserId().equals(userId)) {

@@ -1,5 +1,6 @@
 package com.projecthub.module.issue.service;
 
+import com.projecthub.common.constant.ErrorCode;
 import com.projecthub.common.exception.BusinessException;
 import com.projecthub.common.response.PageResult;
 import com.projecthub.common.util.BeanCopyUtil;
@@ -75,7 +76,9 @@ public class IssueService {
   @Transactional(readOnly = true)
   public IssueVO getIssue(Long issueId) {
     Issue issue =
-        issueRepository.findById(issueId).orElseThrow(() -> new BusinessException("问题不存在"));
+        issueRepository
+            .findById(issueId)
+            .orElseThrow(() -> new BusinessException(ErrorCode.ISSUE_NOT_FOUND));
 
     return buildIssueVO(issue);
   }
@@ -137,7 +140,9 @@ public class IssueService {
     Long userId = getCurrentUserId();
 
     Issue issue =
-        issueRepository.findById(issueId).orElseThrow(() -> new BusinessException("问题不存在"));
+        issueRepository
+            .findById(issueId)
+            .orElseThrow(() -> new BusinessException(ErrorCode.ISSUE_NOT_FOUND));
 
     // 权限校验
     if (!permissionService.hasPermission(userId, issue.getProjectId(), "ISSUE_EDIT")) {
@@ -182,7 +187,9 @@ public class IssueService {
     Long userId = getCurrentUserId();
 
     Issue issue =
-        issueRepository.findById(issueId).orElseThrow(() -> new BusinessException("问题不存在"));
+        issueRepository
+            .findById(issueId)
+            .orElseThrow(() -> new BusinessException(ErrorCode.ISSUE_NOT_FOUND));
 
     // 权限校验
     if (!permissionService.hasPermission(userId, issue.getProjectId(), "ISSUE_DELETE")) {
@@ -209,9 +216,11 @@ public class IssueService {
     }
 
     // 查询报告人姓名
-    userRepository
-        .findById(issue.getReporterId())
-        .ifPresent(user -> vo.setReporterName(user.getUsername()));
+    if (issue.getReporterId() != null) {
+      userRepository
+          .findById(issue.getReporterId())
+          .ifPresent(user -> vo.setReporterName(user.getUsername()));
+    }
 
     return vo;
   }

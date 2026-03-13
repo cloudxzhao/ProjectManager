@@ -1,5 +1,6 @@
 package com.projecthub.module.notification.service;
 
+import com.projecthub.common.constant.ErrorCode;
 import com.projecthub.common.exception.BusinessException;
 import com.projecthub.common.response.PageResult;
 import com.projecthub.common.util.BeanCopyUtil;
@@ -58,7 +59,7 @@ public class NotificationService {
     Notification notification =
         notificationRepository
             .findById(notificationId)
-            .orElseThrow(() -> new BusinessException("通知不存在"));
+            .orElseThrow(() -> new BusinessException(ErrorCode.NOT_FOUND, "通知不存在"));
 
     // 检查是否是该用户的通知
     if (!notification.getUserId().equals(userId)) {

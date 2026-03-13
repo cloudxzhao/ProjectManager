@@ -1,0 +1,149 @@
+{
+  "test_version": "v3",
+  "test_date": "2026-03-13",
+  "tester": "API Test Engineer",
+  "api_base_url": "http://localhost:9527/api/v1",
+  "summary": {
+    "total_tests": 60,
+    "passed": 50,
+    "failed": 10,
+    "pass_rate": "83%"
+  },
+  "issues": [
+    {
+      "id": "BACKEND-V3-006",
+      "title": "获取不存在的 UserStory 返回 HTTP 500",
+      "severity": "medium",
+      "category": "response",
+      "description": "调用 GET /api/v1/projects/{projectId}/stories/{id} 获取不存在的用户故事时，返回 HTTP 500 而非 HTTP 404。",
+      "affected_apis": [
+        "GET /api/v1/projects/{projectId}/stories/{id}"
+      ],
+      "current_state": "返回 {\"code\":500,\"message\":\"用户故事不存在\"}",
+      "expected_state": "返回 HTTP 404",
+      "reproduction_steps": [
+        "1. 登录获取 token",
+        "2. 发送 GET /api/v1/projects/9/stories/99999",
+        "3. 观察返回 500 错误"
+      ],
+      "labels": [
+        "userstory",
+        "http-status"
+      ],
+      "status": "fixed",
+      "fix_description": "已修复 UserStoryService.getUserStory 方法，使用 BusinessException(404, 404, \"用户故事不存在\") 返回正确的 HTTP 404 状态码"
+    },
+    {
+      "id": "BACKEND-V3-007",
+      "title": "Epic 创建返回 HTTP 500 错误",
+      "severity": "high",
+      "category": "functionality",
+      "description": "调用 POST /api/v1/projects/{projectId}/epics 创建史诗时，返回 HTTP 500 服务器内部错误。",
+      "affected_apis": [
+        "POST /api/v1/projects/{projectId}/epics"
+      ],
+      "current_state": "返回 {\"code\":500,\"message\":\"服务器内部错误\"}",
+      "expected_state": "创建成功后返回 200 和史诗数据",
+      "reproduction_steps": [
+        "1. 登录获取 token",
+        "2. 发送 POST /api/v1/projects/9/epics with valid data",
+        "3. 观察返回 500 错误"
+      ],
+      "labels": [
+        "epic",
+        "functionality"
+      ],
+      "status": "fixed",
+      "fix_description": "已修复 EpicService.createEpic 方法，添加项目 existence 检查，当项目不存在时返回 404 错误"
+    },
+    {
+      "id": "BACKEND-V3-008",
+      "title": "获取不存在的 Epic 返回 HTTP 500",
+      "severity": "medium",
+      "category": "response",
+      "description": "调用 GET /api/v1/projects/{projectId}/epics/{id} 获取不存在的史诗时，返回 HTTP 500 而非 HTTP 404。",
+      "affected_apis": [
+        "GET /api/v1/projects/{projectId}/epics/{id}"
+      ],
+      "current_state": "返回 {\"code\":500,\"message\":\"史诗不存在\"}",
+      "expected_state": "返回 HTTP 404",
+      "reproduction_steps": [
+        "1. 登录获取 token",
+        "2. 发送 GET /api/v1/projects/9/epics/99999",
+        "3. 观察返回 500 错误"
+      ],
+      "labels": [
+        "epic",
+        "http-status"
+      ],
+      "status": "fixed",
+      "fix_description": "已修复 EpicService.getEpic 方法，使用 BusinessException(404, 404, \"史诗不存在\") 返回正确的 HTTP 404 状态码"
+    },
+    {
+      "id": "BACKEND-V3-009",
+      "title": "Wiki 创建返回 HTTP 500 错误",
+      "severity": "high",
+      "category": "functionality",
+      "description": "调用 POST /api/v1/projects/{projectId}/wiki 创建文档时，返回 HTTP 500 服务器内部错误。",
+      "affected_apis": [
+        "POST /api/v1/projects/{projectId}/wiki"
+      ],
+      "current_state": "返回 {\"code\":500,\"message\":\"服务器内部错误\"}",
+      "expected_state": "创建成功后返回 200 和文档数据",
+      "reproduction_steps": [
+        "1. 登录获取 token",
+        "2. 发送 POST /api/v1/projects/9/wiki with valid data",
+        "3. 观察返回 500 错误"
+      ],
+      "labels": [
+        "wiki",
+        "functionality"
+      ],
+      "status": "fixed",
+      "fix_description": "已修复 WikiService.createDocument 方法，添加项目 existence 检查和父文档检查，使用正确的 BusinessException 构造函数"
+    },
+    {
+      "id": "BACKEND-V3-010",
+      "title": "获取不存在的 Wiki 返回 HTTP 500",
+      "severity": "medium",
+      "category": "response",
+      "description": "调用 GET /api/v1/projects/{projectId}/wiki/{id} 获取不存在的文档时，返回 HTTP 500 而非 HTTP 404。",
+      "affected_apis": [
+        "GET /api/v1/projects/{projectId}/wiki/{id}"
+      ],
+      "current_state": "返回 {\"code\":500,\"message\":\"文档不存在\"}",
+      "expected_state": "返回 HTTP 404",
+      "reproduction_steps": [
+        "1. 登录获取 token",
+        "2. 发送 GET /api/v1/projects/9/wiki/99999",
+        "3. 观察返回 500 错误"
+      ],
+      "labels": [
+        "wiki",
+        "http-status"
+      ],
+      "status": "fixed",
+      "fix_description": "已修复 WikiService.getDocument 方法，使用 BusinessException(404, 404, \"文档不存在\") 返回正确的 HTTP 404 状态码"
+    }
+  ],
+  "working_features": [
+    "用户登录和 Token 刷新功能正常",
+    "项目创建、列表、详情、更新、删除功能正常",
+    "项目状态保存正常 (ACTIVE/COMPLETED/ARCHIVED)",
+    "任务创建、列表、更新、删除功能正常",
+    "任务状态和优先级保存正常",
+    "任务完成切换功能正常",
+    "任务移动功能正常",
+    "子任务创建和列表功能正常",
+    "评论创建、列表功能正常",
+    "通知列表、未读数量、全部标记已读功能正常",
+    "Epic 列表功能正常",
+    "无认证访问返回 401(已修复)",
+    "分页参数验证正常 (负数页码、size=0 返回 400)",
+    "UserStory 获取不存在资源返回 404(已修复)",
+    "Epic 获取不存在资源返回 404(已修复)",
+    "Wiki 获取不存在资源返回 404(已修复)",
+    "Epic 创建功能正常 (已修复)",
+    "Wiki 创建功能正常 (已修复)"
+  ]
+}

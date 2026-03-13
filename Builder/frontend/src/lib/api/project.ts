@@ -120,7 +120,7 @@ export const getProjects = async (
  */
 export const getProject = async (id: number) => {
   const result = await api.get<ProjectResponse>(endpoints.project.detail(id));
-  return mapProjectResponse(result.data);
+  return mapProjectResponse(result);
 };
 
 /**

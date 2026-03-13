@@ -74,7 +74,7 @@ public class AuthService {
 
     } catch (BadCredentialsException e) {
       log.warn("登录失败：用户名或密码错误");
-      throw new BusinessException("用户名或密码错误");
+      throw new BusinessException(ErrorCode.LOGIN_FAILED);
     }
   }
 
