@@ -206,7 +206,7 @@ export default function ProjectsPage() {
 
   // 分页状态
   const [currentPage, setCurrentPage] = useState(1);
-  const [pageSize, setPageSize] = useState(12);
+  const [pageSize, setPageSize] = useState(10);
   const [total, setTotal] = useState(0);
 
   // 统计卡片数据
@@ -407,7 +407,7 @@ export default function ProjectsPage() {
               }}
               showSizeChanger
               showTotal={(total) => `共 ${total} 个项目`}
-              pageSizeOptions={['12', '24', '36']}
+              pageSizeOptions={['10', '30', '50', '100']}
               className="text-white"
             />
           </div>
