@@ -99,14 +99,13 @@ export const getProjects = async (
     params.append('status', status);
   }
 
-  const url = `${endpoints.project.list}${params.toString() ? `?${params.toString()}` : ''}`;
   const result = await api.get<{
     list: ProjectResponse[];
     total: number;
     page: number;
     size: number;
     pages: number;
-  }>(url, { params });
+  }>(endpoints.project.list, { params });
 
   console.log('[project.api] getProjects result:', result);
 
