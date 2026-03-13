@@ -77,3 +77,11 @@ export interface ProjectMember {
 }
 
 export type MemberRole = 'owner' | 'admin' | 'member';
+
+/** 项目统计信息 */
+export interface ProjectStats {
+  activeCount: number;
+  completedCount: number;
+  archivedCount: number;
+  planningCount: number;
+}

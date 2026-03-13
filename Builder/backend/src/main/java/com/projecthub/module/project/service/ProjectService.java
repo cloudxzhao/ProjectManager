@@ -6,6 +6,7 @@ import com.projecthub.common.response.PageResult;
 import com.projecthub.common.util.BeanCopyUtil;
 import com.projecthub.module.project.dto.CreateProjectRequest;
 import com.projecthub.module.project.dto.ProjectMemberDTO;
+import com.projecthub.module.project.dto.ProjectStatsDTO;
 import com.projecthub.module.project.dto.ProjectVO;
 import com.projecthub.module.project.dto.UpdateProjectRequest;
 import com.projecthub.module.project.entity.Project;
@@ -177,7 +178,7 @@ public class ProjectService {
 
   /** 获取项目列表（用户参与的） */
   @Transactional(readOnly = true)
-  public PageResult<ProjectVO> getUserProjects(Integer page, Integer size, String keyword) {
+  public PageResult<ProjectVO> getUserProjects(Integer page, Integer size, String keyword, String status) {
     Long userId = getCurrentUserId();
     Pageable pageable = PageRequest.of(page - 1, size, Sort.by(Sort.Direction.DESC, "createdAt"));
 
@@ -199,6 +200,10 @@ public class ProjectService {
                 predicates.add(root.get("id").in(projectIds));
                 predicates.add(cb.isNull(root.get("deletedAt")));
                 predicates.add(cb.like(root.get("name"), "%" + keyword + "%"));
+                // 状态过滤
+                if (status != null && !status.isEmpty()) {
+                  predicates.add(cb.equal(root.get("status"), status));
+                }
                 return query
                     .where(predicates.toArray(new jakarta.persistence.criteria.Predicate[0]))
                     .getRestriction();
@@ -212,6 +217,10 @@ public class ProjectService {
                     new java.util.ArrayList<>();
                 predicates.add(root.get("id").in(projectIds));
                 predicates.add(cb.isNull(root.get("deletedAt")));
+                // 状态过滤
+                if (status != null && !status.isEmpty()) {
+                  predicates.add(cb.equal(root.get("status"), status));
+                }
                 return query
                     .where(predicates.toArray(new jakarta.persistence.criteria.Predicate[0]))
                     .getRestriction();
@@ -237,14 +246,14 @@ public class ProjectService {
   /** 添加项目成员 */
   @Transactional
   public void addProjectMember(Long projectId, ProjectMemberDTO request) {
-    // 权限校验
-    checkProjectPermission(projectId, "PROJECT_MEMBER_MANAGE");
-
     // 检查项目是否存在
     Project project =
         projectRepository
             .findById(projectId)
             .orElseThrow(() -> new BusinessException(ErrorCode.PROJECT_NOT_FOUND));
+
+    // 权限校验
+    checkProjectPermission(projectId, "PROJECT_MEMBER_MANAGE", project);
 
     // 检查用户是否已是成员
     if (memberRepository.findByProjectIdAndUserId(projectId, request.getUserId()).isPresent()) {
@@ -281,6 +290,35 @@ public class ProjectService {
     return memberRepository.findByProjectId(projectId);
   }
 
+  /** 获取项目统计信息 */
+  @Transactional(readOnly = true)
+  public ProjectStatsDTO getProjectStats() {
+    Long userId = getCurrentUserId();
+
+    // 查询用户参与的项目 ID 列表
+    List<Long> projectIds = permissionService.getUserProjectIds(userId);
+
+    if (projectIds.isEmpty()) {
+      return ProjectStatsDTO.builder()
+          .activeCount(0L)
+          .completedCount(0L)
+          .archivedCount(0L)
+          .planningCount(0L)
+          .build();
+    }
+
+    // 统计各项目状态的数量
+    java.util.Map<String, Long> stats =
+        projectRepository.countProjectsByStatus(projectIds);
+
+    return ProjectStatsDTO.builder()
+        .activeCount(stats.getOrDefault("ACTIVE", 0L))
+        .completedCount(stats.getOrDefault("COMPLETED", 0L))
+        .archivedCount(stats.getOrDefault("ARCHIVED", 0L))
+        .planningCount(stats.getOrDefault("PLANNING", 0L))
+        .build();
+  }
+
   /** 检查项目权限 */
   private void checkProjectPermission(Long projectId, String permissionCode) {
     Long userId = getCurrentUserId();
@@ -290,6 +328,27 @@ public class ProjectService {
         projectRepository
             .findById(projectId)
             .orElseThrow(() -> new BusinessException(ErrorCode.PROJECT_NOT_FOUND));
+
+    if (project.getOwnerId().equals(userId)) {
+      return; // 所有者拥有全部权限
+    }
+
+    // 检查是否是项目成员
+    ProjectMember member =
+        memberRepository
+            .findByProjectIdAndUserId(projectId, userId)
+            .orElseThrow(() -> new BusinessException(ErrorCode.PROJECT_PERMISSION_DENIED));
+
+    // 根据角色判断权限
+    if (permissionCode.equals("PROJECT_MEMBER_MANAGE")
+        && member.getRole() != ProjectMember.ProjectMemberRole.OWNER) {
+      throw new BusinessException(ErrorCode.PROJECT_PERMISSION_DENIED, "权限不足");
+    }
+  }
+
+  /** 检查项目权限（已获取项目的情况） */
+  private void checkProjectPermission(Long projectId, String permissionCode, Project project) {
+    Long userId = getCurrentUserId();
 
     if (project.getOwnerId().equals(userId)) {
       return; // 所有者拥有全部权限

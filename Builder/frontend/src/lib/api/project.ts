@@ -81,17 +81,22 @@ const mapProjectResponse = (response: ProjectResponse): Project => {
  * @param page 页码
  * @param pageSize 每页数量
  * @param keyword 搜索关键词
+ * @param status 状态过滤
  */
 export const getProjects = async (
   page: number = 1,
   pageSize: number = 20,
-  keyword?: string
+  keyword?: string,
+  status?: ProjectStatus
 ) => {
   const params = new URLSearchParams();
   params.append('page', page.toString());
   params.append('size', pageSize.toString());
   if (keyword) {
     params.append('keyword', keyword);
+  }
+  if (status) {
+    params.append('status', status);
   }
 
   const url = `${endpoints.project.list}${params.toString() ? `?${params.toString()}` : ''}`;
@@ -199,4 +204,11 @@ export const addProjectMember = async (
  */
 export const removeProjectMember = async (projectId: number, userId: number) => {
   return api.delete<void>(endpoints.project.removeMember(projectId, userId));
+};
+
+/**
+ * 获取项目统计信息
+ */
+export const getProjectStats = async () => {
+  return api.get<{ activeCount: number; completedCount: number; archivedCount: number; planningCount: number }>(endpoints.project.stats);
 };

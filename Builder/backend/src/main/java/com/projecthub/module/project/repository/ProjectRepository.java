@@ -47,4 +47,10 @@ public interface ProjectRepository
           + "AND t.status = com.projecthub.module.task.entity.Task$TaskStatus.DONE "
           + "AND t.deletedAt IS NULL")
   Long countCompletedTasksByProjectId(@Param("projectId") Long projectId);
+
+  /** 统计用户各项目状态的项目数量 */
+  @Query(
+      "SELECT p.status, COUNT(p) FROM Project p WHERE p.id IN :projectIds "
+          + "AND p.deletedAt IS NULL GROUP BY p.status")
+  java.util.Map<String, Long> countProjectsByStatus(@Param("projectIds") java.util.List<Long> projectIds);
 }

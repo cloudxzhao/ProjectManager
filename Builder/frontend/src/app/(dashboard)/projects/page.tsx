@@ -1,11 +1,11 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { Card, Input, Select, Button, Avatar, Tag, Empty, Spin, message } from 'antd';
+import { Card, Input, Select, Button, Avatar, Tag, Empty, Spin, message, Pagination } from 'antd';
 import { PlusOutlined, SearchOutlined, AppstoreOutlined, UnorderedListOutlined } from '@ant-design/icons';
 import Link from 'next/link';
-import { getProjects } from '@/lib/api/project';
-import type { Project, ProjectStatus } from '@/types/project';
+import { getProjects, getProjectStats } from '@/lib/api/project';
+import type { Project, ProjectStatus, ProjectStats } from '@/types/project';
 
 const { Option } = Select;
 
@@ -29,8 +29,6 @@ const statusTextMap: Record<string, string> = {
   COMPLETED: '已完成',
   ARCHIVED: '已归档',
   PLANNING: '规划中',
-};
-  planning: '规划中',
 };
 
 interface ProjectCardProps {
@@ -199,36 +197,51 @@ export default function ProjectsPage() {
   // API 状态
   const [projects, setProjects] = useState<Project[]>([]);
   const [loading, setLoading] = useState(false);
-  const [stats, setStats] = useState<{ active: number; completed: number; archived: number }>({
-    active: 0,
-    completed: 0,
-    archived: 0,
+  const [stats, setStats] = useState<ProjectStats>({
+    activeCount: 0,
+    completedCount: 0,
+    archivedCount: 0,
+    planningCount: 0,
   });
+
+  // 分页状态
+  const [currentPage, setCurrentPage] = useState(1);
+  const [pageSize, setPageSize] = useState(12);
+  const [total, setTotal] = useState(0);
 
   // 统计卡片数据
   const statsData: StatData[] = [
-    { label: '进行中', value: stats.active, color: '#10b981', gradient: 'from-emerald-500 to-emerald-600' },
-    { label: '已完成', value: stats.completed, color: '#3b82f6', gradient: 'from-blue-500 to-blue-600' },
-    { label: '已归档', value: stats.archived, color: '#64748b', gradient: 'from-slate-500 to-slate-600' },
+    { label: '进行中', value: stats.activeCount, color: '#10b981', gradient: 'from-emerald-500 to-emerald-600' },
+    { label: '已完成', value: stats.completedCount, color: '#3b82f6', gradient: 'from-blue-500 to-blue-600' },
+    { label: '已归档', value: stats.archivedCount, color: '#64748b', gradient: 'from-slate-500 to-slate-600' },
   ];
+
+  // 获取统计信息
+  const fetchStats = async () => {
+    try {
+      const result = await getProjectStats();
+      setStats(result);
+    } catch (error) {
+      console.error('获取统计信息失败:', error);
+    }
+  };
 
   // 获取项目列表
   const fetchProjects = async () => {
     setLoading(true);
     try {
-      const result = await getProjects(1, 100, searchValue || undefined);
+      // 根据选中 tab 确定状态过滤
+      let status: ProjectStatus | undefined = undefined;
+      if (activeTab === 'active') status = 'ACTIVE';
+      else if (activeTab === 'completed') status = 'COMPLETED';
+      else if (activeTab === 'archived') status = 'ARCHIVED';
+
+      const result = await getProjects(currentPage, pageSize, searchValue || undefined, status);
       console.log('[ProjectsPage] API result:', result);
-      console.log('[ProjectsPage] result.list:', result.list);
 
       const projectList: Project[] = result.list || [];
       setProjects(projectList);
-
-      // 计算统计数据
-      setStats({
-        active: projectList.filter((p: Project) => p.status === 'ACTIVE').length,
-        completed: projectList.filter((p: Project) => p.status === 'COMPLETED').length,
-        archived: projectList.filter((p: Project) => p.status === 'ARCHIVED').length,
-      });
+      setTotal(result.total || 0);
     } catch (error) {
       console.error('获取项目列表失败:', error);
       message.error('获取项目列表失败');
@@ -239,27 +252,24 @@ export default function ProjectsPage() {
 
   // 初始化加载
   useEffect(() => {
+    fetchStats();
     fetchProjects();
-  }, []);
+  }, [currentPage, pageSize, activeTab]);
 
-  // 筛选项目
-  const filteredProjects = projects.filter((project) => {
-    const matchesSearch =
-      project.name.toLowerCase().includes(searchValue.toLowerCase()) ||
-      project.description.toLowerCase().includes(searchValue.toLowerCase());
-
-    if (activeTab === 'all') return matchesSearch;
-    if (activeTab === 'active') return matchesSearch && project.status === 'ACTIVE';
-    if (activeTab === 'completed') return matchesSearch && project.status === 'COMPLETED';
-    if (activeTab === 'archived') return matchesSearch && project.status === 'ARCHIVED';
-    return matchesSearch;
-  });
+  // 搜索（防抖）
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setCurrentPage(1); // 搜索时重置到第一页
+      fetchProjects();
+    }, 500);
+    return () => clearTimeout(timer);
+  }, [searchValue]);
 
   const tabItems = [
-    { key: 'all', label: '全部', count: projects.length },
-    { key: 'active', label: '进行中', count: stats.active },
-    { key: 'completed', label: '已完成', count: stats.completed },
-    { key: 'archived', label: '已归档', count: stats.archived },
+    { key: 'all', label: '全部', count: total },
+    { key: 'active', label: '进行中', count: stats.activeCount },
+    { key: 'completed', label: '已完成', count: stats.completedCount },
+    { key: 'archived', label: '已归档', count: stats.archivedCount },
   ];
 
   return (
@@ -352,15 +362,18 @@ export default function ProjectsPage() {
       </div>
 
       {/* 搜索框 */}
-      <div className="relative">
-        <SearchOutlined className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400" />
-        <Input
-          placeholder="搜索项目..."
-          value={searchValue}
-          onChange={(e) => setSearchValue(e.target.value)}
-          className="pl-11 bg-white/5 border-white/10 text-white placeholder-gray-500 focus:border-orange-500 focus:shadow-[0_0_0_3px_rgba(249,115,22,0.2)]"
-          allowClear
-        />
+      <div className="flex items-center gap-4">
+        <div className="flex-1 relative">
+          <Input
+            placeholder="搜索项目名称或描述..."
+            value={searchValue}
+            onChange={(e) => setSearchValue(e.target.value)}
+            onPressEnter={() => fetchProjects()}
+            className="bg-white/5 border-white/10 text-white placeholder-gray-500 focus:border-orange-500 focus:shadow-[0_0_0_3px_rgba(249,115,22,0.2)]"
+            allowClear
+            suffix={<SearchOutlined className="text-orange-500" />}
+          />
+        </div>
       </div>
 
       {/* 项目列表 */}
@@ -368,18 +381,37 @@ export default function ProjectsPage() {
         <div className="flex justify-center items-center py-20">
           <Spin size="large" description="加载中..." />
         </div>
-      ) : filteredProjects.length > 0 ? (
-        <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
-          {filteredProjects.map((project, index) => (
-            <div
-              key={project.id}
-              className="animate-fade-in-up"
-              style={{ animationDelay: `${index * 0.05}s` }}
-            >
-              <ProjectCard project={project} index={index} />
-            </div>
-          ))}
-        </div>
+      ) : projects.length > 0 ? (
+        <>
+          <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
+            {projects.map((project, index) => (
+              <div
+                key={project.id}
+                className="animate-fade-in-up"
+                style={{ animationDelay: `${index * 0.05}s` }}
+              >
+                <ProjectCard project={project} index={index} />
+              </div>
+            ))}
+          </div>
+
+          {/* 分页组件 */}
+          <div className="flex justify-center mt-8">
+            <Pagination
+              current={currentPage}
+              pageSize={pageSize}
+              total={total}
+              onChange={(page, size) => {
+                setCurrentPage(page);
+                if (size) setPageSize(size);
+              }}
+              showSizeChanger
+              showTotal={(total) => `共 ${total} 个项目`}
+              pageSizeOptions={['12', '24', '36']}
+              className="text-white"
+            />
+          </div>
+        </>
       ) : (
         <Card
           className="text-center"

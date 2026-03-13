@@ -30,6 +30,7 @@ export const endpoints = {
     addMember: (id: number) => `/projects/${id}/members`,
     // 注意：removeMember 的 projectId 参数对应后端路径参数 {id}
     removeMember: (projectId: number, userId: number) => `/projects/${projectId}/members/${userId}`,
+    stats: '/projects/stats',
   },
 
   // 任务相关

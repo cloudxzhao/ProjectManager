@@ -4,6 +4,7 @@ import com.projecthub.common.response.PageResult;
 import com.projecthub.common.response.Result;
 import com.projecthub.module.project.dto.CreateProjectRequest;
 import com.projecthub.module.project.dto.ProjectMemberDTO;
+import com.projecthub.module.project.dto.ProjectStatsDTO;
 import com.projecthub.module.project.dto.ProjectVO;
 import com.projecthub.module.project.dto.UpdateProjectRequest;
 import com.projecthub.module.project.entity.ProjectMember;
@@ -63,8 +64,9 @@ public class ProjectController {
   public Result<PageResult<ProjectVO>> listProjects(
       @RequestParam(defaultValue = "1") Integer page,
       @RequestParam(defaultValue = "20") Integer size,
-      @RequestParam(required = false) String keyword) {
-    PageResult<ProjectVO> result = projectService.getUserProjects(page, size, keyword);
+      @RequestParam(required = false) String keyword,
+      @RequestParam(required = false) String status) {
+    PageResult<ProjectVO> result = projectService.getUserProjects(page, size, keyword, status);
     return Result.success(result);
   }
 
@@ -91,5 +93,13 @@ public class ProjectController {
   public Result<List<ProjectMember>> getProjectMembers(@PathVariable Long id) {
     List<ProjectMember> members = projectService.getProjectMembers(id);
     return Result.success(members);
+  }
+
+  /** 获取项目统计信息 */
+  @GetMapping("/stats")
+  @Operation(summary = "获取项目统计信息", description = "获取当前用户的项目统计信息（进行中、已完成、已归档数量）")
+  public Result<ProjectStatsDTO> getProjectStats() {
+    ProjectStatsDTO stats = projectService.getProjectStats();
+    return Result.success(stats);
   }
 }
