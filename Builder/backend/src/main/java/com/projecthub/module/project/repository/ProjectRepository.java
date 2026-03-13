@@ -52,5 +52,6 @@ public interface ProjectRepository
   @Query(
       "SELECT p.status, COUNT(p) FROM Project p WHERE p.id IN :projectIds "
           + "AND p.deletedAt IS NULL GROUP BY p.status")
-  java.util.Map<String, Long> countProjectsByStatus(@Param("projectIds") java.util.List<Long> projectIds);
+  java.util.Map<String, Long> countProjectsByStatus(
+      @Param("projectIds") java.util.List<Long> projectIds);
 }

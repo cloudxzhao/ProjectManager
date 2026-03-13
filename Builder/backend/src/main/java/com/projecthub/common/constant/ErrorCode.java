@@ -49,6 +49,7 @@ public enum ErrorCode {
   TASK_PERMISSION_DENIED(5002, "无任务访问权限", 403),
   TASK_INVALID_STATUS(5003, "任务状态无效", 400),
   TASK_MOVE_FAILED(5004, "任务移动失败", 400),
+  COMMENT_NOT_FOUND(5005, "评论不存在", 404),
 
   // ========== 用户故事模块 6000-6999 ==========
   STORY_NOT_FOUND(6001, "用户故事不存在", 404),

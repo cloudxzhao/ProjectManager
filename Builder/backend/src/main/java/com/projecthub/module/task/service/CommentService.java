@@ -1,5 +1,6 @@
 package com.projecthub.module.task.service;
 
+import com.projecthub.common.constant.ErrorCode;
 import com.projecthub.common.exception.BusinessException;
 import com.projecthub.common.util.BeanCopyUtil;
 import com.projecthub.module.project.service.PermissionService;
@@ -36,7 +37,7 @@ public class CommentService {
     // 检查任务是否存在
     var taskOpt = taskRepository.findById(taskId);
     if (taskOpt.isEmpty()) {
-      throw new BusinessException(404, 404, "任务不存在");
+      throw new BusinessException(ErrorCode.TASK_NOT_FOUND);
     }
 
     // 权限校验
@@ -49,7 +50,7 @@ public class CommentService {
     if (request.getParentId() != null) {
       commentRepository
           .findById(request.getParentId())
-          .orElseThrow(() -> new BusinessException(404, 404, "父评论不存在"));
+          .orElseThrow(() -> new BusinessException(ErrorCode.COMMENT_NOT_FOUND, "父评论不存在"));
     }
 
     // 创建评论
@@ -71,7 +72,9 @@ public class CommentService {
   @Transactional(readOnly = true)
   public List<CommentVO> getComments(Long taskId) {
     // 检查任务是否存在
-    taskRepository.findById(taskId).orElseThrow(() -> new BusinessException(404, 404, "任务不存在"));
+    taskRepository
+        .findById(taskId)
+        .orElseThrow(() -> new BusinessException(ErrorCode.TASK_NOT_FOUND));
 
     List<Comment> comments = commentRepository.findByTaskIdOrderByCreatedAtAsc(taskId);
 
@@ -86,7 +89,7 @@ public class CommentService {
     Comment comment =
         commentRepository
             .findById(commentId)
-            .orElseThrow(() -> new BusinessException(404, 404, "评论不存在"));
+            .orElseThrow(() -> new BusinessException(ErrorCode.COMMENT_NOT_FOUND, "评论不存在"));
 
     // 检查是否是评论作者
     if (!comment.getUserId().equals(userId)) {
@@ -108,7 +111,7 @@ public class CommentService {
     Comment comment =
         commentRepository
             .findById(commentId)
-            .orElseThrow(() -> new BusinessException(404, 404, "评论不存在"));
+            .orElseThrow(() -> new BusinessException(ErrorCode.COMMENT_NOT_FOUND, "评论不存在"));
 
     // 检查是否是评论作者
     if (!comment.getUserId().equals(userId)) {

@@ -178,7 +178,8 @@ public class ProjectService {
 
   /** 获取项目列表（用户参与的） */
   @Transactional(readOnly = true)
-  public PageResult<ProjectVO> getUserProjects(Integer page, Integer size, String keyword, String status) {
+  public PageResult<ProjectVO> getUserProjects(
+      Integer page, Integer size, String keyword, String status) {
     Long userId = getCurrentUserId();
     Pageable pageable = PageRequest.of(page - 1, size, Sort.by(Sort.Direction.DESC, "createdAt"));
 
@@ -308,8 +309,7 @@ public class ProjectService {
     }
 
     // 统计各项目状态的数量
-    java.util.Map<String, Long> stats =
-        projectRepository.countProjectsByStatus(projectIds);
+    java.util.Map<String, Long> stats = projectRepository.countProjectsByStatus(projectIds);
 
     return ProjectStatsDTO.builder()
         .activeCount(stats.getOrDefault("ACTIVE", 0L))

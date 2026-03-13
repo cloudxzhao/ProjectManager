@@ -35,7 +35,7 @@ public class SwaggerConfig {
                         .url("https://www.apache.org/licenses/LICENSE-2.0")))
         .servers(
             List.of(
-                new Server().url("http://localhost:8080").description("开发环境"),
+                new Server().url("http://localhost:9527").description("开发环境"),
                 new Server().url("https://api.projecthub.com").description("生产环境")))
         .addSecurityItem(new SecurityRequirement().addList("bearerAuth"))
         .components(

@@ -554,8 +554,8 @@ mvn clean install
 mvn spring-boot:run -Dspring-boot.run.profiles=dev
 
 # 5. 验证启动
-curl http://localhost:8080/actuator/health
-curl http://localhost:8080/swagger-ui.html
+curl http://localhost:9527/actuator/health
+curl http://localhost:9527/swagger-ui.html
 
 # 6. 打包
 mvn clean package -DskipTests

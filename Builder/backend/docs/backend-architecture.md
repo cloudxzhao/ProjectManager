@@ -274,7 +274,7 @@ services:
   app:
     build: .
     ports:
-      - "8080:8080"
+      - "9527:9527"
     environment:
       - SPRING_PROFILES_ACTIVE=prod
       - DB_HOST=postgres
