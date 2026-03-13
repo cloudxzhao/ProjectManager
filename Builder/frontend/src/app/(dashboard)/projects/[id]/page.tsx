@@ -26,7 +26,9 @@ import {
 import Link from 'next/link';
 import dayjs from 'dayjs';
 import { getProject, deleteProject, updateProject } from '@/lib/api/project';
+import { getTasks } from '@/lib/api/task';
 import type { Project, ProjectStatus } from '@/lib/api/project';
+import type { Task } from '@/lib/api/task';
 
 const { Option } = Select;
 const { TextArea } = Input;
@@ -158,6 +160,7 @@ export default function ProjectDetailPage() {
   const [loading, setLoading] = useState(false);
   const [fetchLoading, setFetchLoading] = useState(true);
   const [project, setProject] = useState<Project | null>(null);
+  const [tasks, setTasks] = useState<Task[]>([]);
   const [deleteModalOpen, setDeleteModalOpen] = useState(false);
   const [editDrawerOpen, setEditDrawerOpen] = useState(false);
   const [selectedIcon, setSelectedIcon] = useState<string>('🛒');
@@ -170,6 +173,10 @@ export default function ProjectDetailPage() {
       const projectData = await getProject(Number(projectId));
       setProject(projectData);
       setSelectedIcon(projectData.icon || '🛒');
+
+      // 获取任务列表
+      const tasksResult = await getTasks(Number(projectId));
+      setTasks(tasksResult.list || []);
     } catch (error: unknown) {
       const errorMessage = error instanceof Error ? error.message : '获取项目详情失败';
       message.error(errorMessage);
@@ -302,7 +309,7 @@ export default function ProjectDetailPage() {
     }
   };
 
-  // 页签内容 - 任务看板、用户故事等功能后续集成
+  // 页签内容
   const tabItems: TabsProps['items'] = [
     {
       key: 'tasks',
@@ -314,11 +321,24 @@ export default function ProjectDetailPage() {
       ),
       children: (
         <div className="text-center py-12">
-          <Link href={`/projects/${projectId}/tasks`}>
-            <Button type="primary" icon={<CheckSquareOutlined />}>
-              进入任务看板
-            </Button>
-          </Link>
+          {tasks.length > 0 ? (
+            <div className="space-y-4">
+              <p className="text-gray-400 mb-4">共 {tasks.length} 个任务</p>
+              <Link href={`/projects/${projectId}/tasks`}>
+                <Button type="primary" icon={<CheckSquareOutlined />}>
+                  进入任务看板
+                </Button>
+              </Link>
+            </div>
+          ) : (
+            <>
+              <Link href={`/projects/${projectId}/tasks`}>
+                <Button type="primary" icon={<CheckSquareOutlined />}>
+                  进入任务看板
+                </Button>
+              </Link>
+            </>
+          )}
         </div>
       ),
     },
