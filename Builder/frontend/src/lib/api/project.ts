@@ -172,10 +172,15 @@ export const updateProject = async (id: number, data: UpdateProjectDto) => {
   if (data.color) requestBody.themeColor = data.color;
   if (data.icon) requestBody.icon = data.icon;
 
-  return api.put<ProjectResponse>(endpoints.project.update(id), requestBody).then((res) => ({
-    ...res,
-    data: mapProjectResponse(res.data),
-  }));
+  return api.put<ProjectResponse>(endpoints.project.update(id), requestBody).then((res) => {
+    console.log('[project.api] updateProject response:', res);
+    // 兼容两种响应格式：{ code, message, data } 和直接返回 data
+    const projectData = res.data || (res as unknown as ProjectResponse);
+    return {
+      ...res,
+      data: mapProjectResponse(projectData),
+    };
+  });
 };
 
 /**
