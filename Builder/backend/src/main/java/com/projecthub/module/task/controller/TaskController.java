@@ -115,4 +115,20 @@ public class TaskController {
     TaskVO task = taskService.createTask(projectId, request);
     return Result.success(task);
   }
+
+  /** 搜索任务列表 */
+  @PostMapping("/search")
+  @Operation(summary = "搜索任务列表", description = "搜索当前用户参与的所有项目下的任务列表，支持项目筛选和其他复杂筛选条件")
+  public Result<PageResult<TaskVO>> searchTasks(
+      @RequestBody(required = false) TaskVO.FilterRequest filter,
+      @RequestParam(defaultValue = "1") Integer page,
+      @RequestParam(defaultValue = "20") Integer size) {
+
+    if (filter == null) {
+      filter = TaskVO.FilterRequest.builder().build();
+    }
+
+    PageResult<TaskVO> result = taskService.searchTasks(filter, page, size);
+    return Result.success(result);
+  }
 }

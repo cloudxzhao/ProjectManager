@@ -272,6 +272,95 @@ public class TaskService {
     }
   }
 
+  /** 搜索任务列表（支持项目筛选和权限校验） */
+  @Transactional(readOnly = true)
+  public PageResult<TaskVO> searchTasks(TaskVO.FilterRequest filter, Integer page, Integer size) {
+    Long userId = getCurrentUserId();
+
+    // 获取用户有权限访问的所有项目 ID
+    List<Long> userProjectIds = permissionService.getUserProjectIds(userId);
+
+    if (userProjectIds.isEmpty()) {
+      return PageResult.of(List.of(), 0L, page, size);
+    }
+
+    // 如果请求中指定了项目 ID 筛选，需要校验权限
+    List<Long> targetProjectIds;
+    if (filter != null && filter.getProjectIds() != null && !filter.getProjectIds().isEmpty()) {
+      // 过滤出用户有权限的项目 ID
+      targetProjectIds =
+          filter.getProjectIds().stream()
+              .filter(userProjectIds::contains)
+              .collect(Collectors.toList());
+      log.info("用户请求查询项目 {}，实际有权限的项目 {}", filter.getProjectIds(), targetProjectIds);
+    } else {
+      targetProjectIds = userProjectIds;
+    }
+
+    if (targetProjectIds.isEmpty()) {
+      return PageResult.of(List.of(), 0L, page, size);
+    }
+
+    Pageable pageable = PageRequest.of(page - 1, size, Sort.by(Sort.Direction.DESC, "createdAt"));
+
+    Specification<Task> spec =
+        (root, query, cb) -> {
+          List<Predicate> predicates = new ArrayList<>();
+
+          // 项目 ID 筛选 - 用户有权限的项目
+          predicates.add(root.get("projectId").in(targetProjectIds));
+
+          // 添加其他筛选条件
+          addFilterPredicates(predicates, filter, cb, root);
+
+          return query.where(predicates.toArray(new Predicate[0])).getRestriction();
+        };
+
+    Page<Task> taskPage = taskRepository.findAll(spec, pageable);
+
+    List<TaskVO> content =
+        taskPage.getContent().stream()
+            .map(
+                task -> {
+                  TaskVO taskVO = BeanCopyUtil.copyProperties(task, TaskVO.class);
+                  // 手动设置枚举字段的字符串表示
+                  taskVO.setStatus(task.getStatus().name());
+                  taskVO.setPriority(task.getPriority().name());
+                  populateTaskStats(taskVO);
+                  return taskVO;
+                })
+            .collect(Collectors.toList());
+
+    return PageResult.of(content, taskPage.getTotalElements(), page, size);
+  }
+
+  /** 添加筛选条件 */
+  private void addFilterPredicates(
+      List<Predicate> predicates,
+      TaskVO.FilterRequest filter,
+      jakarta.persistence.criteria.CriteriaBuilder cb,
+      jakarta.persistence.criteria.Root<Task> root) {
+    // 状态筛选
+    if (filter != null && filter.getStatus() != null) {
+      predicates.add(cb.equal(root.get("status"), Task.TaskStatus.valueOf(filter.getStatus())));
+    }
+
+    // 优先级筛选
+    if (filter != null && filter.getPriority() != null) {
+      predicates.add(cb.equal(root.get("priority"), Task.Priority.valueOf(filter.getPriority())));
+    }
+
+    // 负责人筛选
+    if (filter != null && filter.getAssigneeId() != null) {
+      predicates.add(cb.equal(root.get("assigneeId"), filter.getAssigneeId()));
+    }
+
+    // 标题关键字筛选
+    if (filter != null && StringUtils.hasText(filter.getKeyword())) {
+      predicates.add(cb.like(root.get("title"), "%" + filter.getKeyword() + "%"));
+    }
+  }
+
   /** 获取当前用户 ID */
   private Long getCurrentUserId() {
     Object principal = SecurityContextHolder.getContext().getAuthentication().getPrincipal();

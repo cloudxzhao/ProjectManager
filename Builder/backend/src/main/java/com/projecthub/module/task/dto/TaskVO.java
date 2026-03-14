@@ -7,6 +7,7 @@ import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.util.List;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -144,6 +145,9 @@ public class TaskVO {
   @NoArgsConstructor
   @AllArgsConstructor
   public static class FilterRequest {
+    /** 项目 ID 列表筛选 */
+    private List<Long> projectIds;
+
     /** 状态筛选 */
     private String status;
 
