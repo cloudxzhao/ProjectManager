@@ -387,13 +387,6 @@ export default function ProjectDetailPage() {
       children: (
         <div className="space-y-4">
           {/* 进入任务看板按钮 */}
-          <div className="flex justify-end mb-4">
-            <Link href={`/projects/${projectId}/tasks`}>
-              <Button type="primary" icon={<CheckSquareOutlined />}>
-                进入任务看板
-              </Button>
-            </Link>
-          </div>
           {storiesLoading ? (
             <div className="text-center py-12">
               <Spin size="large" description="加载用户故事中..." />
@@ -488,6 +481,85 @@ export default function ProjectDetailPage() {
       ),
     },
     {
+      key: 'tasks',
+      label: (
+        <span className="flex items-center gap-2">
+          <CheckSquareOutlined />
+          任务列表
+        </span>
+      ),
+      children: (
+        <div className="space-y-4">
+          <Table<Task>
+            dataSource={tasks}
+            rowKey="id"
+            pagination={false}
+            className="tasks-table"
+            columns={[
+              {
+                title: '任务标题',
+                dataIndex: 'title',
+                key: 'title',
+                ellipsis: true,
+                render: (title: string, record: Task) => (
+                  <div className="font-medium text-white">
+                    {title}
+                    <span className={`ml-2 px-2 py-0.5 text-xs rounded ${
+                      record.priority === 'high' ? 'bg-red-500/20 text-red-400' :
+                      record.priority === 'medium' ? 'bg-orange-500/20 text-orange-400' :
+                      record.priority === 'urgent' ? 'bg-purple-500/20 text-purple-400' :
+                      'bg-gray-500/20 text-gray-400'
+                    }`}>
+                      {record.priority}
+                    </span>
+                  </div>
+                ),
+              },
+              {
+                title: '描述',
+                dataIndex: 'description',
+                key: 'description',
+                ellipsis: true,
+                width: 250,
+                render: (description?: string) => (
+                  <span className="text-gray-400 text-sm" title={description}>
+                    {description && description.length > 50 ? `${description.slice(0, 50)}...` : description || '-'}
+                  </span>
+                ),
+              },
+              {
+                title: '状态',
+                dataIndex: 'status',
+                key: 'status',
+                width: 100,
+                render: (status: string) => {
+                  const statusConfig: Record<string, { color: string; text: string }> = {
+                    TODO: { color: 'default', text: '待办' },
+                    IN_PROGRESS: { color: 'processing', text: '进行中' },
+                    TESTING: { color: 'warning', text: '测试中' },
+                    DONE: { color: 'success', text: '已完成' },
+                  };
+                  const config = statusConfig[status] || { color: 'default', text: status };
+                  return <Tag color={config.color}>{config.text}</Tag>;
+                },
+              },
+              {
+                title: '负责人',
+                dataIndex: 'assigneeName',
+                key: 'assigneeName',
+                width: 100,
+                render: (assigneeName?: string) => (
+                  <span className="text-gray-300">
+                    {assigneeName || <span className="text-gray-500">未分配</span>}
+                  </span>
+                ),
+              },
+            ].filter(Boolean) as TableColumnsType<Task>}
+          />
+        </div>
+      ),
+    },
+    {
       key: 'issues',
       label: (
         <span className="flex items-center gap-2">
@@ -497,52 +569,78 @@ export default function ProjectDetailPage() {
       ),
       children: (
         <div className="space-y-4">
-          <div className="flex justify-between items-center mb-4">
-            <h3 className="text-lg font-semibold text-white">问题列表</h3>
-            <span className="text-gray-400">共 {issues.length} 个问题</span>
-          </div>
-          {issues.length > 0 ? (
-            <div className="space-y-3">
-              {issues.map((issue) => (
-                <div
-                  key={issue.id}
-                  className="bg-gray-800/50 border border-gray-700 rounded-lg p-4 hover:border-orange-500/50 transition-colors"
-                >
-                  <div className="flex items-start gap-3">
-                    <div className={`flex-shrink-0 w-10 h-10 rounded-lg flex items-center justify-center ${
-                      issue.type === 'bug' ? 'bg-red-500/20' :
-                      issue.type === 'feature' ? 'bg-green-500/20' :
-                      'bg-blue-500/20'
-                    }`}>
-                      {issue.type === 'bug' ? <BugOutlined className={issue.type === 'bug' ? 'text-red-400' : ''} /> :
-                       issue.type === 'feature' ? <CheckSquareOutlined className="text-green-400" /> :
-                       <CodeOutlined className="text-blue-400" />}
-                    </div>
-                    <div className="flex-1">
-                      <div className="flex items-center gap-2 mb-1">
-                        <span className="text-gray-400 text-sm">#{issue.id}</span>
-                        <h4 className="text-white font-medium flex-1">{issue.title}</h4>
-                        <Tag color={getIssueSeverityColor(issue.severity)}>
-                          {getIssueTypeText(issue.type)} · {issue.severity}
-                        </Tag>
-                      </div>
-                      <div className="flex items-center gap-4 text-sm text-gray-400">
-                        <span>状态：{getIssueStatusText(issue.status)}</span>
-                        <span>优先级：{issue.priority}</span>
-                        {issue.dueDate && <span>截止日期：{formatDate(issue.dueDate)}</span>}
-                      </div>
-                    </div>
+          <Table<Issue>
+            dataSource={issues}
+            rowKey="id"
+            pagination={false}
+            className="issues-table"
+            columns={[
+              {
+                title: '问题标题',
+                dataIndex: 'title',
+                key: 'title',
+                ellipsis: true,
+                render: (title: string, record: Issue) => (
+                  <div className="flex items-center gap-2">
+                    <span className="text-gray-400 text-sm">#{record.id}</span>
+                    <span className="font-medium text-white">{title}</span>
+                    <Tag color={getIssueSeverityColor(record.severity)}>
+                      {getIssueTypeText(record.type)}
+                    </Tag>
                   </div>
-                </div>
-              ))}
-            </div>
-          ) : (
-            <div className="text-center py-12">
-              <BugOutlined style={{ fontSize: 64, color: '#6b7280' }} />
-              <h3 className="text-gray-400 mt-4">暂无问题</h3>
-              <p className="text-gray-500 mt-2">问题追踪功能开发中</p>
-            </div>
-          )}
+                ),
+              },
+              {
+                title: '状态',
+                dataIndex: 'status',
+                key: 'status',
+                width: 100,
+                render: (status: string) => {
+                  const statusConfig: Record<string, { color: string; text: string }> = {
+                    open: { color: 'processing', text: '打开' },
+                    in_progress: { color: 'warning', text: '进行中' },
+                    resolved: { color: 'success', text: '已解决' },
+                    closed: { color: 'default', text: '已关闭' },
+                  };
+                  const config = statusConfig[status] || { color: 'default', text: status };
+                  return <Tag color={config.color}>{config.text}</Tag>;
+                },
+              },
+              {
+                title: '优先级',
+                dataIndex: 'priority',
+                key: 'priority',
+                width: 90,
+                render: (priority: string) => (
+                  <span className="text-gray-300">{priority}</span>
+                ),
+              },
+              {
+                title: '负责人',
+                dataIndex: 'assignee',
+                key: 'assignee',
+                width: 100,
+                render: (assignee?: string) => (
+                  <span className="text-gray-300">
+                    {assignee || <span className="text-gray-500">未分配</span>}
+                  </span>
+                ),
+              },
+              {
+                title: '截止日期',
+                dataIndex: 'dueDate',
+                key: 'dueDate',
+                width: 120,
+                render: (dueDate?: string) => (
+                  dueDate ? (
+                    <span className="text-gray-300">{formatDate(dueDate)}</span>
+                  ) : (
+                    <span className="text-gray-500">-</span>
+                  )
+                ),
+              },
+            ].filter(Boolean) as TableColumnsType<Issue>}
+          />
         </div>
       ),
     },
