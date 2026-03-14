@@ -116,23 +116,6 @@ src/main/resources/application-dev.yml
 ### 阶段 3：记录问题
 
 每个问题按以下格式记录：
-
-```markdown
-
-| 字段               | 说明                                     | 示例                                                         |
-| ------------------ | ---------------------------------------- | ------------------------------------------------------------ |
-| **id**             | 问题的唯一标识符                         | `BACKEND-001`                                                |
-| **title**          | 问题的简要标题                           | `TaskVO 缺少前端需要的统计字段`                              |
-| **severity**       | 问题的严重级别                           | `medium`                                                     |
-| **category**       | 问题所属的类别                           | `response`                                                   |
-| **description**    | 问题的详细描述                           | `后端 TaskVO 缺少 subtaskCount、completedSubtaskCount、commentCount 等前端展示所需的统计字段，前端需要额外请求获取这些数据。` |
-| **assignee**       | 归属人                                   | 被分配处理此问题/任务的人                                    |
-| **affected_apis**  | 受此问题影响的API接口列表                | `[“GET /api/v1/projects/{projectId}/tasks”, “GET /api/v1/projects/{projectId}/tasks/{id}”]` |
-| **status**         | 问题的当前状态（**原数据未提供此字段**） | 分析/开发/测试/完成                                          |
-| **current_state**  | 描述问题当前的现象或缺失项               | `{ “response”: { “missing_fields”: [“subtaskCount”, “completedSubtaskCount”, “commentCount”] } }` |
-| **expected_state** | 描述问题修复后期望达到的状态             | `{ “response”: { “added_fields”: [{“name”: “subtaskCount”, “type”: “integer”, “description”: “子任务总数”}, ...] } }` |
-| **related_issues** | 与此问题相关的其他问题ID列表             | `[]`                                                         |
-| **labels**         | 用于分类或筛选的标签                     | `[“api”,"security",]`                                        |
 ```json
 {
       "id": "BACKEND-001",

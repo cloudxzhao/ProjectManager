@@ -17,6 +17,7 @@ import {
   SearchOutlined,
   LogoutOutlined,
   UserOutlined,
+  FileTextOutlined,
 } from '@ant-design/icons';
 
 interface MainLayoutProps {
@@ -27,6 +28,7 @@ interface MainLayoutProps {
 const menuItems = [
   { key: '/dashboard', icon: <HomeOutlined />, label: '工作台', path: '/dashboard' },
   { key: '/projects', icon: <ProjectOutlined />, label: '项目', path: '/projects' },
+  { key: '/stories', icon: <FileTextOutlined />, label: '用户故事', path: '/stories' },
   { key: '/tasks', icon: <CheckCircleOutlined />, label: '任务', path: '/tasks' },
   { key: '/messages', icon: <BellOutlined />, label: '消息', path: '/messages' },
   { key: '/wiki', icon: <BookOutlined />, label: '知识库', path: '/wiki' },

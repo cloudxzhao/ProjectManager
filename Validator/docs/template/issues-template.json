@@ -1,0 +1,55 @@
+{
+  "test_version": "{VERSION}",
+  "test_date": "{YYYY-MM-DD}",
+  "tester": "{Tester Name}",
+  "api_base_url": "{API Base URL}",
+  "summary": {
+    "total_tests": 0,
+    "passed": 0,
+    "failed": 0,
+    "pass_rate": "0%"
+  },
+  "issues": [
+    {
+      "id": "{ISSUE-ID}",
+      "title": "{Issue Title}",
+      "severity": "{high/medium/low}",
+      "category": "{functionality/security/validation/data/performance}",
+      "description": "{Detailed description of the issue}",
+      "affected_apis": [
+        "{HTTP_METHOD} {API Path}"
+      ],
+      "current_state": "{Current behavior description}",
+      "expected_state": "{Expected behavior description}",
+      "reproduction_steps": [
+        "1. {Step 1}",
+        "2. {Step 2}",
+        "3. {Step 3}"
+      ],
+      "labels": [
+        "{label1}",
+        "{label2}"
+      ],
+      "status": "{open/fixed/rejected/wontfix}",
+      "reject_reason": "{Reason for rejection if status is rejected}",
+      "fix_date": "{YYYY-MM-DD}",
+      "fixed_by": "{Developer Name}"
+    }
+  ],
+  "working_features": [
+    "{Feature 1}",
+    "{Feature 2}"
+  ],
+  "fix_summary": {
+    "fixed": [
+      "{ISSUE-ID}"
+    ],
+    "rejected": [
+      "{ISSUE-ID}"
+    ],
+    "wontfix": [
+      "{ISSUE-ID}"
+    ],
+    "fix_date": "{YYYY-MM-DD}"
+  }
+}
