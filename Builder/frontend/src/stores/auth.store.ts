@@ -86,29 +86,21 @@ export const useAuthStore = create<AuthState>()(
 
       login: async (credentials: LoginCredentials) => {
         set({ isLoading: true, error: null });
-        console.log('[Auth] Login started with credentials:', { username: credentials.usernameOrEmail });
 
         try {
-          // api.post 返回 Result<AuthTokens>，需要访问 .data 获取实际数据
-          const result = await api.post<AuthTokens>(endpoints.auth.login, credentials);
-          console.log('[Auth] Login API response:', result);
+          // api.post 已经经过 axios 拦截器处理，直接返回 AuthTokens 对象
+          // 后端返回：{code, message, data: {accessToken, refreshToken, tokenType, expiresIn}, timestamp}
+          // apiClient 拦截器返回 response.data -> Result<AuthTokens>
+          // api.post 再次 .then(res => res.data) -> AuthTokens
+          const authTokens = await api.post<AuthTokens>(endpoints.auth.login, credentials);
 
-          // 检查是否有 accessToken 来判断登录是否成功
-          if (result && result.data && result.data.accessToken) {
-            const { accessToken, refreshToken, expiresIn } = result.data;
-
-            console.log('[Auth] Token received:', {
-              accessToken: accessToken.substring(0, 20) + '...',
-              expiresIn
-            });
+          // authTokens 直接就是 AuthTokens 类型
+          if (authTokens && authTokens.accessToken) {
+            const { accessToken, refreshToken, expiresIn } = authTokens;
 
             // 1. 先存储 token 到 localStorage (供 Axios 拦截器使用)
             localStorage.setItem('access_token', accessToken);
             localStorage.setItem('refresh_token', refreshToken);
-            console.log('[Auth] localStorage set:', {
-              access_token: localStorage.getItem('access_token') ? 'OK' : 'FAILED',
-              refresh_token: localStorage.getItem('refresh_token') ? 'OK' : 'FAILED'
-            });
 
             // 2. 同步到 cookie 供中间件使用
             setAuthCookie(accessToken, expiresIn);
@@ -117,7 +109,6 @@ export const useAuthStore = create<AuthState>()(
             let userProfile: User | undefined;
             try {
               userProfile = await api.get<User>(endpoints.user.profile).then(res => res.data);
-              console.log('[Auth] User profile fetched:', userProfile);
             } catch (profileError) {
               console.warn('[Auth] 获取用户信息失败，但登录已完成:', profileError);
             }
@@ -129,8 +120,6 @@ export const useAuthStore = create<AuthState>()(
               isAuthenticated: true,
               isLoading: false,
             });
-
-            console.log('[Auth] Auth state after login:', get());
 
             // 5. 手动同步到 localStorage 的 auth-storage（双重保障）
             if (typeof window !== 'undefined') {
@@ -144,13 +133,9 @@ export const useAuthStore = create<AuthState>()(
                 version: 0,
               };
               localStorage.setItem('auth-storage', JSON.stringify(persistedState));
-              console.log('[Auth] Manually synced auth-storage to localStorage:', {
-                token: state.token ? 'OK' : 'NULL',
-                isAuthenticated: state.isAuthenticated
-              });
             }
           } else {
-            console.error('[Auth] Login response missing accessToken:', result);
+            console.error('[Auth] Login response missing accessToken:', authTokens);
             throw new Error('登录响应格式错误');
           }
         } catch (error: unknown) {
@@ -165,16 +150,16 @@ export const useAuthStore = create<AuthState>()(
         set({ isLoading: true, error: null });
 
         try {
-          // api.post 返回 Result<AuthTokens>，需要访问 .data 获取实际数据
-          const result = await api.post<AuthTokens>(endpoints.auth.register, {
+          // api.post 已经经过 axios 拦截器处理，直接返回 AuthTokens 对象
+          const authTokens = await api.post<AuthTokens>(endpoints.auth.register, {
             username: data.username,
             email: data.email,
             password: data.password,
           });
 
-          // 检查是否有 accessToken 来判断注册是否成功
-          if (result && result.data && result.data.accessToken) {
-            const { accessToken, refreshToken, expiresIn } = result.data;
+          // authTokens 直接就是 AuthTokens 类型
+          if (authTokens && authTokens.accessToken) {
+            const { accessToken, refreshToken, expiresIn } = authTokens;
 
             // 1. 先存储 token 到 localStorage
             localStorage.setItem('access_token', accessToken);
