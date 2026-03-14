@@ -22,6 +22,7 @@ export const endpoints = {
   // 注意：后端路径参数使用 {id} 表示项目 ID，前端为语义化使用 projectId
   project: {
     list: '/projects',
+    authorized: '/projects/authorized',  // 获取当前用户有权限的项目列表
     create: '/projects',
     detail: (id: number) => `/projects/${id}`,
     update: (id: number) => `/projects/${id}`,

@@ -199,6 +199,29 @@ export const deleteProject = async (id: number) => {
 };
 
 /**
+ * 获取当前用户有权限访问的项目列表（用于用户故事、任务等筛选）
+ */
+export const getAuthorizedProjects = async () => {
+  const result = await api.get<{
+    list: ProjectResponse[];
+    total: number;
+    page: number;
+    size: number;
+    pages: number;
+  }>(endpoints.project.authorized);
+
+  console.log('[project.api] getAuthorizedProjects result:', result.data);
+
+  return {
+    list: result.data.data.list.map(mapProjectResponse),
+    total: result.data.data.total,
+    page: result.data.data.page,
+    size: result.data.data.size,
+    pages: result.data.data.pages,
+  };
+};
+
+/**
  * 获取项目成员列表
  * @param id 项目 ID
  */

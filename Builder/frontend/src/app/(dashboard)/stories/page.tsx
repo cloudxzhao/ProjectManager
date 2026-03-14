@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react';
 import { Card, Input, Select, Button, Avatar, Tag, Empty, Spin, Pagination, Modal, Form, Drawer, message, FormProps } from 'antd';
 import { FileTextOutlined, PlusOutlined, SearchOutlined, EditOutlined, DeleteOutlined, EyeOutlined } from '@ant-design/icons';
 import { searchStories, deleteStory, createStory, updateStory, type UserStory, type StoryStatus, type Priority, type CreateUserStoryDto, type UpdateUserStoryDto, statusTextMap, priorityTextMap, statusMap, priorityMap } from '@/lib/api/story';
-import { getProjects, getProjectMembers } from '@/lib/api/project';
+import { getAuthorizedProjects, getProjectMembers } from '@/lib/api/project';
 import type { Project } from '@/lib/api/project';
 import type { ProjectMemberResponse } from '@/lib/api/project';
 
@@ -179,12 +179,14 @@ interface StoryFormValues {
 export default function StoriesPage() {
   const [stories, setStories] = useState<UserStory[]>([]);
   const [projects, setProjects] = useState<Project[]>([]);
+  const [allProjectMembers, setAllProjectMembers] = useState<Map<number, ProjectMemberResponse[]>>(new Map());  // 所有项目的成员缓存
   const [loading, setLoading] = useState(false);
   const [total, setTotal] = useState(0);
   const [page, setPage] = useState(1);
   const [pageSize] = useState(10);
   const [selectedProjectIds, setSelectedProjectIds] = useState<number[]>([]);  // 支持多选
   const [selectedStatus, setSelectedStatus] = useState<StoryStatus | undefined>(undefined);
+  const [selectedAssigneeId, setSelectedAssigneeId] = useState<number | undefined>(undefined);  // 责任人筛选
   const [searchText, setSearchText] = useState('');
 
   // 模态框状态
@@ -199,26 +201,45 @@ export default function StoriesPage() {
 
   const [form] = Form.useForm();
 
-  // 项目成员列表（用于表单中的负责人选择）
-  const [projectMembers, setProjectMembers] = useState<ProjectMemberResponse[]>([]);
+  // 当前表单中项目对应的成员列表（用于负责人选择）
+  const [currentProjectMembers, setCurrentProjectMembers] = useState<ProjectMemberResponse[]>([]);
 
-  // 加载项目列表
+  // 加载用户有权限的项目列表
   const fetchProjects = async () => {
     try {
-      const result = await getProjects(1, 100);
+      const result = await getAuthorizedProjects();
       setProjects(result?.list || []);
     } catch (error) {
       console.error('加载项目列表失败:', error);
     }
   };
 
-  // 加载项目成员列表
+  // 加载项目成员列表（用于责任人筛选）
   const fetchProjectMembers = async (projectId: number) => {
     try {
       const members = await getProjectMembers(projectId);
-      setProjectMembers(members || []);
+      // 缓存到 Map 中
+      setAllProjectMembers((prev) => new Map(prev).set(projectId, members || []));
     } catch (error) {
       console.error('加载项目成员失败:', error);
+    }
+  };
+
+  // 加载所有选中项目的成员（用于责任人筛选下拉）
+  const fetchSelectedProjectMembers = async (projectIds: number[]) => {
+    if (projectIds.length === 0) return;
+
+    // 并行加载所有项目的成员
+    const promises = projectIds.map((id) => getProjectMembers(id));
+    try {
+      const results = await Promise.all(promises);
+      const newMembersMap = new Map(allProjectMembers);
+      projectIds.forEach((id, index) => {
+        newMembersMap.set(id, results[index] || []);
+      });
+      setAllProjectMembers(newMembersMap);
+    } catch (error) {
+      console.error('批量加载项目成员失败:', error);
     }
   };
 
@@ -231,6 +252,7 @@ export default function StoriesPage() {
         size: pageSize,
       };
       if (selectedStatus) params.status = selectedStatus;
+      if (selectedAssigneeId) params.assigneeId = selectedAssigneeId;  // 责任人筛选
       if (searchText) params.keyword = searchText;
       // 如果选择了项目，通过 projectIds 参数筛选（支持多选）
       if (selectedProjectIds && selectedProjectIds.length > 0) {
@@ -252,9 +274,16 @@ export default function StoriesPage() {
     fetchProjects();
   }, []);
 
+  // 当选中项目变化时，加载成员列表
+  useEffect(() => {
+    if (selectedProjectIds.length > 0) {
+      fetchSelectedProjectMembers(selectedProjectIds);
+    }
+  }, [selectedProjectIds]);
+
   useEffect(() => {
     fetchStories();
-  }, [page, selectedProjectIds, selectedStatus, searchText]);
+  }, [page, selectedProjectIds, selectedStatus, selectedAssigneeId, searchText]);
 
   // 删除用户故事
   const handleDelete = async () => {
@@ -282,10 +311,13 @@ export default function StoriesPage() {
     if (selectedProjectIds.length === 1) {
       form.setFieldsValue({ projectId: selectedProjectIds[0] });
       // 加载项目成员列表
-      fetchProjectMembers(selectedProjectIds[0]);
+      const projectId = selectedProjectIds[0];
+      const members = allProjectMembers.get(projectId) || [];
+      setCurrentProjectMembers(members);
     } else {
       // 如果没有选择项目或选了多个，清空表单中的项目字段
       form.setFieldsValue({ projectId: undefined });
+      setCurrentProjectMembers([]);
     }
     setFormModalOpen(true);
   };
@@ -294,7 +326,14 @@ export default function StoriesPage() {
   const handleEdit = (story: UserStory) => {
     setEditingStory(story);
     // 编辑时加载对应项目的成员列表
-    fetchProjectMembers(story.projectId);
+    const members = allProjectMembers.get(story.projectId) || [];
+    setCurrentProjectMembers(members);
+    if (members.length === 0) {
+      fetchProjectMembers(story.projectId).then(() => {
+        const updatedMembers = allProjectMembers.get(story.projectId) || [];
+        setCurrentProjectMembers(updatedMembers);
+      });
+    }
     form.setFieldsValue({
       projectId: story.projectId,
       title: story.title,
@@ -366,10 +405,21 @@ export default function StoriesPage() {
     return projects.find((p) => p.id === projectId);
   };
 
-  // 获取项目成员
-  const getProjectMember = (userId?: number) => {
-    if (!userId) return undefined;
-    return projectMembers.find((m) => m.user.id === userId);
+  // 获取所有选中项目的成员（用于责任人筛选下拉）
+  const getFilterMembers = () => {
+    if (selectedProjectIds.length === 0) return [];
+    const members: ProjectMemberResponse[] = [];
+    const seenIds = new Set<number>();
+    selectedProjectIds.forEach((projectId) => {
+      const projectMembers = allProjectMembers.get(projectId) || [];
+      projectMembers.forEach((m) => {
+        if (!seenIds.has(m.user.id)) {
+          seenIds.add(m.user.id);
+          members.push(m);
+        }
+      });
+    });
+    return members;
   };
 
   return (
@@ -413,6 +463,7 @@ export default function StoriesPage() {
             value={selectedProjectIds}
             onChange={(value) => {
               setSelectedProjectIds(value);
+              setSelectedAssigneeId(undefined);  // 清空责任人筛选
               setPage(1);
             }}
             className="w-[250px] bg-gray-700/50 border-gray-600"
@@ -429,6 +480,25 @@ export default function StoriesPage() {
               </Option>
             ))}
           </Select>
+          <Select
+            placeholder="选择责任人"
+            value={selectedAssigneeId}
+            onChange={(value) => {
+              setSelectedAssigneeId(value);
+              setPage(1);
+            }}
+            className="w-[200px] bg-gray-700/50 border-gray-600"
+            allowClear
+            showSearch
+            filterOption={(input, option) =>
+              String(option?.label ?? '').toLowerCase().includes(input.toLowerCase())
+            }
+            options={getFilterMembers().map((member) => ({
+              label: `${member.user.username} (${member.user.email})`,
+              value: member.user.id,
+            }))}
+            disabled={selectedProjectIds.length === 0}
+          />
           <Select
             placeholder="选择状态"
             value={selectedStatus}
@@ -552,8 +622,15 @@ export default function StoriesPage() {
                 placeholder="选择项目"
                 onChange={(value) => {
                   // 项目改变时，重新加载项目成员
-                  setSelectedProjectIds([value]);
-                  fetchProjectMembers(value);
+                  const members = allProjectMembers.get(value) || [];
+                  if (members.length > 0) {
+                    setCurrentProjectMembers(members);
+                  } else {
+                    fetchProjectMembers(value).then(() => {
+                      const updatedMembers = allProjectMembers.get(value) || [];
+                      setCurrentProjectMembers(updatedMembers);
+                    });
+                  }
                 }}
               >
                 {projects.map((project) => (
@@ -647,16 +724,16 @@ export default function StoriesPage() {
             >
               <Select
                 className="bg-gray-700/50 border-gray-600"
-                placeholder={projectMembers.length > 0 ? "选择负责人" : "当前项目暂无成员"}
+                placeholder={currentProjectMembers.length > 0 ? "选择负责人" : "当前项目暂无成员"}
                 allowClear
-                disabled={projectMembers.length === 0}
+                disabled={currentProjectMembers.length === 0}
                 showSearch
                 filterOption={(input, option) =>
                   String(option?.label ?? '').toLowerCase().includes(input.toLowerCase())
                 }
               >
-                {projectMembers.length > 0 ? (
-                  projectMembers.map((member) => (
+                {currentProjectMembers.length > 0 ? (
+                  currentProjectMembers.map((member) => (
                     <Option key={member.user.id} value={member.user.id} label={`${member.user.username} (${member.user.email})`}>
                       {member.user.username} ({member.user.email})
                     </Option>
