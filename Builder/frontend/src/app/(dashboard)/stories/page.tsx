@@ -87,86 +87,153 @@ const StoryCard: React.FC<StoryCardProps> = ({ story, project, onView, onEdit, o
   return (
     <Card
       hoverable
-      className="h-full overflow-hidden transition-all duration-300 hover:-translate-y-1.5 group"
+      className="h-full transition-all duration-300 group"
       style={{
-        backgroundColor: 'rgba(255, 255, 255, 0.03)',
-        borderColor: 'rgba(255, 255, 255, 0.08)',
+        background: 'linear-gradient(145deg, #1e2230, #161922)',
+        border: '1px solid rgba(255, 255, 255, 0.08)',
+        borderRadius: '16px',
+        padding: '20px',
+        boxShadow: '0 10px 30px rgba(0, 0, 0, 0.5)',
       }}
       bodyStyle={{ padding: 0 }}
+      onMouseEnter={(e) => {
+        e.currentTarget.style.transform = 'translateY(-5px)';
+        e.currentTarget.style.boxShadow = '0 15px 40px rgba(0, 0, 0, 0.6)';
+        e.currentTarget.style.borderColor = 'rgba(255, 255, 255, 0.15)';
+      }}
+      onMouseLeave={(e) => {
+        e.currentTarget.style.transform = 'translateY(0)';
+        e.currentTarget.style.boxShadow = '0 10px 30px rgba(0, 0, 0, 0.5)';
+        e.currentTarget.style.borderColor = 'rgba(255, 255, 255, 0.08)';
+      }}
     >
-      {/* 顶部渐变条 */}
-      <div
-        className="h-1 w-full"
-        style={{
-          background: `linear-gradient(90deg, ${project?.color || '#f97316'} 0%, ${project?.color || '#f97316'}cc 100%)`,
-          opacity: 0.8,
-        }}
-      />
-
       <div className="p-5">
-        {/* 项目和状态 */}
-        <div className="flex items-start justify-between mb-3">
-          <div className="flex items-center gap-2">
+        {/* 头部：图标 + 状态 */}
+        <div className="flex items-center justify-between mb-5">
+          <div className="flex items-center gap-2.5">
+            {/* 项目图标 */}
             <div
-              className="w-8 h-8 rounded-lg flex items-center justify-center text-sm"
+              className="w-9 h-9 flex items-center justify-center text-lg"
               style={{
-                background: `linear-gradient(135deg, ${project?.color || '#f97316'} 0%, ${project?.color || '#f97316'}cc 100%)`,
-                boxShadow: `0 4px 8px -2px ${project?.color || '#f97316'}40`,
+                background: `linear-gradient(135deg, #3a8dff, #0052d4)`,
+                borderRadius: '10px',
+                boxShadow: '0 4px 12px rgba(58, 141, 255, 0.3)',
               }}
             >
               {storyIcon}
             </div>
-            <Tag color={statusColorMap[story.status]}>{statusTextLabelMap[story.status]}</Tag>
+            {/* 状态标签 */}
+            <span
+              className="px-2.5 py-1 rounded-md text-xs font-medium"
+              style={{
+                background: 'rgba(255, 255, 255, 0.1)',
+                color: '#a0a6b5',
+              }}
+            >
+              {statusTextLabelMap[story.status]}
+            </span>
           </div>
-          <Tag color={priorityColorMap[story.priority]}>{priorityTextLabelMap[story.priority]}</Tag>
+          {/* 优先级标签 */}
+          <span
+            className="px-2 py-1 rounded-md text-xs"
+            style={{
+              background: `rgba(58, 141, 255, 0.1)`,
+              color: '#3a8dff',
+              border: '1px solid rgba(58, 141, 255, 0.3)',
+            }}
+          >
+            {priorityTextLabelMap[story.priority]}
+          </span>
         </div>
 
-        {/* 标题 */}
-        <h3 className="text-base font-semibold text-white mb-2 line-clamp-2">{story.title}</h3>
-
-        {/* 描述 */}
-        <p className="text-gray-400 text-sm mb-4 line-clamp-2">{story.description}</p>
-
-        {/* 故事点 */}
-        {story.storyPoints && (
-          <div className="mb-4">
-            <span className="text-xs text-gray-500 mr-2">故事点:</span>
-            <span className="text-orange-400 font-medium">{story.storyPoints} pts</span>
-          </div>
-        )}
-
-        {/* 底部：负责人和操作 */}
-        <div className="flex items-center justify-between pt-4 border-t border-gray-700">
-          <Avatar
-            size={28}
-            className="bg-gradient-to-br from-purple-400 to-pink-500"
-            icon={!story.assigneeId && <span className="text-xs">?</span>}
+        {/* 内容区 */}
+        <div className="mb-5">
+          {/* 标题 */}
+          <h3
+            className="text-lg font-bold mb-1.5 line-clamp-2"
+            style={{
+              color: '#ffffff',
+              letterSpacing: '0.5px',
+            }}
           >
-            {story.assigneeId ? (story.assigneeName?.charAt(0).toUpperCase() || `U${story.assigneeId}`) : ''}
-          </Avatar>
-          <div className="flex items-center gap-1">
-            <Button
-              type="text"
-              size="small"
-              icon={<EyeOutlined />}
+            {story.title}
+          </h3>
+
+          {/* 描述 */}
+          <p
+            className="text-sm mb-4 line-clamp-2"
+            style={{
+              color: '#808695',
+              lineHeight: 1.5,
+            }}
+          >
+            {story.description}
+          </p>
+
+          {/* 故事点 */}
+          {story.storyPoints && (
+            <div
+              className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full"
+              style={{
+                background: 'rgba(255, 159, 67, 0.1)',
+              }}
+            >
+              <span style={{ color: '#ff9f43', fontSize: '13px', fontWeight: 600 }}>
+                ⚡ 故事点：{story.storyPoints} pts
+              </span>
+            </div>
+          )}
+        </div>
+
+        {/* 分割线 */}
+        <div
+          className="mb-4"
+          style={{
+            height: '1px',
+            background: 'linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.1), transparent)',
+          }}
+        />
+
+        {/* 底部操作栏 */}
+        <div className="flex items-center justify-between">
+          {/* 头像 */}
+          <div
+            className="w-8 h-8 rounded-full flex items-center justify-center font-bold text-sm"
+            style={{
+              background: story.assigneeId ? 'linear-gradient(135deg, #3a8dff, #0052d4)' : '#4b5563',
+              color: 'white',
+              border: '2px solid #1e2230',
+            }}
+          >
+            {story.assigneeId ? (story.assigneeName?.charAt(0).toUpperCase() || `U${story.assigneeId}`) : '?'}
+          </div>
+
+          {/* 操作按钮 */}
+          <div className="flex items-center gap-4">
+            <button
               onClick={() => onView(story)}
-              className="text-gray-400 hover:text-white"
-            />
-            <Button
-              type="text"
-              size="small"
-              icon={<EditOutlined />}
+              className="text-lg cursor-pointer transition-colors duration-200"
+              style={{ color: '#636e72' }}
+              title="查看"
+            >
+              👁️
+            </button>
+            <button
               onClick={() => onEdit(story)}
-              className="text-gray-400 hover:text-white"
-            />
-            <Button
-              type="text"
-              size="small"
-              danger
-              icon={<DeleteOutlined />}
+              className="text-lg cursor-pointer transition-colors duration-200"
+              style={{ color: '#636e72' }}
+              title="编辑"
+            >
+              ✏️
+            </button>
+            <button
               onClick={() => onDelete(story)}
-              className="text-gray-400 hover:text-red-400"
-            />
+              className="text-lg cursor-pointer transition-colors duration-200"
+              style={{ color: '#636e72' }}
+              title="删除"
+            >
+              🗑️
+            </button>
           </div>
         </div>
       </div>

@@ -175,6 +175,7 @@ const SortableColumn: React.FC<SortableColumnProps> = ({ column, tasks, onTaskCl
       </div>
       <div
         className="min-h-[500px] bg-gray-800/30 rounded-lg p-3"
+        data-column-id={column.id}
       >
         <SortableContext items={tasks.map((t) => t.id)} strategy={verticalListSortingStrategy}>
           {tasks.map((task) => (
