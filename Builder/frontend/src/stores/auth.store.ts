@@ -88,13 +88,12 @@ export const useAuthStore = create<AuthState>()(
         set({ isLoading: true, error: null });
 
         try {
-          // api.post 已经经过 axios 拦截器处理，直接返回 AuthTokens 对象
+          // api.post 返回 AxiosResponse<Result<AuthTokens>>
           // 后端返回：{code, message, data: {accessToken, refreshToken, tokenType, expiresIn}, timestamp}
-          // apiClient 拦截器返回 response.data -> Result<AuthTokens>
-          // api.post 再次 .then(res => res.data) -> AuthTokens
-          const authTokens = await api.post<AuthTokens>(endpoints.auth.login, credentials);
+          const response = await api.post<AuthTokens>(endpoints.auth.login, credentials);
+          const authTokens = response.data.data;
 
-          // authTokens 直接就是 AuthTokens 类型
+          // authTokens 是 AuthTokens 类型
           if (authTokens && authTokens.accessToken) {
             const { accessToken, refreshToken, expiresIn } = authTokens;
 
@@ -108,7 +107,8 @@ export const useAuthStore = create<AuthState>()(
             // 3. 获取用户信息（可选，失败不影响登录）
             let userProfile: User | undefined;
             try {
-              userProfile = await api.get<User>(endpoints.user.profile).then(res => res.data);
+              const profileResponse = await api.get<User>(endpoints.user.profile);
+              userProfile = profileResponse.data.data;
             } catch (profileError) {
               console.warn('[Auth] 获取用户信息失败，但登录已完成:', profileError);
             }
@@ -150,14 +150,15 @@ export const useAuthStore = create<AuthState>()(
         set({ isLoading: true, error: null });
 
         try {
-          // api.post 已经经过 axios 拦截器处理，直接返回 AuthTokens 对象
-          const authTokens = await api.post<AuthTokens>(endpoints.auth.register, {
+          // api.post 返回 AxiosResponse<Result<AuthTokens>>
+          const response = await api.post<AuthTokens>(endpoints.auth.register, {
             username: data.username,
             email: data.email,
             password: data.password,
           });
+          const authTokens = response.data.data;
 
-          // authTokens 直接就是 AuthTokens 类型
+          // authTokens 是 AuthTokens 类型
           if (authTokens && authTokens.accessToken) {
             const { accessToken, refreshToken, expiresIn } = authTokens;
 
@@ -168,7 +169,8 @@ export const useAuthStore = create<AuthState>()(
             // 2. 同步到 cookie 供中间件使用
             setAuthCookie(accessToken, expiresIn);
 
-            const userProfile = await api.get<User>(endpoints.user.profile).then(res => res.data);
+            const profileResponse = await api.get<User>(endpoints.user.profile);
+            const userProfile = profileResponse.data.data;
 
             // 3. 更新 Zustand store
             set({

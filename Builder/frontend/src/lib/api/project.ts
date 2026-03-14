@@ -117,14 +117,14 @@ export const getProjects = async (
     pages: number;
   }>(endpoints.project.list, { params });
 
-  console.log('[project.api] getProjects result:', result);
+  console.log('[project.api] getProjects result:', result.data);
 
   return {
-    list: result.data.list.map(mapProjectResponse),
-    total: result.data.total,
-    page: result.data.page,
-    size: result.data.size,
-    pages: result.data.pages,
+    list: result.data.data.list.map(mapProjectResponse),
+    total: result.data.data.total,
+    page: result.data.data.page,
+    size: result.data.data.size,
+    pages: result.data.data.pages,
   };
 };
 
@@ -134,7 +134,7 @@ export const getProjects = async (
  */
 export const getProject = async (id: number) => {
   const result = await api.get<ProjectResponse>(endpoints.project.detail(id));
-  return mapProjectResponse(result.data);
+  return mapProjectResponse(result.data.data);
 };
 
 /**
@@ -151,10 +151,11 @@ export const createProject = async (data: CreateProjectDto) => {
     icon: data.icon || '',
     themeColor: data.color,
   };
-  return api.post<ProjectResponse>(endpoints.project.create, requestBody).then((res) => ({
-    ...res,
-    data: mapProjectResponse(res.data),
-  }));
+  const res = await api.post<ProjectResponse>(endpoints.project.create, requestBody);
+  return {
+    ...res.data,
+    data: mapProjectResponse(res.data.data),
+  };
 };
 
 /**
@@ -172,15 +173,12 @@ export const updateProject = async (id: number, data: UpdateProjectDto) => {
   if (data.color) requestBody.themeColor = data.color;
   if (data.icon) requestBody.icon = data.icon;
 
-  return api.put<ProjectResponse>(endpoints.project.update(id), requestBody).then((res) => {
-    console.log('[project.api] updateProject response:', res);
-    // 兼容两种响应格式：{ code, message, data } 和直接返回 data
-    const projectData = res.data || (res as unknown as ProjectResponse);
-    return {
-      ...res,
-      data: mapProjectResponse(projectData),
-    };
-  });
+  const res = await api.put<ProjectResponse>(endpoints.project.update(id), requestBody);
+  console.log('[project.api] updateProject response:', res.data);
+  return {
+    ...res.data,
+    data: mapProjectResponse(res.data.data),
+  };
 };
 
 /**
@@ -196,7 +194,8 @@ export const deleteProject = async (id: number) => {
  * @param id 项目 ID
  */
 export const getProjectMembers = async (id: number) => {
-  return api.get<ProjectMember[]>(endpoints.project.members(id)).then((res) => res.data);
+  const res = await api.get<ProjectMember[]>(endpoints.project.members(id));
+  return res.data.data;
 };
 
 /**
@@ -224,5 +223,7 @@ export const removeProjectMember = async (projectId: number, userId: number) => 
  * 获取项目统计信息
  */
 export const getProjectStats = async () => {
-  return api.get<{ activeCount: number; completedCount: number; archivedCount: number; planningCount: number }>(endpoints.project.stats).then((res) => res.data);
+  const res = await api.get<{ activeCount: number; completedCount: number; archivedCount: number; planningCount: number }>(endpoints.project.stats);
+  console.log('项目统计数据:', res.data.data);
+  return res.data.data;
 };

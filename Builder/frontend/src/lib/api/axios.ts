@@ -71,8 +71,8 @@ apiClient.interceptors.request.use(
 // 响应拦截器 - 统一错误处理
 apiClient.interceptors.response.use(
   (response) => {
-    // 返回响应数据
-    return response.data;
+    // 返回完整响应，在 api 对象的方法中解包
+    return response;
   },
   (error: AxiosError<Result<unknown>>) => {
     // 401 错误 - Token 过期或未授权
@@ -107,19 +107,19 @@ apiClient.interceptors.response.use(
 // 封装的请求方法
 export const api = {
   get: <T>(url: string, config?: AxiosRequestConfig) =>
-    apiClient.get<Result<T>>(url, config).then((res) => res.data),
+    apiClient.get<Result<T>>(url, config).then((res) => res),
 
   post: <T>(url: string, data?: unknown, config?: AxiosRequestConfig) =>
-    apiClient.post<Result<T>>(url, data, config).then((res) => res.data),
+    apiClient.post<Result<T>>(url, data, config).then((res) => res),
 
   put: <T>(url: string, data?: unknown, config?: AxiosRequestConfig) =>
-    apiClient.put<Result<T>>(url, data, config).then((res) => res.data),
+    apiClient.put<Result<T>>(url, data, config).then((res) => res),
 
   patch: <T>(url: string, data?: unknown, config?: AxiosRequestConfig) =>
-    apiClient.patch<Result<T>>(url, data, config).then((res) => res.data),
+    apiClient.patch<Result<T>>(url, data, config).then((res) => res),
 
   delete: <T>(url: string, config?: AxiosRequestConfig) =>
-    apiClient.delete<Result<T>>(url, config).then((res) => res.data),
+    apiClient.delete<Result<T>>(url, config).then((res) => res),
 };
 
 export default apiClient;

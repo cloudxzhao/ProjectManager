@@ -55,24 +55,30 @@ export interface UpdateWikiDto {
  * @param projectId 项目 ID
  * @param params 查询参数
  */
-export const getWikis = (projectId: number, params?: QueryParams) =>
-  api.get<Wiki[]>(endpoints.wiki.list(projectId), { params });
+export const getWikis = async (projectId: number, params?: QueryParams) => {
+  const res = await api.get<Wiki[]>(endpoints.wiki.list(projectId), { params });
+  return res.data.data;
+};
 
 /**
  * 获取 Wiki 文档详情
  * @param projectId 项目 ID
  * @param id 文档 ID
  */
-export const getWiki = (projectId: number, id: number) =>
-  api.get<Wiki>(endpoints.wiki.detail(projectId, id));
+export const getWiki = async (projectId: number, id: number) => {
+  const res = await api.get<Wiki>(endpoints.wiki.detail(projectId, id));
+  return res.data.data;
+};
 
 /**
  * 创建 Wiki 文档
  * @param projectId 项目 ID
  * @param data 创建数据
  */
-export const createWiki = (projectId: number, data: CreateWikiDto) =>
-  api.post<Wiki>(endpoints.wiki.create(projectId), data);
+export const createWiki = async (projectId: number, data: CreateWikiDto) => {
+  const res = await api.post<Wiki>(endpoints.wiki.create(projectId), data);
+  return res.data.data;
+};
 
 /**
  * 更新 Wiki 文档
@@ -80,8 +86,10 @@ export const createWiki = (projectId: number, data: CreateWikiDto) =>
  * @param id 文档 ID
  * @param data 更新数据
  */
-export const updateWiki = (projectId: number, id: number, data: UpdateWikiDto) =>
-  api.put<Wiki>(endpoints.wiki.update(projectId, id), data);
+export const updateWiki = async (projectId: number, id: number, data: UpdateWikiDto) => {
+  const res = await api.put<Wiki>(endpoints.wiki.update(projectId, id), data);
+  return res.data.data;
+};
 
 /**
  * 删除 Wiki 文档

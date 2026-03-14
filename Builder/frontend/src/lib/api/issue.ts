@@ -74,24 +74,30 @@ export interface UpdateIssueDto {
  * @param projectId 项目 ID
  * @param params 查询参数
  */
-export const getIssues = (projectId: number, params?: QueryParams) =>
-  api.get<Issue[]>(endpoints.issue.list(projectId), { params });
+export const getIssues = async (projectId: number, params?: QueryParams) => {
+  const res = await api.get<Issue[]>(endpoints.issue.list(projectId), { params });
+  return res.data.data;
+};
 
 /**
  * 获取问题详情
  * @param projectId 项目 ID
  * @param id 问题 ID
  */
-export const getIssue = (projectId: number, id: number) =>
-  api.get<Issue>(endpoints.issue.detail(projectId, id));
+export const getIssue = async (projectId: number, id: number) => {
+  const res = await api.get<Issue>(endpoints.issue.detail(projectId, id));
+  return res.data.data;
+};
 
 /**
  * 创建问题
  * @param projectId 项目 ID
  * @param data 创建数据
  */
-export const createIssue = (projectId: number, data: CreateIssueDto) =>
-  api.post<Issue>(endpoints.issue.create(projectId), data);
+export const createIssue = async (projectId: number, data: CreateIssueDto) => {
+  const res = await api.post<Issue>(endpoints.issue.create(projectId), data);
+  return res.data.data;
+};
 
 /**
  * 更新问题
@@ -99,8 +105,10 @@ export const createIssue = (projectId: number, data: CreateIssueDto) =>
  * @param id 问题 ID
  * @param data 更新数据
  */
-export const updateIssue = (projectId: number, id: number, data: UpdateIssueDto) =>
-  api.put<Issue>(endpoints.issue.update(projectId, id), data);
+export const updateIssue = async (projectId: number, id: number, data: UpdateIssueDto) => {
+  const res = await api.put<Issue>(endpoints.issue.update(projectId, id), data);
+  return res.data.data;
+};
 
 /**
  * 删除问题

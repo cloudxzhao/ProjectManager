@@ -66,24 +66,30 @@ export interface UpdateUserStoryDto {
  * @param projectId 项目 ID
  * @param params 查询参数
  */
-export const getStories = (projectId: number, params?: QueryParams) =>
-  api.get<UserStory[]>(endpoints.story.list(projectId), { params });
+export const getStories = async (projectId: number, params?: QueryParams) => {
+  const res = await api.get<UserStory[]>(endpoints.story.list(projectId), { params });
+  return res.data.data;
+};
 
 /**
  * 获取用户故事详情
  * @param projectId 项目 ID
  * @param id 故事 ID
  */
-export const getStory = (projectId: number, id: number) =>
-  api.get<UserStory>(endpoints.story.detail(projectId, id));
+export const getStory = async (projectId: number, id: number) => {
+  const res = await api.get<UserStory>(endpoints.story.detail(projectId, id));
+  return res.data.data;
+};
 
 /**
  * 创建用户故事
  * @param projectId 项目 ID
  * @param data 创建数据
  */
-export const createStory = (projectId: number, data: CreateUserStoryDto) =>
-  api.post<UserStory>(endpoints.story.create(projectId), data);
+export const createStory = async (projectId: number, data: CreateUserStoryDto) => {
+  const res = await api.post<UserStory>(endpoints.story.create(projectId), data);
+  return res.data.data;
+};
 
 /**
  * 更新用户故事
@@ -91,8 +97,10 @@ export const createStory = (projectId: number, data: CreateUserStoryDto) =>
  * @param id 故事 ID
  * @param data 更新数据
  */
-export const updateStory = (projectId: number, id: number, data: UpdateUserStoryDto) =>
-  api.put<UserStory>(endpoints.story.update(projectId, id), data);
+export const updateStory = async (projectId: number, id: number, data: UpdateUserStoryDto) => {
+  const res = await api.put<UserStory>(endpoints.story.update(projectId, id), data);
+  return res.data.data;
+};
 
 /**
  * 删除用户故事
