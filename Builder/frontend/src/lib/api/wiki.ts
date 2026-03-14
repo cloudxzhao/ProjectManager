@@ -2,24 +2,8 @@
 
 import { api } from './axios';
 import { endpoints } from './endpoints';
-
-export interface Wiki {
-  id: number;
-  projectId: number;
-  parentDocId?: number;
-  title: string;
-  content: string;
-  summary?: string;
-  order: number;
-  authorId: number;
-  authorName?: string;
-  tags: string[];
-  isPublished: boolean;
-  viewCount: number;
-  createdAt: string;
-  updatedAt?: string;
-  children?: Wiki[]; // 树形结构子节点
-}
+import type { Wiki, CreateWikiDto, UpdateWikiDto, WikiQueryParams as QueryParams } from '@/types/wiki';
+export type { Wiki, QueryParams, CreateWikiDto, UpdateWikiDto };
 
 export interface WikiTreeNode {
   key: string | number;
@@ -28,36 +12,6 @@ export interface WikiTreeNode {
   isLeaf?: boolean;
   children?: WikiTreeNode[];
   data?: Wiki;
-}
-
-export interface QueryParams {
-  parentDocId?: number;
-  authorId?: number;
-  isPublished?: boolean;
-  page?: number;
-  pageSize?: number;
-  sort?: string;
-  order?: 'asc' | 'desc';
-}
-
-export interface CreateWikiDto {
-  projectId: number;
-  parentDocId?: number;
-  title: string;
-  content?: string;
-  summary?: string;
-  order?: number;
-  tags?: string[];
-  isPublished?: boolean;
-}
-
-export interface UpdateWikiDto {
-  title?: string;
-  content?: string;
-  summary?: string;
-  order?: number;
-  tags?: string[];
-  isPublished?: boolean;
 }
 
 /**

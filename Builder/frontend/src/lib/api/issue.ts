@@ -2,72 +2,8 @@
 
 import { api } from './axios';
 import { endpoints } from './endpoints';
-
-export interface Issue {
-  id: number;
-  projectId: number;
-  title: string;
-  description: string;
-  type: IssueType;
-  severity: Severity;
-  status: IssueStatus;
-  priority: Priority;
-  assigneeId?: number;
-  reporterId: number;
-  resolution?: string;
-  resolvedAt?: string;
-  dueDate?: string;
-  tags: string[];
-  createdAt: string;
-  updatedAt?: string;
-}
-
-export type IssueType = 'bug' | 'feature' | 'improvement' | 'task';
-
-export type Severity = 'critical' | 'high' | 'medium' | 'low';
-
-export type IssueStatus = 'open' | 'in_progress' | 'resolved' | 'closed';
-
-export type Priority = 'low' | 'medium' | 'high' | 'urgent';
-
-export interface QueryParams {
-  type?: IssueType;
-  severity?: Severity;
-  status?: IssueStatus;
-  priority?: Priority;
-  assigneeId?: number;
-  reporterId?: number;
-  page?: number;
-  pageSize?: number;
-  sort?: string;
-  order?: 'asc' | 'desc';
-}
-
-export interface CreateIssueDto {
-  projectId: number;
-  title: string;
-  description?: string;
-  type?: IssueType;
-  severity?: Severity;
-  status?: IssueStatus;
-  priority?: Priority;
-  assigneeId?: number;
-  dueDate?: string;
-  tags?: string[];
-}
-
-export interface UpdateIssueDto {
-  title?: string;
-  description?: string;
-  type?: IssueType;
-  severity?: Severity;
-  status?: IssueStatus;
-  priority?: Priority;
-  assigneeId?: number;
-  resolution?: string;
-  dueDate?: string;
-  tags?: string[];
-}
+import type { CreateIssueDto, UpdateIssueDto, Issue, IssueType, Severity, IssueStatus, Priority, IssueQueryParams as QueryParams } from '@/types/issue';
+export type { Issue, IssueType, Severity, IssueStatus, Priority, QueryParams, CreateIssueDto, UpdateIssueDto };
 
 /**
  * 获取项目下所有问题

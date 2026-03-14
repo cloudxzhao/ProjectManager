@@ -18,7 +18,6 @@ export interface Wiki {
 }
 
 export interface CreateWikiDto {
-  projectId: number;
   parentDocId?: number;
   title: string;
   content?: string;

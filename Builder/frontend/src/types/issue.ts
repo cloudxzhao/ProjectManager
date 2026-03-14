@@ -28,7 +28,6 @@ export type IssueStatus = 'open' | 'in_progress' | 'resolved' | 'closed';
 export type Priority = 'low' | 'medium' | 'high' | 'urgent';
 
 export interface CreateIssueDto {
-  projectId: number;
   title: string;
   description?: string;
   type?: IssueType;

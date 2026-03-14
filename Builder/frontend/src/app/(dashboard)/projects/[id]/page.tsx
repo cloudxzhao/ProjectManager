@@ -29,10 +29,10 @@ import {
 import Link from 'next/link';
 import dayjs from 'dayjs';
 import { getProject, deleteProject, updateProject } from '@/lib/api/project';
-import { getTasks, getTask, updateTask, deleteTask } from '@/lib/api/task';
-import { getStories, getStory, updateStory, deleteStory } from '@/lib/api/story';
-import { getIssues, getIssue, updateIssue, deleteIssue } from '@/lib/api/issue';
-import { getWikiTree } from '@/lib/api/wiki';
+import { getTasks, getTask, updateTask, deleteTask, createTask, CreateTaskDto } from '@/lib/api/task';
+import { getStories, getStory, updateStory, deleteStory, createStory, CreateUserStoryDto } from '@/lib/api/story';
+import { getIssues, getIssue, updateIssue, deleteIssue, createIssue, CreateIssueDto } from '@/lib/api/issue';
+import { getWikiTree, createWiki, CreateWikiDto } from '@/lib/api/wiki';
 import { getBurndown } from '@/lib/api/report';
 import type { Project, ProjectStatus } from '@/lib/api/project';
 import type { Task } from '@/lib/api/task';
@@ -187,6 +187,23 @@ export default function ProjectDetailPage() {
   const [issueEditOpen, setIssueEditOpen] = useState(false);
   const [issueEditLoading, setIssueEditLoading] = useState(false);
   const [issueForm] = Form.useForm();
+
+  // 创建相关状态
+  const [storyCreateOpen, setStoryCreateOpen] = useState(false);
+  const [storyCreateLoading, setStoryCreateLoading] = useState(false);
+  const [storyCreateForm] = Form.useForm();
+
+  const [taskCreateOpen, setTaskCreateOpen] = useState(false);
+  const [taskCreateLoading, setTaskCreateLoading] = useState(false);
+  const [taskCreateForm] = Form.useForm();
+
+  const [issueCreateOpen, setIssueCreateOpen] = useState(false);
+  const [issueCreateLoading, setIssueCreateLoading] = useState(false);
+  const [issueCreateForm] = Form.useForm();
+
+  const [wikiCreateOpen, setWikiCreateOpen] = useState(false);
+  const [wikiCreateLoading, setWikiCreateLoading] = useState(false);
+  const [wikiCreateForm] = Form.useForm();
 
   // 获取项目详情
   const fetchProject = async () => {
@@ -471,6 +488,26 @@ export default function ProjectDetailPage() {
     wiki: '创建 Wiki',
   };
 
+  // 创建按钮点击处理
+  const handleCreateButtonClick = () => {
+    switch (activeTab) {
+      case 'stories':
+        setStoryCreateOpen(true);
+        break;
+      case 'tasks':
+        setTaskCreateOpen(true);
+        break;
+      case 'issues':
+        setIssueCreateOpen(true);
+        break;
+      case 'wiki':
+        setWikiCreateOpen(true);
+        break;
+      default:
+        message.info('当前页签暂不支持创建功能');
+    }
+  };
+
   // 页签切换处理
   const handleTabChange = (key: string) => {
     setActiveTab(key);
@@ -684,6 +721,115 @@ export default function ProjectDetailPage() {
       message.error(errorMessage);
     } finally {
       setIssueEditLoading(false);
+    }
+  };
+
+  // 处理用户故事创建提交
+  const handleStoryCreateSubmit = async (values: any) => {
+    setStoryCreateLoading(true);
+    try {
+      await createStory(Number(projectId), {
+        title: values.title,
+        description: values.description,
+        acceptanceCriteria: values.acceptanceCriteria,
+        priority: values.priority,
+        assigneeId: values.assigneeId,
+        storyPoints: values.storyPoints,
+      });
+
+      message.success('用户故事创建成功');
+      setStoryCreateOpen(false);
+      storyCreateForm.resetFields();
+      // 刷新用户故事列表
+      await fetchStories(Number(projectId), storiesPage);
+    } catch (error: unknown) {
+      const errorMessage = error instanceof Error ? error.message : '创建失败，请稍后重试';
+      message.error(errorMessage);
+    } finally {
+      setStoryCreateLoading(false);
+    }
+  };
+
+  // 处理任务创建提交
+  const handleTaskCreateSubmit = async (values: any) => {
+    setTaskCreateLoading(true);
+    try {
+      await createTask(Number(projectId), {
+        title: values.title,
+        description: values.description,
+        status: values.status,
+        priority: values.priority,
+        assigneeId: values.assigneeId,
+        storyPoints: values.storyPoints,
+        dueDate: values.dueDate ? dayjs(values.dueDate).format('YYYY-MM-DD') : undefined,
+        tags: values.tags ? values.tags.split(',').map((t: string) => t.trim()) : [],
+        userStoryId: values.userStoryId,
+      });
+
+      message.success('任务创建成功');
+      setTaskCreateOpen(false);
+      taskCreateForm.resetFields();
+      // 刷新任务列表
+      await fetchProject();
+    } catch (error: unknown) {
+      const errorMessage = error instanceof Error ? error.message : '创建失败，请稍后重试';
+      message.error(errorMessage);
+    } finally {
+      setTaskCreateLoading(false);
+    }
+  };
+
+  // 处理问题创建提交
+  const handleIssueCreateSubmit = async (values: any) => {
+    setIssueCreateLoading(true);
+    try {
+      await createIssue(Number(projectId), {
+        title: values.title,
+        description: values.description,
+        type: values.type,
+        severity: values.severity,
+        status: values.status,
+        priority: values.priority,
+        assigneeId: values.assigneeId,
+        dueDate: values.dueDate ? dayjs(values.dueDate).format('YYYY-MM-DD') : undefined,
+        tags: values.tags ? values.tags.split(',').map((t: string) => t.trim()) : [],
+      });
+
+      message.success('问题创建成功');
+      setIssueCreateOpen(false);
+      issueCreateForm.resetFields();
+      // 刷新问题列表
+      await fetchProject();
+    } catch (error: unknown) {
+      const errorMessage = error instanceof Error ? error.message : '创建失败，请稍后重试';
+      message.error(errorMessage);
+    } finally {
+      setIssueCreateLoading(false);
+    }
+  };
+
+  // 处理 Wiki 创建提交
+  const handleWikiCreateSubmit = async (values: any) => {
+    setWikiCreateLoading(true);
+    try {
+      await createWiki(Number(projectId), {
+        title: values.title,
+        content: values.content || '',
+        summary: values.summary,
+        isPublished: values.isPublished ?? false,
+        tags: values.tags ? values.tags.split(',').map((t: string) => t.trim()) : [],
+      });
+
+      message.success('Wiki 文档创建成功');
+      setWikiCreateOpen(false);
+      wikiCreateForm.resetFields();
+      // 刷新 Wiki 树
+      await fetchWikiTree(Number(projectId));
+    } catch (error: unknown) {
+      const errorMessage = error instanceof Error ? error.message : '创建失败，请稍后重试';
+      message.error(errorMessage);
+    } finally {
+      setWikiCreateLoading(false);
     }
   };
 
@@ -1377,6 +1523,7 @@ export default function ProjectDetailPage() {
               icon={<PlusOutlined />}
               size="small"
               className="whitespace-nowrap"
+              onClick={handleCreateButtonClick}
             >
               {tabButtonTextMap[activeTab] || '创建'}
             </Button>
@@ -2088,6 +2235,419 @@ export default function ProjectDetailPage() {
                 placeholder="输入标签，用逗号分隔"
                 className="bg-gray-700/50 border-gray-600 text-white"
               />
+            </Form.Item>
+          </Form>
+        </div>
+      </Modal>
+
+      {/* 用户故事创建弹框 */}
+      <Modal
+        title="创建用户故事"
+        open={storyCreateOpen}
+        onCancel={() => setStoryCreateOpen(false)}
+        onOk={() => storyCreateForm.submit()}
+        confirmLoading={storyCreateLoading}
+        className="glass-dark"
+        width={700}
+      >
+        <div className="max-h-[70vh] overflow-y-auto pr-4">
+          <Form
+            form={storyCreateForm}
+            layout="vertical"
+            onFinish={handleStoryCreateSubmit}
+            size="large"
+          >
+            <Form.Item
+              name="title"
+              label="标题"
+              rules={[{ required: true, message: '请输入用户故事标题' }]}
+            >
+              <Input
+                placeholder="请输入标题"
+                className="bg-gray-700/50 border-gray-600 text-white"
+              />
+            </Form.Item>
+
+            <Form.Item
+              name="description"
+              label="描述"
+            >
+              <TextArea
+                rows={4}
+                placeholder="描述用户故事..."
+                className="bg-gray-700/50 border-gray-600 text-white"
+              />
+            </Form.Item>
+
+            <Form.Item
+              name="acceptanceCriteria"
+              label="验收标准"
+            >
+              <TextArea
+                rows={3}
+                placeholder="输入验收标准..."
+                className="bg-gray-700/50 border-gray-600 text-white"
+              />
+            </Form.Item>
+
+            <div className="grid grid-cols-2 gap-4">
+              <Form.Item
+                name="priority"
+                label="优先级"
+              >
+                <Select className="bg-gray-700/50 border-gray-600">
+                  <Select.Option value="LOW">低</Select.Option>
+                  <Select.Option value="MEDIUM">中</Select.Option>
+                  <Select.Option value="HIGH">高</Select.Option>
+                  <Select.Option value="URGENT">紧急</Select.Option>
+                </Select>
+              </Form.Item>
+
+              <Form.Item
+                name="storyPoints"
+                label="故事点数"
+              >
+                <Input
+                  type="number"
+                  placeholder="输入故事点数"
+                  className="bg-gray-700/50 border-gray-600 text-white"
+                />
+              </Form.Item>
+            </div>
+
+            <Form.Item
+              name="assigneeId"
+              label="负责人 ID"
+            >
+              <Input
+                type="number"
+                placeholder="输入负责人 ID"
+                className="bg-gray-700/50 border-gray-600 text-white"
+              />
+            </Form.Item>
+          </Form>
+        </div>
+      </Modal>
+
+      {/* 任务创建弹框 */}
+      <Modal
+        title="创建任务"
+        open={taskCreateOpen}
+        onCancel={() => setTaskCreateOpen(false)}
+        onOk={() => taskCreateForm.submit()}
+        confirmLoading={taskCreateLoading}
+        className="glass-dark"
+        width={700}
+      >
+        <div className="max-h-[70vh] overflow-y-auto pr-4">
+          <Form
+            form={taskCreateForm}
+            layout="vertical"
+            onFinish={handleTaskCreateSubmit}
+            size="large"
+          >
+            <Form.Item
+              name="title"
+              label="标题"
+              rules={[{ required: true, message: '请输入任务标题' }]}
+            >
+              <Input
+                placeholder="请输入标题"
+                className="bg-gray-700/50 border-gray-600 text-white"
+              />
+            </Form.Item>
+
+            <Form.Item
+              name="description"
+              label="描述"
+            >
+              <TextArea
+                rows={4}
+                placeholder="描述任务..."
+                className="bg-gray-700/50 border-gray-600 text-white"
+              />
+            </Form.Item>
+
+            <div className="grid grid-cols-2 gap-4">
+              <Form.Item
+                name="status"
+                label="状态"
+              >
+                <Select className="bg-gray-700/50 border-gray-600">
+                  <Select.Option value="todo">待办</Select.Option>
+                  <Select.Option value="in_progress">进行中</Select.Option>
+                  <Select.Option value="testing">测试中</Select.Option>
+                  <Select.Option value="done">已完成</Select.Option>
+                </Select>
+              </Form.Item>
+
+              <Form.Item
+                name="priority"
+                label="优先级"
+              >
+                <Select className="bg-gray-700/50 border-gray-600">
+                  <Select.Option value="low">低</Select.Option>
+                  <Select.Option value="medium">中</Select.Option>
+                  <Select.Option value="high">高</Select.Option>
+                  <Select.Option value="urgent">紧急</Select.Option>
+                </Select>
+              </Form.Item>
+            </div>
+
+            <div className="grid grid-cols-2 gap-4">
+              <Form.Item
+                name="assigneeId"
+                label="负责人 ID"
+              >
+                <Input
+                  type="number"
+                  placeholder="输入负责人 ID"
+                  className="bg-gray-700/50 border-gray-600 text-white"
+                />
+              </Form.Item>
+
+              <Form.Item
+                name="storyPoints"
+                label="故事点数"
+              >
+                <Input
+                  type="number"
+                  placeholder="输入故事点数"
+                  className="bg-gray-700/50 border-gray-600 text-white"
+                />
+              </Form.Item>
+            </div>
+
+            <Form.Item
+              name="dueDate"
+              label="截止日期"
+            >
+              <DatePicker
+                className="w-full bg-gray-700/50 border-gray-600 text-white"
+                format="YYYY-MM-DD"
+              />
+            </Form.Item>
+
+            <Form.Item
+              name="tags"
+              label="标签（逗号分隔）"
+            >
+              <Input
+                placeholder="输入标签，用逗号分隔"
+                className="bg-gray-700/50 border-gray-600 text-white"
+              />
+            </Form.Item>
+
+            <Form.Item
+              name="userStoryId"
+              label="关联用户故事 ID"
+            >
+              <Input
+                type="number"
+                placeholder="输入用户故事 ID（可选）"
+                className="bg-gray-700/50 border-gray-600 text-white"
+              />
+            </Form.Item>
+          </Form>
+        </div>
+      </Modal>
+
+      {/* 问题创建弹框 */}
+      <Modal
+        title="创建问题"
+        open={issueCreateOpen}
+        onCancel={() => setIssueCreateOpen(false)}
+        onOk={() => issueCreateForm.submit()}
+        confirmLoading={issueCreateLoading}
+        className="glass-dark"
+        width={700}
+      >
+        <div className="max-h-[70vh] overflow-y-auto pr-4">
+          <Form
+            form={issueCreateForm}
+            layout="vertical"
+            onFinish={handleIssueCreateSubmit}
+            size="large"
+          >
+            <Form.Item
+              name="title"
+              label="标题"
+              rules={[{ required: true, message: '请输入问题标题' }]}
+            >
+              <Input
+                placeholder="请输入标题"
+                className="bg-gray-700/50 border-gray-600 text-white"
+              />
+            </Form.Item>
+
+            <Form.Item
+              name="description"
+              label="描述"
+            >
+              <TextArea
+                rows={4}
+                placeholder="描述问题..."
+                className="bg-gray-700/50 border-gray-600 text-white"
+              />
+            </Form.Item>
+
+            <div className="grid grid-cols-2 gap-4">
+              <Form.Item
+                name="type"
+                label="类型"
+              >
+                <Select className="bg-gray-700/50 border-gray-600">
+                  <Select.Option value="bug">缺陷</Select.Option>
+                  <Select.Option value="feature">功能</Select.Option>
+                  <Select.Option value="improvement">改进</Select.Option>
+                  <Select.Option value="task">任务</Select.Option>
+                </Select>
+              </Form.Item>
+
+              <Form.Item
+                name="severity"
+                label="严重程度"
+              >
+                <Select className="bg-gray-700/50 border-gray-600">
+                  <Select.Option value="critical">严重</Select.Option>
+                  <Select.Option value="high">高</Select.Option>
+                  <Select.Option value="medium">中</Select.Option>
+                  <Select.Option value="low">低</Select.Option>
+                </Select>
+              </Form.Item>
+            </div>
+
+            <div className="grid grid-cols-2 gap-4">
+              <Form.Item
+                name="status"
+                label="状态"
+              >
+                <Select className="bg-gray-700/50 border-gray-600">
+                  <Select.Option value="open">打开</Select.Option>
+                  <Select.Option value="in_progress">进行中</Select.Option>
+                  <Select.Option value="resolved">已解决</Select.Option>
+                  <Select.Option value="closed">已关闭</Select.Option>
+                </Select>
+              </Form.Item>
+
+              <Form.Item
+                name="priority"
+                label="优先级"
+              >
+                <Select className="bg-gray-700/50 border-gray-600">
+                  <Select.Option value="low">低</Select.Option>
+                  <Select.Option value="medium">中</Select.Option>
+                  <Select.Option value="high">高</Select.Option>
+                  <Select.Option value="urgent">紧急</Select.Option>
+                </Select>
+              </Form.Item>
+            </div>
+
+            <div className="grid grid-cols-2 gap-4">
+              <Form.Item
+                name="assigneeId"
+                label="负责人 ID"
+              >
+                <Input
+                  type="number"
+                  placeholder="输入负责人 ID"
+                  className="bg-gray-700/50 border-gray-600 text-white"
+                />
+              </Form.Item>
+
+              <Form.Item
+                name="dueDate"
+                label="截止日期"
+              >
+                <DatePicker
+                  className="w-full bg-gray-700/50 border-gray-600 text-white"
+                  format="YYYY-MM-DD"
+                />
+              </Form.Item>
+            </div>
+
+            <Form.Item
+              name="tags"
+              label="标签（逗号分隔）"
+            >
+              <Input
+                placeholder="输入标签，用逗号分隔"
+                className="bg-gray-700/50 border-gray-600 text-white"
+              />
+            </Form.Item>
+          </Form>
+        </div>
+      </Modal>
+
+      {/* Wiki 创建弹框 */}
+      <Modal
+        title="创建 Wiki 文档"
+        open={wikiCreateOpen}
+        onCancel={() => setWikiCreateOpen(false)}
+        onOk={() => wikiCreateForm.submit()}
+        confirmLoading={wikiCreateLoading}
+        className="glass-dark"
+        width={700}
+      >
+        <div className="max-h-[70vh] overflow-y-auto pr-4">
+          <Form
+            form={wikiCreateForm}
+            layout="vertical"
+            onFinish={handleWikiCreateSubmit}
+            size="large"
+          >
+            <Form.Item
+              name="title"
+              label="标题"
+              rules={[{ required: true, message: '请输入 Wiki 标题' }]}
+            >
+              <Input
+                placeholder="请输入标题"
+                className="bg-gray-700/50 border-gray-600 text-white"
+              />
+            </Form.Item>
+
+            <Form.Item
+              name="summary"
+              label="摘要"
+            >
+              <TextArea
+                rows={2}
+                placeholder="输入文档摘要..."
+                className="bg-gray-700/50 border-gray-600 text-white"
+              />
+            </Form.Item>
+
+            <Form.Item
+              name="content"
+              label="内容"
+            >
+              <TextArea
+                rows={10}
+                placeholder="输入 Wiki 内容..."
+                className="bg-gray-700/50 border-gray-600 text-white"
+              />
+            </Form.Item>
+
+            <Form.Item
+              name="tags"
+              label="标签（逗号分隔）"
+            >
+              <Input
+                placeholder="输入标签，用逗号分隔"
+                className="bg-gray-700/50 border-gray-600 text-white"
+              />
+            </Form.Item>
+
+            <Form.Item
+              name="isPublished"
+              label="发布状态"
+              valuePropName="checked"
+            >
+              <Select className="bg-gray-700/50 border-gray-600">
+                <Select.Option value={false}>草稿</Select.Option>
+                <Select.Option value={true}>已发布</Select.Option>
+              </Select>
             </Form.Item>
           </Form>
         </div>

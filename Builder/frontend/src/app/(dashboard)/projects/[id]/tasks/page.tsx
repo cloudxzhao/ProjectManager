@@ -419,7 +419,6 @@ export default function TaskBoardPage() {
       const status = columnToStatus[columnId] || 'todo';
 
       await createTaskApi(projectIdNum, {
-        projectId: projectIdNum,
         title: values.title,
         description: values.description,
         priority: values.priority || 'medium',

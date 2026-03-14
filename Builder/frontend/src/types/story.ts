@@ -22,7 +22,6 @@ export type StoryStatus = 'todo' | 'in_progress' | 'testing' | 'done';
 export type Priority = 'low' | 'medium' | 'high' | 'urgent';
 
 export interface CreateUserStoryDto {
-  projectId: number;
   epicId?: number;
   title: string;
   description?: string;
