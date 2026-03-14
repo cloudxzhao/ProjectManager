@@ -4,10 +4,10 @@ import com.projecthub.common.response.PageResult;
 import com.projecthub.common.response.Result;
 import com.projecthub.module.project.dto.CreateProjectRequest;
 import com.projecthub.module.project.dto.ProjectMemberDTO;
+import com.projecthub.module.project.dto.ProjectMemberVO;
 import com.projecthub.module.project.dto.ProjectStatsDTO;
 import com.projecthub.module.project.dto.ProjectVO;
 import com.projecthub.module.project.dto.UpdateProjectRequest;
-import com.projecthub.module.project.entity.ProjectMember;
 import com.projecthub.module.project.service.ProjectService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -93,8 +93,8 @@ public class ProjectController {
   /** 获取项目成员列表 */
   @GetMapping("/{id}/members")
   @Operation(summary = "获取项目成员列表", description = "获取项目下的所有成员")
-  public Result<List<ProjectMember>> getProjectMembers(@PathVariable Long id) {
-    List<ProjectMember> members = projectService.getProjectMembers(id);
+  public Result<List<ProjectMemberVO>> getProjectMembers(@PathVariable Long id) {
+    List<ProjectMemberVO> members = projectService.getProjectMembers(id);
     return Result.success(members);
   }
 

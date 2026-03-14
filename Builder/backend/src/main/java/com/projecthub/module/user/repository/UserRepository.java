@@ -1,6 +1,7 @@
 package com.projecthub.module.user.repository;
 
 import com.projecthub.module.user.entity.User;
+import java.util.List;
 import java.util.Optional;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
@@ -35,4 +36,8 @@ public interface UserRepository extends JpaRepository<User, Long> {
               + "WHERE ur.user_id = :userId LIMIT 1",
       nativeQuery = true)
   String findRoleCodeByUserId(@Param("userId") Long userId);
+
+  /** 根据用户 ID 列表查询用户 */
+  @Query("SELECT u FROM User u WHERE u.id IN :userIds AND u.deletedAt IS NULL")
+  List<com.projecthub.module.user.entity.User> findByIds(@Param("userIds") List<Long> userIds);
 }

@@ -6,6 +6,7 @@ import com.projecthub.common.response.PageResult;
 import com.projecthub.common.util.BeanCopyUtil;
 import com.projecthub.module.project.dto.CreateProjectRequest;
 import com.projecthub.module.project.dto.ProjectMemberDTO;
+import com.projecthub.module.project.dto.ProjectMemberVO;
 import com.projecthub.module.project.dto.ProjectStatsDTO;
 import com.projecthub.module.project.dto.ProjectVO;
 import com.projecthub.module.project.dto.UpdateProjectRequest;
@@ -13,8 +14,12 @@ import com.projecthub.module.project.entity.Project;
 import com.projecthub.module.project.entity.ProjectMember;
 import com.projecthub.module.project.repository.ProjectMemberRepository;
 import com.projecthub.module.project.repository.ProjectRepository;
+import com.projecthub.module.user.entity.User;
+import com.projecthub.module.user.repository.UserRepository;
 import com.projecthub.security.UserDetailsImpl;
+import java.time.format.DateTimeFormatter;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -34,6 +39,7 @@ public class ProjectService {
   private final ProjectRepository projectRepository;
   private final ProjectMemberRepository memberRepository;
   private final PermissionService permissionService;
+  private final UserRepository userRepository;
 
   /** 填充项目统计信息 */
   private void populateProjectStats(ProjectVO projectVO) {
@@ -305,8 +311,43 @@ public class ProjectService {
 
   /** 获取项目成员列表 */
   @Transactional(readOnly = true)
-  public List<ProjectMember> getProjectMembers(Long projectId) {
-    return memberRepository.findByProjectId(projectId);
+  public List<ProjectMemberVO> getProjectMembers(Long projectId) {
+    // 查询项目成员
+    List<ProjectMember> members = memberRepository.findByProjectId(projectId);
+
+    if (members.isEmpty()) {
+      return List.of();
+    }
+
+    // 提取用户 ID 列表
+    List<Long> userIds =
+        members.stream().map(ProjectMember::getUserId).collect(Collectors.toList());
+
+    // 批量查询用户信息
+    List<User> users = userRepository.findByIds(userIds);
+    Map<Long, User> userMap = users.stream().collect(Collectors.toMap(User::getId, u -> u));
+
+    //  DateTimeFormatter
+    DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
+
+    // 封装返回结果
+    return members.stream()
+        .map(
+            member -> {
+              User user = userMap.get(member.getUserId());
+              return ProjectMemberVO.builder()
+                  .id(member.getId())
+                  .projectId(member.getProjectId())
+                  .userId(member.getUserId())
+                  .username(user != null ? user.getUsername() : "")
+                  .nickname(user != null ? user.getNickname() : "")
+                  .avatar(user != null ? user.getAvatar() : "")
+                  .email(user != null ? user.getEmail() : "")
+                  .role(member.getRole().name())
+                  .joinedAt(member.getJoinedAt().format(formatter))
+                  .build();
+            })
+        .collect(Collectors.toList());
   }
 
   /** 获取项目统计信息 */
