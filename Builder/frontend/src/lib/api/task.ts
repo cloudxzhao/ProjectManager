@@ -242,7 +242,7 @@ export const toggleTaskComplete = async (projectId: number, taskId: number) => {
  */
 export const getSubTasks = async (projectId: number, taskId: number) => {
   const result = await api.get<SubTask[]>(endpoints.task.subtasks(projectId, taskId));
-  return result.data || [];
+  return result.data.data || [];
 };
 
 /**
@@ -273,7 +273,7 @@ export const deleteSubTask = async (projectId: number, taskId: number, subtaskId
  */
 export const getTaskComments = async (projectId: number, taskId: number) => {
   const result = await api.get<TaskComment[]>(endpoints.task.comments(projectId, taskId));
-  return result.data || [];
+  return result.data.data || [];
 };
 
 /**

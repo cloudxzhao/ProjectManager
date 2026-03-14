@@ -3,9 +3,9 @@
 import { useState, useEffect, useMemo } from 'react';
 import { useRouter } from 'next/navigation';
 import {
-  Card, Button, Tag, Avatar, message, Spin, Select,
+  Card, Button, Tag, Avatar, message, Spin, Select, Input,
 } from 'antd';
-import { PlusOutlined, ClockCircleOutlined, FlagOutlined, UserOutlined } from '@ant-design/icons';
+import { PlusOutlined, ClockCircleOutlined, FlagOutlined, UserOutlined, SearchOutlined, ClearOutlined } from '@ant-design/icons';
 import { DndContext, DragEndEvent, closestCenter } from '@dnd-kit/core';
 import { SortableContext, verticalListSortingStrategy, useSortable } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
@@ -175,7 +175,11 @@ export default function TaskBoardPage() {
   const [loading, setLoading] = useState(true);
   const [projects, setProjects] = useState<Project[]>([]);
   const [tasks, setTasks] = useState<TaskBoardItem[]>([]);
+
+  // 筛选状态
   const [selectedProject, setSelectedProject] = useState<string>('all');
+  const [selectedPriority, setSelectedPriority] = useState<string>('all');
+  const [searchKeyword, setSearchKeyword] = useState<string>('');
 
   // 加载项目和任务
   useEffect(() => {
@@ -223,13 +227,31 @@ export default function TaskBoardPage() {
     loadData();
   }, []);
 
-  // 根据项目筛选任务
+  // 多条件筛选任务
   const filteredTasks = useMemo(() => {
-    if (selectedProject === 'all') {
-      return tasks;
-    }
-    return tasks.filter((task) => task.projectId === Number(selectedProject));
-  }, [tasks, selectedProject]);
+    return tasks.filter((task) => {
+      // 项目筛选
+      if (selectedProject !== 'all' && task.projectId !== Number(selectedProject)) {
+        return false;
+      }
+      // 优先级筛选
+      if (selectedPriority !== 'all' && task.priority !== selectedPriority) {
+        return false;
+      }
+      // 关键词搜索（标题）
+      if (searchKeyword && !task.title.toLowerCase().includes(searchKeyword.toLowerCase())) {
+        return false;
+      }
+      return true;
+    });
+  }, [tasks, selectedProject, selectedPriority, searchKeyword]);
+
+  // 清空筛选
+  const handleClearFilters = () => {
+    setSelectedProject('all');
+    setSelectedPriority('all');
+    setSearchKeyword('');
+  };
 
   // 处理拖拽结束
   const handleDragEnd = async (event: DragEndEvent) => {
@@ -292,26 +314,76 @@ export default function TaskBoardPage() {
 
   return (
     <div className="space-y-4">
-      {/* 页面头部 */}
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-2xl font-bold text-white">任务看板</h1>
-          <p className="text-gray-400 text-sm mt-1">查看所有项目的任务，拖拽卡片更新状态</p>
+      {/* 页面头部 - 筛选区域 */}
+      <div className="space-y-3">
+        <div className="flex items-center justify-between">
+          <div>
+            <h1 className="text-2xl font-bold text-white">任务看板</h1>
+            <p className="text-gray-400 text-sm mt-1">查看所有项目的任务，拖拽卡片更新状态</p>
+          </div>
         </div>
-        <Select
-          value={selectedProject}
-          onChange={setSelectedProject}
-          className="w-48"
-          placeholder="选择项目"
-          allowClear
-        >
-          <Option value="all">全部项目</Option>
-          {projects.map((project) => (
-            <Option key={project.id} value={project.id}>
-              {project.name}
-            </Option>
-          ))}
-        </Select>
+
+        {/* 筛选工具栏 */}
+        <div className="flex items-center gap-3 flex-wrap">
+          {/* 关键词搜索 */}
+          <Input
+            placeholder="搜索任务标题..."
+            prefix={<SearchOutlined className="text-gray-400" />}
+            value={searchKeyword}
+            onChange={(e) => setSearchKeyword(e.target.value)}
+            allowClear
+            className="w-64 bg-gray-800/50 border-gray-700 text-white placeholder-gray-500"
+          />
+
+          {/* 项目筛选 */}
+          <Select
+            value={selectedProject}
+            onChange={setSelectedProject}
+            className="w-40"
+            placeholder="选择项目"
+            allowClear
+            dropdownClassName="bg-gray-800 border-gray-700"
+          >
+            <Option value="all">全部项目</Option>
+            {projects.map((project) => (
+              <Option key={project.id} value={project.id}>
+                {project.name}
+              </Option>
+            ))}
+          </Select>
+
+          {/* 优先级筛选 */}
+          <Select
+            value={selectedPriority}
+            onChange={setSelectedPriority}
+            className="w-32"
+            placeholder="优先级"
+            allowClear
+            dropdownClassName="bg-gray-800 border-gray-700"
+          >
+            <Option value="all">全部优先级</Option>
+            <Option value="urgent">紧急</Option>
+            <Option value="high">高</Option>
+            <Option value="medium">中</Option>
+            <Option value="low">低</Option>
+          </Select>
+
+          {/* 清空筛选按钮 */}
+          {(selectedProject !== 'all' || selectedPriority !== 'all' || searchKeyword) && (
+            <Button
+              icon={<ClearOutlined />}
+              onClick={handleClearFilters}
+              className="flex items-center gap-1"
+            >
+              清空筛选
+            </Button>
+          )}
+
+          {/* 筛选结果统计 */}
+          <span className="text-gray-400 text-sm ml-auto">
+            显示 <span className="text-orange-400 font-medium">{filteredTasks.length}</span> 个任务
+          </span>
+        </div>
       </div>
 
       {/* 加载状态 */}

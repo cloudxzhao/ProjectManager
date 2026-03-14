@@ -24,6 +24,7 @@ import {
   CheckSquareOutlined,
   FolderOutlined,
   FileOutlined,
+  EyeOutlined,
 } from '@ant-design/icons';
 import Link from 'next/link';
 import dayjs from 'dayjs';
@@ -453,6 +454,37 @@ export default function ProjectDetailPage() {
     setActiveTab(key);
   };
 
+  // 处理查看详情
+  const handleViewStory = (story: UserStory) => {
+    message.info(`查看用户故事：${story.title}`);
+    // TODO: 打开详情抽屉或弹窗
+  };
+
+  const handleViewTask = (task: Task) => {
+    router.push(`/projects/${projectId}/tasks/${task.id}`);
+  };
+
+  const handleViewIssue = (issue: Issue) => {
+    message.info(`查看问题：${issue.title}`);
+    // TODO: 打开详情抽屉或弹窗
+  };
+
+  // 处理编辑
+  const handleEditStory = (story: UserStory) => {
+    message.info(`编辑用户故事：${story.title}`);
+    // TODO: 打开编辑抽屉或弹窗
+  };
+
+  const handleEditTask = (task: Task) => {
+    message.info(`编辑任务：${task.title}`);
+    // TODO: 打开编辑抽屉或弹窗
+  };
+
+  const handleEditIssue = (issue: Issue) => {
+    message.info(`编辑问题：${issue.title}`);
+    // TODO: 打开编辑抽屉或弹窗
+  };
+
   // 页签内容
   const tabItems: TabsProps['items'] = [
     {
@@ -546,6 +578,34 @@ export default function ProjectDetailPage() {
                       )
                     ),
                   },
+                  {
+                    title: '操作',
+                    key: 'action',
+                    width: 100,
+                    fixed: 'right',
+                    render: (_: unknown, record: UserStory) => (
+                      <div className="flex items-center gap-2">
+                        <Button
+                          type="text"
+                          icon={<EyeOutlined />}
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handleViewStory(record);
+                          }}
+                          title="查看详情"
+                        />
+                        <Button
+                          type="text"
+                          icon={<EditOutlined />}
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handleEditStory(record);
+                          }}
+                          title="编辑"
+                        />
+                      </div>
+                    ),
+                  },
                 ].filter(Boolean) as TableColumnsType<UserStory>}
               />
             </>
@@ -633,6 +693,34 @@ export default function ProjectDetailPage() {
                   </span>
                 ),
               },
+              {
+                title: '操作',
+                key: 'action',
+                width: 100,
+                fixed: 'right',
+                render: (_: unknown, record: Task) => (
+                  <div className="flex items-center gap-2">
+                    <Button
+                      type="text"
+                      icon={<EyeOutlined />}
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        handleViewTask(record);
+                      }}
+                      title="查看详情"
+                    />
+                    <Button
+                      type="text"
+                      icon={<EditOutlined />}
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        handleEditTask(record);
+                      }}
+                      title="编辑"
+                    />
+                  </div>
+                ),
+              },
             ].filter(Boolean) as TableColumnsType<Task>}
           />
         </div>
@@ -716,6 +804,34 @@ export default function ProjectDetailPage() {
                   ) : (
                     <span className="text-gray-500">-</span>
                   )
+                ),
+              },
+              {
+                title: '操作',
+                key: 'action',
+                width: 100,
+                fixed: 'right',
+                render: (_: unknown, record: Issue) => (
+                  <div className="flex items-center gap-2">
+                    <Button
+                      type="text"
+                      icon={<EyeOutlined />}
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        handleViewIssue(record);
+                      }}
+                      title="查看详情"
+                    />
+                    <Button
+                      type="text"
+                      icon={<EditOutlined />}
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        handleEditIssue(record);
+                      }}
+                      title="编辑"
+                    />
+                  </div>
                 ),
               },
             ].filter(Boolean) as TableColumnsType<Issue>}

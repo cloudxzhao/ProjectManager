@@ -110,7 +110,7 @@ export interface UpdateUserStoryDto {
  */
 function convertPageResult<T>(pageResult: PageResult<T>): PageInfo<T> {
   return {
-    items: pageResult.list,
+    items: pageResult.list as T[],
     total: pageResult.total,
     page: pageResult.page,
     pageSize: pageResult.size,

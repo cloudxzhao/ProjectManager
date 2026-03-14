@@ -33,7 +33,7 @@ export interface CreateNotificationDto {
  */
 export const getNotifications = async (): Promise<Notification[]> => {
   const result = await api.get<Notification[]>(endpoints.notification.list);
-  return result.data || [];
+  return result.data.data || [];
 };
 
 /**
@@ -41,7 +41,7 @@ export const getNotifications = async (): Promise<Notification[]> => {
  */
 export const getUnreadNotifications = async () => {
   const result = await api.get<Notification[]>(endpoints.notification.unread);
-  return result || [];
+  return result.data.data || [];
 };
 
 /**
@@ -72,5 +72,5 @@ export const deleteNotification = async (id: number) => {
  * @param id 通知 ID
  */
 export const toggleStar = async (id: number) => {
-  return api.post<Notification>(`${endpoints.notification.delete(id)}/star`, {});
+  return api.post<Notification>(`${endpoints.notification.delete(id)}/star`, {}).then(res => res.data.data);
 };
