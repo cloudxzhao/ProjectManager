@@ -147,6 +147,7 @@ export default function ProjectDetailPage() {
   const [fetchLoading, setFetchLoading] = useState(true);
   const [project, setProject] = useState<Project | null>(null);
   const [tasks, setTasks] = useState<Task[]>([]);
+  const [activeTab, setActiveTab] = useState<string>('tasks');
   // 用户故事分页相关状态
   const [stories, setStories] = useState<UserStory[]>([]);
   const [storiesTotal, setStoriesTotal] = useState(0);
@@ -372,6 +373,19 @@ export default function ProjectDetailPage() {
       setLoading(false);
       setDeleteModalOpen(false);
     }
+  };
+
+  // 页签按钮文本映射
+  const tabButtonTextMap: Record<string, string> = {
+    stories: '创建用户故事',
+    tasks: '创建任务',
+    issues: '创建问题',
+    wiki: '创建 Wiki',
+  };
+
+  // 页签切换处理
+  const handleTabChange = (key: string) => {
+    setActiveTab(key);
   };
 
   // 页签内容
@@ -1003,7 +1017,8 @@ export default function ProjectDetailPage() {
       {/* 页签导航 - 使用自定义样式 */}
       <div className="tabs-container">
         <Tabs
-          defaultActiveKey="tasks"
+          activeKey={activeTab}
+          onChange={handleTabChange}
           items={tabItems}
           className="project-detail-tabs"
           tabBarStyle={{
@@ -1011,6 +1026,16 @@ export default function ProjectDetailPage() {
             background: 'var(--surface)',
             padding: '0 1rem',
           }}
+          tabBarExtraContent={
+            <Button
+              type="primary"
+              icon={<PlusOutlined />}
+              size="small"
+              className="whitespace-nowrap"
+            >
+              {tabButtonTextMap[activeTab] || '创建'}
+            </Button>
+          }
         />
       </div>
 
