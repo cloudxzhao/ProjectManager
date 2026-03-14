@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { useParams, useRouter } from 'next/navigation';
-import { Card, Tabs, TabsProps, Avatar, Tag, Button, Empty, Dropdown, MenuProps, message, Modal, Form, Input, DatePicker, Select, ColorPicker, Drawer, Spin, Pagination, Table, TableColumnsType } from 'antd';
+import { Card, Tabs, TabsProps, Avatar, Tag, Button, Empty, Dropdown, MenuProps, message, Modal, Form, Input, DatePicker, Select, ColorPicker, Drawer, Spin, Pagination, Table, TableColumnsType, Tree, TreeProps } from 'antd';
 import {
   EditOutlined,
   DeleteOutlined,
@@ -22,6 +22,8 @@ import {
   MessageOutlined,
   CodeOutlined,
   CheckSquareOutlined,
+  FolderOutlined,
+  FileOutlined,
 } from '@ant-design/icons';
 import Link from 'next/link';
 import dayjs from 'dayjs';
@@ -29,14 +31,14 @@ import { getProject, deleteProject, updateProject } from '@/lib/api/project';
 import { getTasks } from '@/lib/api/task';
 import { getStories } from '@/lib/api/story';
 import { getIssues } from '@/lib/api/issue';
-import { getWikis } from '@/lib/api/wiki';
+import { getWikiTree } from '@/lib/api/wiki';
 import { getBurndown } from '@/lib/api/report';
 import type { Project, ProjectStatus } from '@/lib/api/project';
 import type { Task } from '@/lib/api/task';
 import type { UserStory } from '@/lib/api/story';
 import type { PageInfo } from '@/types/api';
 import type { Issue } from '@/lib/api/issue';
-import type { Wiki } from '@/lib/api/wiki';
+import type { Wiki, WikiTreeNode } from '@/lib/api/wiki';
 import type { BurndownData } from '@/lib/api/report';
 
 const { Option } = Select;
@@ -155,7 +157,8 @@ export default function ProjectDetailPage() {
   const [storiesPageSize] = useState(10);
   const [storiesLoading, setStoriesLoading] = useState(false);
   const [issues, setIssues] = useState<Issue[]>([]);
-  const [wikis, setWikis] = useState<Wiki[]>([]);
+  const [wikiTreeData, setWikiTreeData] = useState<WikiTreeNode[]>([]);
+  const [wikiLoading, setWikiLoading] = useState(false);
   const [burndownData, setBurndownData] = useState<BurndownData[]>([]);
   const [deleteModalOpen, setDeleteModalOpen] = useState(false);
   const [editDrawerOpen, setEditDrawerOpen] = useState(false);
@@ -181,9 +184,8 @@ export default function ProjectDetailPage() {
       const issuesResult = await getIssues(Number(projectId));
       setIssues(issuesResult || []);
 
-      // 获取 Wiki 文档列表
-      const wikisResult = await getWikis(Number(projectId));
-      setWikis(wikisResult || []);
+      // 获取 Wiki 文档树
+      await fetchWikiTree(Number(projectId));
 
       // 获取燃尽图数据
       const burndownResult = await getBurndown(Number(projectId));
@@ -201,6 +203,69 @@ export default function ProjectDetailPage() {
       fetchProject();
     }
   }, [projectId]);
+
+  // 获取 Wiki 树
+  const fetchWikiTree = async (projectIdNum: number) => {
+    setWikiLoading(true);
+    try {
+      const wikisResult = await getWikiTree(projectIdNum);
+      const treeData = buildWikiTree(wikisResult || []);
+      setWikiTreeData(treeData);
+    } catch (error: unknown) {
+      const errorMessage = error instanceof Error ? error.message : '获取 Wiki 文档失败';
+      message.error(errorMessage);
+    } finally {
+      setWikiLoading(false);
+    }
+  };
+
+  // 构建 Wiki 树形数据
+  const buildWikiTree = (wikis: Wiki[]): WikiTreeNode[] => {
+    const tree: WikiTreeNode[] = [];
+    const wikiMap = new Map<number, WikiTreeNode>();
+
+    // 初始化所有节点
+    wikis.forEach((wiki) => {
+      wikiMap.set(wiki.id, {
+        key: wiki.id,
+        title: (
+          <div className="flex items-center gap-2">
+            <FolderOutlined style={{ color: '#faad14' }} />
+            <span className="text-white">{wiki.title}</span>
+            {!wiki.isPublished && (
+              <Tag color="warning" className="text-xs">未发布</Tag>
+            )}
+          </div>
+        ),
+        isLeaf: false, // 先假设不是叶子节点
+        children: [],
+        data: wiki,
+      });
+    });
+
+    // 构建树形结构
+    wikis.forEach((wiki) => {
+      const node = wikiMap.get(wiki.id);
+      if (node && wiki.parentDocId) {
+        const parent = wikiMap.get(wiki.parentDocId);
+        if (parent) {
+          parent.children?.push(node);
+        }
+      }
+    });
+
+    // 收集根节点（没有父节点的节点）
+    wikis.forEach((wiki) => {
+      if (!wiki.parentDocId) {
+        const node = wikiMap.get(wiki.id);
+        if (node) {
+          tree.push(node);
+        }
+      }
+    });
+
+    return tree;
+  };
 
   // 获取用户故事（分页）
   const fetchStories = async (projectIdNum: number, page: number) => {
@@ -668,71 +733,17 @@ export default function ProjectDetailPage() {
       ),
       children: (
         <div className="space-y-4">
-          {wikis.length > 0 ? (
-            <Table<Wiki>
-              dataSource={wikis}
-              rowKey="id"
-              pagination={false}
-              className="wikis-table"
-              columns={[
-                {
-                  title: '文档标题',
-                  dataIndex: 'title',
-                  key: 'title',
-                  ellipsis: true,
-                  render: (title: string, record: Wiki) => (
-                    <div className="flex items-center gap-2">
-                      <span className="font-medium text-white">{title}</span>
-                      {!record.isPublished && (
-                        <Tag color="warning">未发布</Tag>
-                      )}
-                    </div>
-                  ),
-                },
-                {
-                  title: '摘要',
-                  dataIndex: 'summary',
-                  key: 'summary',
-                  ellipsis: true,
-                  width: 300,
-                  render: (summary?: string) => (
-                    <span className="text-gray-400 text-sm" title={summary}>
-                      {summary && summary.length > 50 ? `${summary.slice(0, 50)}...` : summary || '-'}
-                    </span>
-                  ),
-                },
-                {
-                  title: '作者',
-                  dataIndex: 'authorName',
-                  key: 'authorName',
-                  width: 100,
-                  render: (authorName?: string) => (
-                    <span className="text-gray-300">
-                      {authorName || <span className="text-gray-500">未知</span>}
-                    </span>
-                  ),
-                },
-                {
-                  title: '浏览量',
-                  dataIndex: 'viewCount',
-                  key: 'viewCount',
-                  width: 80,
-                  render: (viewCount?: number) => (
-                    <span className="text-gray-300">{viewCount || 0}</span>
-                  ),
-                },
-                {
-                  title: '更新时间',
-                  dataIndex: 'updatedAt',
-                  key: 'updatedAt',
-                  width: 120,
-                  render: (_: unknown, record: Wiki) => (
-                    <span className="text-gray-300">
-                      {formatDate(record.updatedAt || record.createdAt)}
-                    </span>
-                  ),
-                },
-              ].filter(Boolean) as TableColumnsType<Wiki>}
+          {wikiLoading ? (
+            <div className="text-center py-12">
+              <Spin size="large" description="加载 Wiki 文档中..." />
+            </div>
+          ) : wikiTreeData.length > 0 ? (
+            <Tree
+              defaultExpandAll
+              showLine={{ showLeafIcon: false }}
+              blockNode
+              treeData={wikiTreeData}
+              className="wiki-tree"
             />
           ) : (
             <div className="text-center py-12">

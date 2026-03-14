@@ -18,6 +18,16 @@ export interface Wiki {
   viewCount: number;
   createdAt: string;
   updatedAt?: string;
+  children?: Wiki[]; // 树形结构子节点
+}
+
+export interface WikiTreeNode {
+  key: string | number;
+  title: React.ReactNode;
+  icon?: React.ReactNode;
+  isLeaf?: boolean;
+  children?: WikiTreeNode[];
+  data?: Wiki;
 }
 
 export interface QueryParams {
@@ -49,6 +59,24 @@ export interface UpdateWikiDto {
   tags?: string[];
   isPublished?: boolean;
 }
+
+/**
+ * 获取项目下所有 Wiki 文档（树形结构）
+ * @param projectId 项目 ID
+ */
+export const getWikiTree = async (projectId: number) => {
+  const res = await api.get<Wiki[]>(endpoints.wiki.list(projectId));
+  console.log('[wiki.api] getWikiTree result:', res);
+  const data = res.data.data;
+  if (data && Array.isArray(data)) {
+    return data;
+  }
+  // 如果是分页格式，返回 list
+  if (data && typeof data === 'object' && 'list' in data) {
+    return (data as any).list || [];
+  }
+  return [];
+};
 
 /**
  * 获取项目下所有 Wiki 文档
