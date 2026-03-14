@@ -8,6 +8,7 @@ export interface Task {
   status: TaskStatus;
   priority: Priority;
   assigneeId?: number;
+  assigneeName?: string;  // 负责人名称（后端返回）
   reporterId?: number;
   storyPoints?: number;
   dueDate?: string;

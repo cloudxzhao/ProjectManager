@@ -14,6 +14,7 @@ interface TaskResponse {
   status: TaskStatus;
   priority: Priority;
   assigneeId?: number | string;
+  assigneeName?: string;  // 负责人名称（后端返回）
   reporterId?: number | string;
   storyPoints?: number;
   dueDate?: string;
@@ -77,6 +78,7 @@ const mapTaskResponse = (response: TaskResponse, columnId?: string): Task => {
     status: response.status || 'todo',
     priority: response.priority || 'medium',
     assigneeId: response.assigneeId ? (typeof response.assigneeId === 'string' ? parseInt(response.assigneeId, 10) : response.assigneeId) : undefined,
+    assigneeName: response.assigneeName,  // 保留负责人名称
     reporterId: response.reporterId ? (typeof response.reporterId === 'string' ? parseInt(response.reporterId, 10) : response.reporterId) : undefined,
     storyPoints: response.storyPoints,
     dueDate: response.dueDate,

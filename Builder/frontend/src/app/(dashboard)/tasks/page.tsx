@@ -9,11 +9,28 @@ import { PlusOutlined, ClockCircleOutlined, FlagOutlined, UserOutlined, SearchOu
 import { DndContext, DragEndEvent, closestCenter } from '@dnd-kit/core';
 import { SortableContext, verticalListSortingStrategy, useSortable } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
-import { searchTasks as searchTasksApi, moveTask as moveTaskApi, type Task, type TaskStatus } from '@/lib/api/task';
-import { getProjects } from '@/lib/api/project';
+import { searchTasks as searchTasksApi, moveTask as moveTaskApi, type Task, type TaskStatus, type Priority } from '@/lib/api/task';
+import { getAuthorizedProjects, getProjectMembers } from '@/lib/api/project';
 import type { Project } from '@/lib/api/project';
+import type { ProjectMemberResponse } from '@/lib/api/project';
 
 const { Option } = Select;
+
+// 状态文本映射
+const statusTextMap: Record<string, string> = {
+  todo: '待办',
+  in_progress: '进行中',
+  testing: '测试中',
+  done: '已完成',
+};
+
+// 优先级文本映射
+const priorityTextMap: Record<string, string> = {
+  low: '低',
+  medium: '中',
+  high: '高',
+  urgent: '紧急',
+};
 
 // 看板列定义
 const columns = [
@@ -174,16 +191,63 @@ export default function TaskBoardPage() {
 
   const [loading, setLoading] = useState(true);
   const [projects, setProjects] = useState<Project[]>([]);
+  const [allProjectMembers, setAllProjectMembers] = useState<Map<number, ProjectMemberResponse[]>>(new Map());  // 所有项目的成员缓存
   const [tasks, setTasks] = useState<TaskBoardItem[]>([]);
 
   // 筛选状态
-  const [selectedProject, setSelectedProject] = useState<string>('all');
-  const [selectedPriority, setSelectedPriority] = useState<string>('all');
+  const [selectedProjectIds, setSelectedProjectIds] = useState<number[]>([]);  // 支持多选项目
+  const [selectedStatus, setSelectedStatus] = useState<TaskStatus | undefined>(undefined);
+  const [selectedPriority, setSelectedPriority] = useState<Priority | undefined>(undefined);
+  const [selectedAssigneeId, setSelectedAssigneeId] = useState<number | undefined>(undefined);  // 责任人筛选
   const [searchKeyword, setSearchKeyword] = useState<string>('');
   const [isFiltering, setIsFiltering] = useState(false);
 
+  // 加载项目成员列表
+  const fetchProjectMembers = async (projectId: number) => {
+    try {
+      const members = await getProjectMembers(projectId);
+      setAllProjectMembers((prev) => new Map(prev).set(projectId, members || []));
+    } catch (error) {
+      console.error('加载项目成员失败:', error);
+    }
+  };
+
+  // 加载所有选中项目的成员（用于责任人筛选下拉）
+  const fetchSelectedProjectMembers = async (projectIds: number[]) => {
+    if (projectIds.length === 0) return;
+
+    const promises = projectIds.map((id) => getProjectMembers(id));
+    try {
+      const results = await Promise.all(promises);
+      const newMembersMap = new Map(allProjectMembers);
+      projectIds.forEach((id, index) => {
+        newMembersMap.set(id, results[index] || []);
+      });
+      setAllProjectMembers(newMembersMap);
+    } catch (error) {
+      console.error('批量加载项目成员失败:', error);
+    }
+  };
+
+  // 获取所有选中项目的成员（用于责任人筛选下拉）
+  const getFilterMembers = () => {
+    if (selectedProjectIds.length === 0) return [];
+    const members: ProjectMemberResponse[] = [];
+    const seenIds = new Set<number>();
+    selectedProjectIds.forEach((projectId) => {
+      const projectMembers = allProjectMembers.get(projectId) || [];
+      projectMembers.forEach((m) => {
+        if (!seenIds.has(m.userId)) {
+          seenIds.add(m.userId);
+          members.push(m);
+        }
+      });
+    });
+    return members;
+  };
+
   // 加载任务（使用筛选条件）
-  const loadTasks = useCallback(async (projectFilter: string, priorityFilter: string, keyword: string) => {
+  const loadTasks = useCallback(async () => {
     setIsFiltering(true);
     try {
       const searchParams: Record<string, any> = {
@@ -191,19 +255,29 @@ export default function TaskBoardPage() {
         pageSize: 100,
       };
 
-      // 如果选择了特定项目，添加项目筛选
-      if (projectFilter !== 'all') {
-        searchParams.projectIds = [Number(projectFilter)];
+      // 项目筛选（支持多选）
+      if (selectedProjectIds && selectedProjectIds.length > 0) {
+        searchParams.projectIds = selectedProjectIds;
       }
 
-      // 如果选择了优先级，添加优先级筛选
-      if (priorityFilter !== 'all') {
-        searchParams.priority = priorityFilter.toUpperCase();
+      // 状态筛选
+      if (selectedStatus) {
+        searchParams.status = selectedStatus.toUpperCase();
       }
 
-      // 如果有关键词，添加关键词筛选
-      if (keyword) {
-        searchParams.keyword = keyword;
+      // 优先级筛选
+      if (selectedPriority) {
+        searchParams.priority = selectedPriority.toUpperCase();
+      }
+
+      // 责任人筛选
+      if (selectedAssigneeId) {
+        searchParams.assigneeId = selectedAssigneeId;
+      }
+
+      // 关键词筛选
+      if (searchKeyword) {
+        searchParams.keyword = searchKeyword;
       }
 
       const tasksResult = await searchTasksApi(searchParams);
@@ -221,7 +295,7 @@ export default function TaskBoardPage() {
           status: task.status,
           priority: task.priority,
           assigneeId: task.assigneeId,
-          assigneeName: task.assigneeId?.toString(),
+          assigneeName: task.assigneeName,  // 使用后端返回的 assigneeName
           dueDate: task.dueDate,
           storyPoints: task.storyPoints,
           columnId: statusToColumn[task.status] || 'todo',
@@ -235,41 +309,46 @@ export default function TaskBoardPage() {
     } finally {
       setIsFiltering(false);
     }
-  }, [projects]);
+  }, [projects, selectedProjectIds, selectedStatus, selectedPriority, selectedAssigneeId, searchKeyword]);
 
-  // 加载项目和任务
+  // 加载项目列表
   useEffect(() => {
-    const loadData = async () => {
-      setLoading(true);
+    const fetchProjects = async () => {
       try {
-        // 获取项目列表
-        const projectsData = await getProjects(1, 100);
-        setProjects(projectsData.list || []);
+        const result = await getAuthorizedProjects();
+        setProjects(result?.list || []);
       } catch (error) {
-        console.error('加载项目失败:', error);
-        message.error('加载项目失败');
+        console.error('加载项目列表失败:', error);
       } finally {
         setLoading(false);
       }
     };
-
-    loadData();
+    fetchProjects();
   }, []);
+
+  // 当选中项目变化时，加载成员列表
+  useEffect(() => {
+    if (selectedProjectIds.length > 0) {
+      fetchSelectedProjectMembers(selectedProjectIds);
+    }
+  }, [selectedProjectIds]);
 
   // 筛选条件变化时重新加载任务
   useEffect(() => {
     if (projects.length > 0) {
-      loadTasks(selectedProject, selectedPriority, searchKeyword);
+      loadTasks();
     }
-  }, [selectedProject, selectedPriority, searchKeyword, loadTasks, projects.length]);
+  }, [selectedProjectIds, selectedStatus, selectedPriority, selectedAssigneeId, searchKeyword, loadTasks, projects.length]);
 
   // 筛选后的任务（本地不再过滤，直接使用 API 返回的结果）
   const filteredTasks = tasks;
 
   // 清空筛选
   const handleClearFilters = () => {
-    setSelectedProject('all');
-    setSelectedPriority('all');
+    setSelectedProjectIds([]);
+    setSelectedStatus(undefined);
+    setSelectedPriority(undefined);
+    setSelectedAssigneeId(undefined);
     setSearchKeyword('');
   };
 
@@ -347,7 +426,7 @@ export default function TaskBoardPage() {
         <div className="flex items-center gap-3 flex-wrap">
           {/* 关键词搜索 */}
           <Input
-            placeholder="搜索任务标题..."
+            placeholder="搜索任务标题或描述..."
             prefix={<SearchOutlined className="text-gray-400" />}
             value={searchKeyword}
             onChange={(e) => setSearchKeyword(e.target.value)}
@@ -355,41 +434,79 @@ export default function TaskBoardPage() {
             className="w-64 bg-gray-800/50 border-gray-700 text-white placeholder-gray-500"
           />
 
-          {/* 项目筛选 */}
+          {/* 项目筛选（支持多选） */}
           <Select
-            value={selectedProject}
-            onChange={setSelectedProject}
-            className="w-40"
-            placeholder="选择项目"
+            mode="multiple"
+            value={selectedProjectIds}
+            onChange={(value) => {
+              setSelectedProjectIds(value);
+              setSelectedAssigneeId(undefined);  // 清空责任人筛选
+            }}
+            className="w-56"
+            placeholder="选择项目（可多选）"
             allowClear
+            maxTagCount="responsive"
             dropdownClassName="bg-gray-800 border-gray-700"
           >
-            <Option value="all">全部项目</Option>
             {projects.map((project) => (
               <Option key={project.id} value={project.id}>
-                {project.name}
+                {project.icon || '📁'} {project.name}
               </Option>
             ))}
           </Select>
 
-          {/* 优先级筛选 */}
+          {/* 责任人筛选 */}
           <Select
-            value={selectedPriority}
-            onChange={setSelectedPriority}
+            placeholder="选择责任人"
+            value={selectedAssigneeId}
+            onChange={(value) => {
+              setSelectedAssigneeId(value);
+            }}
+            className="w-40 bg-gray-800/50 border-gray-700"
+            allowClear
+            showSearch
+            filterOption={(input, option) =>
+              String(option?.label ?? '').toLowerCase().includes(input.toLowerCase())
+            }
+            options={getFilterMembers().map((member) => ({
+              label: member.username,
+              value: member.userId,
+            }))}
+            disabled={selectedProjectIds.length === 0}
+          />
+
+          {/* 状态筛选 */}
+          <Select
+            placeholder="选择状态"
+            value={selectedStatus}
+            onChange={setSelectedStatus}
             className="w-32"
-            placeholder="优先级"
             allowClear
             dropdownClassName="bg-gray-800 border-gray-700"
           >
-            <Option value="all">全部优先级</Option>
-            <Option value="urgent">紧急</Option>
-            <Option value="high">高</Option>
-            <Option value="medium">中</Option>
+            <Option value="todo">待办</Option>
+            <Option value="in_progress">进行中</Option>
+            <Option value="testing">测试中</Option>
+            <Option value="done">已完成</Option>
+          </Select>
+
+          {/* 优先级筛选 */}
+          <Select
+            placeholder="选择优先级"
+            value={selectedPriority}
+            onChange={setSelectedPriority}
+            className="w-32"
+            allowClear
+            dropdownClassName="bg-gray-800 border-gray-700"
+          >
             <Option value="low">低</Option>
+            <Option value="medium">中</Option>
+            <Option value="high">高</Option>
+            <Option value="urgent">紧急</Option>
           </Select>
 
           {/* 清空筛选按钮 */}
-          {(selectedProject !== 'all' || selectedPriority !== 'all' || searchKeyword) && (
+          {(selectedProjectIds.length > 0 || selectedStatus || selectedPriority || selectedAssigneeId || searchKeyword) && (
             <Button
               icon={<ClearOutlined />}
               onClick={handleClearFilters}
