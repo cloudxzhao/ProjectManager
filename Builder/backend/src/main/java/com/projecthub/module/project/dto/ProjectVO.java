@@ -110,4 +110,15 @@ public class ProjectVO {
     @JsonProperty("color")
     private String themeColor;
   }
+
+  /** 项目 ID 和名称（用于下拉选择等场景） */
+  @NoArgsConstructor
+  @AllArgsConstructor
+  @Getter
+  @Setter
+  @Builder
+  public static class ProjectIdName {
+    private Long id;
+    private String name;
+  }
 }

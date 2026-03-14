@@ -28,7 +28,7 @@ CREATE INDEX idx_task_project_user_story ON task(project_id, user_story_id);
 -- 删除旧视图
 DROP VIEW IF EXISTS v_task_detail;
 
--- 重新创建视图，保持原有列顺序
+-- 重新创建视图，添加用户故事信息
 CREATE VIEW v_task_detail AS
 SELECT
     t.id AS task_id,
@@ -45,6 +45,8 @@ SELECT
     au.email AS assignee_email,
     cu.username AS creator_username,
     cu.email AS creator_email,
+    us.id AS user_story_id,
+    us.title AS user_story_title,
     (SELECT COUNT(*) FROM sub_task st WHERE st.task_id = t.id) AS sub_task_count,
     (SELECT COUNT(*) FROM sub_task st WHERE st.task_id = t.id AND st.completed = TRUE) AS completed_sub_task_count,
     (SELECT COUNT(*) FROM task_comment c WHERE c.task_id = t.id AND c.deleted_at IS NULL) AS comment_count
@@ -52,4 +54,5 @@ FROM task t
 LEFT JOIN project p ON t.project_id = p.id
 LEFT JOIN sys_user au ON t.assignee_id = au.id
 LEFT JOIN sys_user cu ON t.creator_id = cu.id
+LEFT JOIN user_story us ON t.user_story_id = us.id
 WHERE t.deleted_at IS NULL;

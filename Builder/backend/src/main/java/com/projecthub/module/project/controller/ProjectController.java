@@ -105,4 +105,12 @@ public class ProjectController {
     ProjectStatsDTO stats = projectService.getProjectStats();
     return Result.success(stats);
   }
+
+  /** 获取用户有权限的项目列表 */
+  @GetMapping("/authorized")
+  @Operation(summary = "获取用户有权限的项目列表", description = "获取当前用户有权限访问的所有项目的 ID 和名称（不分页）")
+  public Result<List<ProjectVO.ProjectIdName>> getAuthorizedProjects() {
+    List<ProjectVO.ProjectIdName> projects = projectService.getUserAuthorizedProjects();
+    return Result.success(projects);
+  }
 }

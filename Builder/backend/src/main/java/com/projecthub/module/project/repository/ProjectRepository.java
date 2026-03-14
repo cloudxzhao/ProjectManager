@@ -53,4 +53,10 @@ public interface ProjectRepository
       "SELECT p.status, COUNT(p) FROM Project p WHERE p.id IN :projectIds "
           + "AND p.deletedAt IS NULL GROUP BY p.status")
   List<Object[]> countProjectsByStatus(@Param("projectIds") List<Long> projectIds);
+
+  /** 查询项目 ID 和名称列表（根据项目 ID 列表） */
+  @Query(
+      "SELECT p.id, p.name FROM Project p WHERE p.id IN :projectIds "
+          + "AND p.deletedAt IS NULL ORDER BY p.createdAt DESC")
+  List<Object[]> findProjectIdsAndNamesByIds(@Param("projectIds") List<Long> projectIds);
 }

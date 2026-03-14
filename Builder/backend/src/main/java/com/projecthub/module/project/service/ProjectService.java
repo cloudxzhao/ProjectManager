@@ -343,6 +343,31 @@ public class ProjectService {
         .build();
   }
 
+  /** 获取用户有权限的项目 ID 和名称列表（不分页） */
+  @Transactional(readOnly = true)
+  public List<ProjectVO.ProjectIdName> getUserAuthorizedProjects() {
+    Long userId = getCurrentUserId();
+
+    // 查询用户参与的项目 ID 列表
+    List<Long> projectIds = permissionService.getUserProjectIds(userId);
+
+    if (projectIds.isEmpty()) {
+      return List.of();
+    }
+
+    // 查询项目 ID 和名称
+    List<Object[]> results = projectRepository.findProjectIdsAndNamesByIds(projectIds);
+
+    return results.stream()
+        .map(
+            result ->
+                ProjectVO.ProjectIdName.builder()
+                    .id((Long) result[0])
+                    .name((String) result[1])
+                    .build())
+        .collect(Collectors.toList());
+  }
+
   /** 检查项目权限 */
   private void checkProjectPermission(Long projectId, String permissionCode) {
     Long userId = getCurrentUserId();
