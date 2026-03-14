@@ -8,6 +8,7 @@ import {
 import { PlusOutlined, ClockCircleOutlined, FlagOutlined, UserOutlined, SearchOutlined, ClearOutlined } from '@ant-design/icons';
 import { DndContext, DragEndEvent, closestCenter } from '@dnd-kit/core';
 import { SortableContext, verticalListSortingStrategy, useSortable } from '@dnd-kit/sortable';
+import { useDroppable } from '@dnd-kit/core';
 import { CSS } from '@dnd-kit/utilities';
 import { searchTasks as searchTasksApi, moveTask as moveTaskApi, type Task, type TaskStatus, type Priority } from '@/lib/api/task';
 import { getAuthorizedProjects, getProjectMembers } from '@/lib/api/project';
@@ -156,7 +157,7 @@ const TaskCard: React.FC<TaskCardProps> = ({ task, onClick }) => {
   );
 };
 
-// 可排序的列组件
+// 可排序的列组件（支持拖拽放置）
 interface SortableColumnProps {
   column: typeof columns[0];
   tasks: TaskBoardItem[];
@@ -164,6 +165,10 @@ interface SortableColumnProps {
 }
 
 const SortableColumn: React.FC<SortableColumnProps> = ({ column, tasks, onTaskClick }) => {
+  const { setNodeRef } = useDroppable({
+    id: column.id,
+  });
+
   return (
     <div className="flex-shrink-0 w-80">
       <div className="flex items-center justify-between mb-3 px-1">
@@ -174,8 +179,8 @@ const SortableColumn: React.FC<SortableColumnProps> = ({ column, tasks, onTaskCl
         </div>
       </div>
       <div
+        ref={setNodeRef}
         className="min-h-[500px] bg-gray-800/30 rounded-lg p-3"
-        data-column-id={column.id}
       >
         <SortableContext items={tasks.map((t) => t.id)} strategy={verticalListSortingStrategy}>
           {tasks.map((task) => (
@@ -357,53 +362,55 @@ export default function TaskBoardPage() {
   const handleDragEnd = async (event: DragEndEvent) => {
     const { active, over } = event;
 
-    if (over) {
-      const activeId = active.id as string;
-      const overId = over.id as string;
+    if (!over) return;
 
-      const activeTask = tasks.find((t) => t.id === activeId);
-      if (!activeTask) return;
+    const activeId = active.id as string;
+    const overId = over.id as string;
 
-      // 检查是否拖到列上
-      const targetColumn = columns.find((c) => c.id === overId);
-      let newColumnId = activeTask.columnId;
+    const activeTask = tasks.find((t) => t.id === activeId);
+    if (!activeTask) return;
 
-      if (targetColumn) {
-        newColumnId = targetColumn.id;
-      } else {
-        const overTask = tasks.find((t) => t.id === overId);
-        if (overTask) {
-          newColumnId = overTask.columnId;
-        }
+    // 检查是否拖到列上（列 ID 就是状态 ID）
+    const targetColumn = columns.find((c) => c.id === overId);
+    let newColumnId = activeTask.columnId;
+
+    if (targetColumn) {
+      // 直接拖到列上
+      newColumnId = targetColumn.id;
+    } else {
+      // 拖到另一个任务上，获取该任务所在的列
+      const overTask = tasks.find((t) => t.id === overId);
+      if (overTask) {
+        newColumnId = overTask.columnId;
       }
+    }
 
-      // 如果状态没有变化，不调用 API
-      if (newColumnId === activeTask.columnId) {
-        return;
-      }
+    // 如果状态没有变化，不调用 API
+    if (newColumnId === activeTask.columnId) {
+      return;
+    }
 
-      // 更新本地状态（乐观更新）
+    // 更新本地状态（乐观更新）
+    setTasks((prevTasks) =>
+      prevTasks.map((t) =>
+        t.id === activeId ? { ...t, columnId: newColumnId, status: newColumnId as TaskStatus } : t
+      )
+    );
+
+    // 调用 API 更新任务状态
+    try {
+      const newStatus = newColumnId as TaskStatus;
+      await moveTaskApi(activeTask.projectId, activeTask.taskId, newStatus);
+      message.success('任务状态已更新');
+    } catch (error) {
+      console.error('移动任务失败:', error);
+      message.error('移动任务失败');
+      // 回滚本地状态
       setTasks((prevTasks) =>
         prevTasks.map((t) =>
-          t.id === activeId ? { ...t, columnId: newColumnId } : t
+          t.id === activeId ? { ...t, columnId: activeTask.columnId, status: activeTask.status } : t
         )
       );
-
-      // 调用 API 更新任务状态
-      try {
-        const newStatus = newColumnId as TaskStatus;
-        await moveTaskApi(activeTask.projectId, activeTask.taskId, newStatus);
-        message.success('任务状态已更新');
-      } catch (error) {
-        console.error('移动任务失败:', error);
-        message.error('移动任务失败');
-        // 回滚本地状态
-        setTasks((prevTasks) =>
-          prevTasks.map((t) =>
-            t.id === activeId ? { ...t, columnId: activeTask.columnId } : t
-          )
-        );
-      }
     }
   };
 
