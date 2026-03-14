@@ -327,7 +327,7 @@ export default function StoriesPage() {
   // 打开编辑表单
   const handleEdit = (story: UserStory) => {
     setEditingStory(story);
-    // 编辑时加载对应项目的成员列表
+    // 编辑时加载对应项目的成员列表（用于负责人选择下拉）
     const members = allProjectMembers.get(story.projectId) || [];
     setCurrentProjectMembers(members);
     if (members.length === 0) {
@@ -746,7 +746,7 @@ export default function StoriesPage() {
                 className="bg-gray-700/50 border-gray-600"
                 placeholder={currentProjectMembers.length > 0 ? "选择负责人" : "当前项目暂无成员"}
                 allowClear
-                disabled={currentProjectMembers.length === 0}
+                disabled={currentProjectMembers.length === 0 && !editingStory?.assigneeId}
                 showSearch
                 filterOption={(input, option) =>
                   String(option?.label ?? '').toLowerCase().includes(input.toLowerCase())
@@ -759,7 +759,12 @@ export default function StoriesPage() {
                     </Option>
                   ))
                 ) : (
-                  <Option value="" disabled>请先选择项目</Option>
+                  // 编辑时如果成员列表为空，添加一个临时 Option 显示当前负责人
+                  editingStory?.assigneeId && (
+                    <Option key={editingStory.assigneeId} value={editingStory.assigneeId} label={editingStory.assigneeName || `用户 ${editingStory.assigneeId}`}>
+                      {editingStory.assigneeName || `用户 ${editingStory.assigneeId}`}
+                    </Option>
+                  )
                 )}
               </Select>
             </Form.Item>
