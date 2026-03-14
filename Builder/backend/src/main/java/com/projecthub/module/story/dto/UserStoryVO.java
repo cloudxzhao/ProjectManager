@@ -3,6 +3,7 @@ package com.projecthub.module.story.dto;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
 import java.time.LocalDateTime;
+import java.util.List;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -137,5 +138,8 @@ public class UserStoryVO {
 
     /** 关键字 */
     private String keyword;
+
+    /** 项目 ID 列表（可选，为空时查询所有项目） */
+    private List<Long> projectIds;
   }
 }

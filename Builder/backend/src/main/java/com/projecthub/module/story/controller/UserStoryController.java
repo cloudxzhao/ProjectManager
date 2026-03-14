@@ -12,7 +12,7 @@ import org.springframework.web.bind.annotation.*;
 
 /** 用户故事控制器 */
 @RestController
-@RequestMapping("/api/v1/projects/{projectId}/stories")
+@RequestMapping("/api/v1/stories")
 @RequiredArgsConstructor
 @Tag(name = "用户故事管理", description = "用户故事相关接口")
 public class UserStoryController {
@@ -20,7 +20,7 @@ public class UserStoryController {
   private final UserStoryService userStoryService;
 
   /** 创建用户故事 */
-  @PostMapping
+  @PostMapping("/projects/{projectId}")
   @Operation(summary = "创建用户故事", description = "在项目下创建新用户故事")
   public Result<UserStoryVO> createUserStory(
       @PathVariable Long projectId, @Valid @RequestBody UserStoryVO.CreateRequest request) {
@@ -36,9 +36,9 @@ public class UserStoryController {
     return Result.success(story);
   }
 
-  /** 获取用户故事列表 */
-  @GetMapping
-  @Operation(summary = "获取用户故事列表", description = "获取项目下的用户故事列表，支持筛选")
+  /** 获取项目下的用户故事列表 */
+  @GetMapping("/projects/{projectId}")
+  @Operation(summary = "获取项目下的用户故事列表", description = "获取项目下的用户故事列表，支持筛选")
   public Result<PageResult<UserStoryVO>> listUserStories(
       @PathVariable Long projectId,
       @RequestParam(required = false) Long epicId,
@@ -60,6 +60,22 @@ public class UserStoryController {
 
     PageResult<UserStoryVO> result =
         userStoryService.listUserStories(projectId, filter, page, size);
+    return Result.success(result);
+  }
+
+  /** 获取当前用户所有项目下的用户故事列表（支持项目筛选） */
+  @PostMapping("/search")
+  @Operation(summary = "搜索用户故事列表", description = "搜索当前用户参与的所有项目下的用户故事列表，支持项目筛选和其他复杂筛选条件")
+  public Result<PageResult<UserStoryVO>> searchUserStories(
+      @RequestBody(required = false) UserStoryVO.FilterRequest filter,
+      @RequestParam(defaultValue = "1") Integer page,
+      @RequestParam(defaultValue = "20") Integer size) {
+
+    if (filter == null) {
+      filter = UserStoryVO.FilterRequest.builder().build();
+    }
+
+    PageResult<UserStoryVO> result = userStoryService.searchUserStories(filter, page, size);
     return Result.success(result);
   }
 

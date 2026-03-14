@@ -62,6 +62,7 @@ public class UserStoryService {
             .epicId(request.getEpicId())
             .title(request.getTitle())
             .description(request.getDescription())
+            .status(UserStory.TaskStatus.TODO)
             .acceptanceCriteria(request.getAcceptanceCriteria())
             .priority(getPriorityFromString(request.getPriority()))
             .storyPoints(request.getStoryPoints())
@@ -123,32 +124,8 @@ public class UserStoryService {
           // 项目 ID 筛选
           predicates.add(cb.equal(root.get("projectId"), projectId));
 
-          // 史诗筛选
-          if (filter != null && filter.getEpicId() != null) {
-            predicates.add(cb.equal(root.get("epicId"), filter.getEpicId()));
-          }
-
-          // 状态筛选
-          if (filter != null && filter.getStatus() != null) {
-            predicates.add(
-                cb.equal(root.get("status"), UserStory.TaskStatus.valueOf(filter.getStatus())));
-          }
-
-          // 优先级筛选
-          if (filter != null && filter.getPriority() != null) {
-            predicates.add(
-                cb.equal(root.get("priority"), UserStory.Priority.valueOf(filter.getPriority())));
-          }
-
-          // 负责人筛选
-          if (filter != null && filter.getAssigneeId() != null) {
-            predicates.add(cb.equal(root.get("assigneeId"), filter.getAssigneeId()));
-          }
-
-          // 标题关键字筛选
-          if (filter != null && StringUtils.hasText(filter.getKeyword())) {
-            predicates.add(cb.like(root.get("title"), "%" + filter.getKeyword() + "%"));
-          }
+          // 添加其他筛选条件
+          addFilterPredicates(predicates, filter, cb, root);
 
           return query.where(predicates.toArray(new Predicate[0])).getRestriction();
         };
@@ -159,6 +136,93 @@ public class UserStoryService {
         storyPage.getContent().stream().map(this::buildUserStoryVO).collect(Collectors.toList());
 
     return PageResult.of(content, storyPage.getTotalElements(), page, size);
+  }
+
+  /** 搜索用户故事列表（支持项目筛选和权限校验） */
+  @Transactional(readOnly = true)
+  public PageResult<UserStoryVO> searchUserStories(
+      UserStoryVO.FilterRequest filter, Integer page, Integer size) {
+    Long userId = getCurrentUserId();
+
+    // 获取用户有权限访问的所有项目 ID
+    List<Long> userProjectIds = permissionService.getUserProjectIds(userId);
+
+    if (userProjectIds.isEmpty()) {
+      return PageResult.of(List.of(), 0L, page, size);
+    }
+
+    // 如果请求中指定了项目 ID 筛选，需要校验权限
+    List<Long> targetProjectIds;
+    if (filter != null && filter.getProjectIds() != null && !filter.getProjectIds().isEmpty()) {
+      // 过滤出用户有权限的项目 ID
+      targetProjectIds =
+          filter.getProjectIds().stream()
+              .filter(userProjectIds::contains)
+              .collect(Collectors.toList());
+      log.info("用户请求查询项目 {}，实际有权限的项目 {}", filter.getProjectIds(), targetProjectIds);
+    } else {
+      targetProjectIds = userProjectIds;
+    }
+
+    if (targetProjectIds.isEmpty()) {
+      return PageResult.of(List.of(), 0L, page, size);
+    }
+
+    Pageable pageable = PageRequest.of(page - 1, size, Sort.by(Sort.Direction.DESC, "createdAt"));
+
+    Specification<UserStory> spec =
+        (root, query, cb) -> {
+          List<Predicate> predicates = new ArrayList<>();
+
+          // 项目 ID 筛选 - 用户有权限的项目
+          predicates.add(root.get("projectId").in(targetProjectIds));
+
+          // 添加其他筛选条件
+          addFilterPredicates(predicates, filter, cb, root);
+
+          return query.where(predicates.toArray(new Predicate[0])).getRestriction();
+        };
+
+    Page<UserStory> storyPage = userStoryRepository.findAll(spec, pageable);
+
+    List<UserStoryVO> content =
+        storyPage.getContent().stream().map(this::buildUserStoryVO).collect(Collectors.toList());
+
+    return PageResult.of(content, storyPage.getTotalElements(), page, size);
+  }
+
+  /** 添加筛选条件 */
+  private void addFilterPredicates(
+      List<Predicate> predicates,
+      UserStoryVO.FilterRequest filter,
+      jakarta.persistence.criteria.CriteriaBuilder cb,
+      jakarta.persistence.criteria.Root<UserStory> root) {
+    // 史诗筛选
+    if (filter != null && filter.getEpicId() != null) {
+      predicates.add(cb.equal(root.get("epicId"), filter.getEpicId()));
+    }
+
+    // 状态筛选
+    if (filter != null && filter.getStatus() != null) {
+      predicates.add(
+          cb.equal(root.get("status"), UserStory.TaskStatus.valueOf(filter.getStatus())));
+    }
+
+    // 优先级筛选
+    if (filter != null && filter.getPriority() != null) {
+      predicates.add(
+          cb.equal(root.get("priority"), UserStory.Priority.valueOf(filter.getPriority())));
+    }
+
+    // 负责人筛选
+    if (filter != null && filter.getAssigneeId() != null) {
+      predicates.add(cb.equal(root.get("assigneeId"), filter.getAssigneeId()));
+    }
+
+    // 标题关键字筛选
+    if (filter != null && StringUtils.hasText(filter.getKeyword())) {
+      predicates.add(cb.like(root.get("title"), "%" + filter.getKeyword() + "%"));
+    }
   }
 
   /** 更新用户故事 */
