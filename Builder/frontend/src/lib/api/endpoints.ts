@@ -45,6 +45,7 @@ export const endpoints = {
     comments: (projectId: number, id: number) => `/projects/${projectId}/tasks/${id}/comments`,
     subtasks: (projectId: number, id: number) => `/projects/${projectId}/tasks/${id}/subtasks`,
     toggleComplete: (projectId: number, id: number) => `/projects/${projectId}/tasks/${id}/toggle-complete`,
+    search: '/tasks/search',  // 任务看板搜索（支持多项目筛选和权限过滤）
   },
 
   // 史诗相关

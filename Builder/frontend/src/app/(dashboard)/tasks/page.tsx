@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useMemo } from 'react';
+import { useState, useEffect, useMemo, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import {
   Card, Button, Tag, Avatar, message, Spin, Select, Input,
@@ -9,7 +9,7 @@ import { PlusOutlined, ClockCircleOutlined, FlagOutlined, UserOutlined, SearchOu
 import { DndContext, DragEndEvent, closestCenter } from '@dnd-kit/core';
 import { SortableContext, verticalListSortingStrategy, useSortable } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
-import { getTasks as getTasksApi, moveTask as moveTaskApi, type Task, type TaskStatus } from '@/lib/api/task';
+import { searchTasks as searchTasksApi, moveTask as moveTaskApi, type Task, type TaskStatus } from '@/lib/api/task';
 import { getProjects } from '@/lib/api/project';
 import type { Project } from '@/lib/api/project';
 
@@ -180,6 +180,62 @@ export default function TaskBoardPage() {
   const [selectedProject, setSelectedProject] = useState<string>('all');
   const [selectedPriority, setSelectedPriority] = useState<string>('all');
   const [searchKeyword, setSearchKeyword] = useState<string>('');
+  const [isFiltering, setIsFiltering] = useState(false);
+
+  // 加载任务（使用筛选条件）
+  const loadTasks = useCallback(async (projectFilter: string, priorityFilter: string, keyword: string) => {
+    setIsFiltering(true);
+    try {
+      const searchParams: Record<string, any> = {
+        page: 1,
+        pageSize: 100,
+      };
+
+      // 如果选择了特定项目，添加项目筛选
+      if (projectFilter !== 'all') {
+        searchParams.projectIds = [Number(projectFilter)];
+      }
+
+      // 如果选择了优先级，添加优先级筛选
+      if (priorityFilter !== 'all') {
+        searchParams.priority = priorityFilter.toUpperCase();
+      }
+
+      // 如果有关键词，添加关键词筛选
+      if (keyword) {
+        searchParams.keyword = keyword;
+      }
+
+      const tasksResult = await searchTasksApi(searchParams);
+
+      // 将任务数据转换为看板格式，并添加项目名称
+      const tasksWithProjectName: TaskBoardItem[] = (tasksResult.list || []).map((task: Task) => {
+        const project = projects.find((p: Project) => p.id === task.projectId);
+        return {
+          id: `task-${task.id}`,
+          taskId: task.id,
+          projectId: task.projectId,
+          projectName: project?.name,
+          title: task.title,
+          description: task.description,
+          status: task.status,
+          priority: task.priority,
+          assigneeId: task.assigneeId,
+          assigneeName: task.assigneeId?.toString(),
+          dueDate: task.dueDate,
+          storyPoints: task.storyPoints,
+          columnId: statusToColumn[task.status] || 'todo',
+        };
+      });
+
+      setTasks(tasksWithProjectName);
+    } catch (error) {
+      console.error('加载任务失败:', error);
+      message.error('加载任务失败');
+    } finally {
+      setIsFiltering(false);
+    }
+  }, [projects]);
 
   // 加载项目和任务
   useEffect(() => {
@@ -189,36 +245,9 @@ export default function TaskBoardPage() {
         // 获取项目列表
         const projectsData = await getProjects(1, 100);
         setProjects(projectsData.list || []);
-
-        // 获取所有项目的任务
-        const allTasksData: TaskBoardItem[] = [];
-        for (const project of projectsData.list || []) {
-          try {
-            const tasksData = await getTasksApi(project.id);
-            const tasksWithProjectName = (tasksData.list || []).map((task: Task) => ({
-              id: `task-${task.id}`,
-              taskId: task.id,
-              projectId: project.id,
-              projectName: project.name,
-              title: task.title,
-              description: task.description,
-              status: task.status,
-              priority: task.priority,
-              assigneeId: task.assigneeId,
-              assigneeName: task.assigneeId?.toString(),
-              dueDate: task.dueDate,
-              storyPoints: task.storyPoints,
-              columnId: statusToColumn[task.status] || 'todo',
-            }));
-            allTasksData.push(...tasksWithProjectName);
-          } catch (error) {
-            console.error(`获取项目 ${project.name} 的任务失败:`, error);
-          }
-        }
-        setTasks(allTasksData);
       } catch (error) {
-        console.error('加载数据失败:', error);
-        message.error('加载数据失败');
+        console.error('加载项目失败:', error);
+        message.error('加载项目失败');
       } finally {
         setLoading(false);
       }
@@ -227,24 +256,15 @@ export default function TaskBoardPage() {
     loadData();
   }, []);
 
-  // 多条件筛选任务
-  const filteredTasks = useMemo(() => {
-    return tasks.filter((task) => {
-      // 项目筛选
-      if (selectedProject !== 'all' && task.projectId !== Number(selectedProject)) {
-        return false;
-      }
-      // 优先级筛选
-      if (selectedPriority !== 'all' && task.priority !== selectedPriority) {
-        return false;
-      }
-      // 关键词搜索（标题）
-      if (searchKeyword && !task.title.toLowerCase().includes(searchKeyword.toLowerCase())) {
-        return false;
-      }
-      return true;
-    });
-  }, [tasks, selectedProject, selectedPriority, searchKeyword]);
+  // 筛选条件变化时重新加载任务
+  useEffect(() => {
+    if (projects.length > 0) {
+      loadTasks(selectedProject, selectedPriority, searchKeyword);
+    }
+  }, [selectedProject, selectedPriority, searchKeyword, loadTasks, projects.length]);
+
+  // 筛选后的任务（本地不再过滤，直接使用 API 返回的结果）
+  const filteredTasks = tasks;
 
   // 清空筛选
   const handleClearFilters = () => {

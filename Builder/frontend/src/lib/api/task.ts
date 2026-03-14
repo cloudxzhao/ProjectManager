@@ -35,11 +35,24 @@ export interface TaskBoardItem {
   priority: Priority;
   assignee?: string;
   assigneeId?: number;
+  assigneeName?: string;  // 负责人名称
   dueDate?: string;
   columnId: string;
   storyPoints?: number;
   taskId: number;
   projectId: number;
+  projectName?: string;  // 项目名称
+}
+
+/** 任务看板筛选参数 */
+export interface TaskBoardFilterParams {
+  projectIds?: number[];
+  status?: string;
+  priority?: string;
+  assigneeId?: number;
+  keyword?: string;
+  page?: number;
+  pageSize?: number;
 }
 
 /**
@@ -99,6 +112,41 @@ const mapTaskToBoardItem = (task: Task, assigneeName?: string): TaskBoardItem =>
     storyPoints: task.storyPoints,
     taskId: task.id,
     projectId: task.projectId,
+  };
+};
+
+/**
+ * 搜索任务列表（用于任务看板，支持多项目筛选和权限过滤）
+ * @param params 筛选参数
+ */
+export const searchTasks = async (params?: TaskBoardFilterParams) => {
+  const requestBody = {
+    projectIds: params?.projectIds,
+    status: params?.status,
+    priority: params?.priority,
+    assigneeId: params?.assigneeId,
+    keyword: params?.keyword,
+  };
+
+  const result = await api.post<{
+    list: TaskResponse[];
+    total: number;
+    page: number;
+    size: number;
+  }>(endpoints.task.search, requestBody, {
+    params: {
+      page: params?.page || 1,
+      size: params?.pageSize || 100,  // 看板使用较大的分页大小
+    },
+  });
+
+  console.log('[task.api] searchTasks result:', result);
+
+  return {
+    list: (result.data.data?.list || []).map((item) => mapTaskResponse(item)),
+    total: result.data.data?.total || 0,
+    page: result.data.data?.page || 1,
+    size: result.data.data?.size || 100,
   };
 };
 
