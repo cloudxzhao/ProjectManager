@@ -17,6 +17,8 @@ export interface Task {
   subtaskCount: number;
   completedSubtaskCount: number;
   commentCount: number;
+  userStoryId?: number;
+  userStoryTitle?: string;
   createdAt: string;
   updatedAt?: string;
 }
@@ -36,6 +38,7 @@ export interface CreateTaskDto {
   dueDate?: string;
   tags?: string[];
   parentId?: number;
+  userStoryId?: number;
 }
 
 export interface UpdateTaskDto {
@@ -48,6 +51,7 @@ export interface UpdateTaskDto {
   dueDate?: string;
   tags?: string[];
   order?: number;
+  userStoryId?: number;
 }
 
 export interface SubTask {

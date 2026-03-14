@@ -560,6 +560,7 @@ export default function ProjectDetailPage() {
           storyPoints: taskDetail.storyPoints,
           dueDate: taskDetail.dueDate ? dayjs(taskDetail.dueDate) : undefined,
           tags: taskDetail.tags?.join(', '),
+          userStoryId: taskDetail.userStoryId,
         });
         setTaskEditOpen(true);
       }
@@ -641,6 +642,7 @@ export default function ProjectDetailPage() {
         storyPoints: values.storyPoints,
         dueDate: values.dueDate ? dayjs(values.dueDate).format('YYYY-MM-DD') : undefined,
         tags: values.tags ? values.tags.split(',').map((t: string) => t.trim()) : [],
+        userStoryId: values.userStoryId,
       });
 
       message.success('任务更新成功');
@@ -891,6 +893,22 @@ export default function ProjectDetailPage() {
                   <span className="text-gray-300">
                     {assigneeName || <span className="text-gray-500">未分配</span>}
                   </span>
+                ),
+              },
+              {
+                title: '关联用户故事',
+                dataIndex: 'userStoryTitle',
+                key: 'userStoryTitle',
+                width: 150,
+                ellipsis: true,
+                render: (_text: string | undefined, record: Task) => (
+                  record.userStoryId ? (
+                    <span className="text-gray-300" title={record.userStoryTitle || '无标题'}>
+                      #{record.userStoryId} {record.userStoryTitle?.slice(0, 20) || '无标题'}
+                    </span>
+                  ) : (
+                    <span className="text-gray-500">-</span>
+                  )
                 ),
               },
               {
@@ -1722,6 +1740,14 @@ export default function ProjectDetailPage() {
                 <p className="text-gray-300 text-sm">{dayjs(selectedTask.dueDate).format('YYYY-MM-DD')}</p>
               </div>
             )}
+            {selectedTask.userStoryId && (
+              <div>
+                <h4 className="text-sm font-medium text-gray-400 mb-2">关联用户故事</h4>
+                <p className="text-gray-300 text-sm">
+                  #{selectedTask.userStoryId} {selectedTask.userStoryTitle || '(无标题)'}
+                </p>
+              </div>
+            )}
             <div className="pt-4 border-t border-gray-700">
               <div className="flex items-center justify-between text-sm text-gray-400">
                 <span>负责人：{selectedTask.assigneeId ? `用户${selectedTask.assigneeId}` : '未分配'}</span>
@@ -1922,6 +1948,17 @@ export default function ProjectDetailPage() {
             >
               <Input
                 placeholder="输入标签，用逗号分隔"
+                className="bg-gray-700/50 border-gray-600 text-white"
+              />
+            </Form.Item>
+
+            <Form.Item
+              name="userStoryId"
+              label="关联用户故事 ID"
+            >
+              <Input
+                type="number"
+                placeholder="输入用户故事 ID（可选）"
                 className="bg-gray-700/50 border-gray-600 text-white"
               />
             </Form.Item>

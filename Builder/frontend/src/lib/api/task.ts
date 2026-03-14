@@ -23,6 +23,8 @@ interface TaskResponse {
   subtaskCount: number;
   completedSubtaskCount: number;
   commentCount: number;
+  userStoryId?: number | string;
+  userStoryTitle?: string;
   createdAt: string;
   updatedAt?: string;
 }
@@ -84,6 +86,8 @@ const mapTaskResponse = (response: TaskResponse, columnId?: string): Task => {
     subtaskCount: response.subtaskCount || 0,
     completedSubtaskCount: response.completedSubtaskCount || 0,
     commentCount: response.commentCount || 0,
+    userStoryId: response.userStoryId ? (typeof response.userStoryId === 'string' ? parseInt(response.userStoryId, 10) : response.userStoryId) : undefined,
+    userStoryTitle: response.userStoryTitle,
     createdAt: response.createdAt || '',
     updatedAt: response.updatedAt,
   };
@@ -210,6 +214,7 @@ export const createTask = async (projectId: number, data: CreateTaskDto) => {
     dueDate: data.dueDate,
     tags: data.tags || [],
     parentId: data.parentId,
+    userStoryId: data.userStoryId,
   };
 
   const result = await api.post<TaskResponse>(endpoints.task.create(projectId), requestBody);
@@ -234,6 +239,7 @@ export const updateTask = async (projectId: number, taskId: number, data: Update
   if (data.dueDate !== undefined) requestBody.dueDate = data.dueDate;
   if (data.tags !== undefined) requestBody.tags = data.tags;
   if (data.order !== undefined) requestBody.order = data.order;
+  if (data.userStoryId !== undefined) requestBody.userStoryId = data.userStoryId;
 
   const result = await api.put<TaskResponse>(endpoints.task.update(projectId, taskId), requestBody);
   return mapTaskResponse(result.data.data);
