@@ -58,12 +58,14 @@ export const endpoints = {
   },
 
   // 用户故事相关
+  // 注意：后端 API 路径使用 /api/v1/stories 前缀
   story: {
-    list: (projectId: number) => `/projects/${projectId}/stories`,
-    create: (projectId: number) => `/projects/${projectId}/stories`,
-    detail: (projectId: number, storyId: number) => `/projects/${projectId}/stories/${storyId}`,
-    update: (projectId: number, storyId: number) => `/projects/${projectId}/stories/${storyId}`,
-    delete: (projectId: number, storyId: number) => `/projects/${projectId}/stories/${storyId}`,
+    search: '/stories/search',  // 全局搜索接口（POST）
+    list: (projectId: number) => `/stories/projects/${projectId}`,  // 按项目查询
+    create: (projectId: number) => `/stories/projects/${projectId}`,
+    detail: (storyId: number) => `/stories/${storyId}`,
+    update: (storyId: number) => `/stories/${storyId}`,
+    delete: (storyId: number) => `/stories/${storyId}`,
   },
 
   // 问题追踪相关

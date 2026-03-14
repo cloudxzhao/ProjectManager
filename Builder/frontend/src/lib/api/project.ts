@@ -4,9 +4,18 @@ import { api } from './axios';
 import { endpoints } from './endpoints';
 import type { CreateProjectDto, UpdateProjectDto, ProjectMember, MemberRole } from '@/types/project';
 import type { ProjectStatus } from '@/types/project';
+import type { User } from '@/types/user';
 
 // 导出类型供外部使用
 export type { ProjectStatus };
+
+/** 后端返回的项目成员数据结构（包含 user 对象） */
+export interface ProjectMemberResponse {
+  id: number;
+  user: User;
+  role: MemberRole;
+  joinedAt: string;
+}
 
 /** 后端返回的项目数据结构 */
 interface ProjectResponse {
@@ -194,7 +203,7 @@ export const deleteProject = async (id: number) => {
  * @param id 项目 ID
  */
 export const getProjectMembers = async (id: number) => {
-  const res = await api.get<ProjectMember[]>(endpoints.project.members(id));
+  const res = await api.get<ProjectMemberResponse[]>(endpoints.project.members(id));
   return res.data.data;
 };
 

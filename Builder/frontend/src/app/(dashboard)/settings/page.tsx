@@ -50,7 +50,7 @@ export default function SettingsPage() {
       try {
         setFetchingProfile(true);
         const result = await getUserProfile();
-        const profile = result.data;
+        const profile = result.data.data;
         setUserProfile(profile);
 
         // 填充表单
@@ -186,8 +186,8 @@ export default function SettingsPage() {
                       const result = await uploadAvatar(formData);
                       if (result && result.data) {
                         message.success('头像上传成功');
-                        // 更新用户信息
-                        const updatedProfile = { ...userProfile, avatar: result.data.avatar } as User;
+                        // 更新用户信息 - result.data 是 Result<{ avatar: string }>，所以 avatar 数据在 result.data.data.avatar
+                        const updatedProfile = { ...userProfile, avatar: result.data.data.avatar } as User;
                         setUserProfile(updatedProfile);
                         updateUser(updatedProfile);
                       }

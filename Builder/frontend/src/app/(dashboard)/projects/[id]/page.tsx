@@ -201,15 +201,15 @@ export default function ProjectDetailPage() {
 
       // 获取问题列表
       const issuesResult = await getIssues(Number(projectId));
-      setIssues(issuesResult.data || []);
+      setIssues(issuesResult || []);
 
       // 获取 Wiki 文档列表
       const wikisResult = await getWikis(Number(projectId));
-      setWikis(wikisResult.data || []);
+      setWikis(wikisResult || []);
 
       // 获取燃尽图数据
       const burndownResult = await getBurndown(Number(projectId));
-      setBurndownData(burndownResult.data || []);
+      setBurndownData(burndownResult.data?.data || []);
     } catch (error: unknown) {
       const errorMessage = error instanceof Error ? error.message : '获取项目详情失败';
       message.error(errorMessage);
@@ -230,7 +230,7 @@ export default function ProjectDetailPage() {
     try {
       const storiesResult = await getStories(projectIdNum, {
         page,
-        pageSize: storiesPageSize,
+        size: storiesPageSize,  // 后端使用 size 不是 pageSize
       });
       setStories(storiesResult?.items || []);
       setStoriesTotal(storiesResult?.total || 0);
@@ -260,24 +260,32 @@ export default function ProjectDetailPage() {
     return dayjs(dateStr).format('YYYY-MM-DD');
   };
 
-  // 格式化故事状态
+  // 格式化故事状态（支持大写和小写）
   const getStoryStatusText = (status: string) => {
     const map: Record<string, string> = {
       todo: '待办',
       in_progress: '进行中',
       testing: '测试中',
       done: '已完成',
+      TODO: '待办',
+      IN_PROGRESS: '进行中',
+      TESTING: '测试中',
+      DONE: '已完成',
     };
     return map[status] || status;
   };
 
-  // 获取故事状态颜色
+  // 获取故事状态颜色（支持大写和小写）
   const getStoryStatusColor = (status: string) => {
     const map: Record<string, string> = {
       todo: 'default',
       in_progress: 'processing',
       testing: 'warning',
       done: 'success',
+      TODO: 'default',
+      IN_PROGRESS: 'processing',
+      TESTING: 'warning',
+      DONE: 'success',
     };
     return map[status] || 'default';
   };
@@ -436,14 +444,10 @@ export default function ProjectDetailPage() {
                     <p className="text-gray-400 text-sm mb-3 line-clamp-2">{story.description}</p>
                     <div className="flex items-center justify-between">
                       <Tag color={getStoryStatusColor(story.status)}>{getStoryStatusText(story.status)}</Tag>
-                      {story.tags && story.tags.length > 0 && (
-                        <div className="flex gap-1">
-                          {story.tags.map((tag) => (
-                            <span key={tag} className="px-2 py-0.5 bg-gray-700 text-gray-300 text-xs rounded">
-                              {tag}
-                            </span>
-                          ))}
-                        </div>
+                      {story.acceptanceCriteria && (
+                        <span className="text-gray-400 text-xs truncate max-w-[200px]" title={story.acceptanceCriteria}>
+                          有验收标准
+                        </span>
                       )}
                     </div>
                   </div>

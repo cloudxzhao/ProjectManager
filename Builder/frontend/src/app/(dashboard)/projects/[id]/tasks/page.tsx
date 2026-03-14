@@ -8,6 +8,8 @@ import { DndContext, DragEndEvent, closestCenter } from '@dnd-kit/core';
 import { SortableContext, horizontalListSortingStrategy, useSortable, verticalListSortingStrategy } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
 import { getTasksForBoard, createTask as createTaskApi, moveTask, deleteTask } from '@/lib/api/task';
+import { getProjectMembers, type ProjectMemberResponse } from '@/lib/api/project';
+import { useAuth } from '@/lib/hooks/useAuth';
 import type { TaskBoardItem, TaskStatus, Priority } from '@/lib/api/task';
 
 const { Option } = Select;
@@ -149,10 +151,22 @@ interface TaskFormModalProps {
   onClose: () => void;
   onSubmit: (values: { title: string; description?: string; priority?: Priority; storyPoints?: number; assignee?: string; dueDate?: string }) => void;
   initialColumnId?: string;
+  projectMembers: ProjectMemberResponse[];
+  currentUserId?: number;
 }
 
-const TaskFormModal: React.FC<TaskFormModalProps> = ({ open, onClose, onSubmit, initialColumnId }) => {
+const TaskFormModal: React.FC<TaskFormModalProps> = ({ open, onClose, onSubmit, initialColumnId, projectMembers, currentUserId }) => {
   const [form] = Form.useForm();
+
+  // 当对话框打开且项目成员加载完成后，自动设置当前用户为默认负责人
+  useEffect(() => {
+    if (open && currentUserId && projectMembers.length > 0) {
+      const isMember = projectMembers.some((m) => m.user.id === currentUserId);
+      if (isMember) {
+        form.setFieldValue('assignee', currentUserId);
+      }
+    }
+  }, [open, currentUserId, projectMembers, form]);
 
   const handleFinish = (values: { title: string; description?: string; priority?: Priority; storyPoints?: number; assignee?: string; dueDate?: string }) => {
     onSubmit(values);
@@ -231,11 +245,27 @@ const TaskFormModal: React.FC<TaskFormModalProps> = ({ open, onClose, onSubmit, 
             name="assignee"
             label="负责人"
           >
-            <Select placeholder="选择负责人" className="bg-gray-700/50 border-gray-600">
-              <Option value="张三">张三</Option>
-              <Option value="李四">李四</Option>
-              <Option value="王五">王五</Option>
-              <Option value="赵六">赵六</Option>
+            <Select
+              placeholder="选择负责人"
+              className="bg-gray-700/50 border-gray-600"
+              showSearch
+              filterOption={(input, option) =>
+                String(option?.label ?? '').toLowerCase().includes(input.toLowerCase())
+              }
+            >
+              {projectMembers.length > 0 ? (
+                projectMembers.map((member) => (
+                  <Option
+                    key={member.user.id}
+                    value={member.user.id}
+                    label={`${member.user.username} (${member.user.email})`}
+                  >
+                    {member.user.username} ({member.user.email})
+                  </Option>
+                ))
+              ) : (
+                <Option value="" disabled>暂无成员</Option>
+              )}
             </Select>
           </Form.Item>
 
@@ -263,16 +293,28 @@ const TaskFormModal: React.FC<TaskFormModalProps> = ({ open, onClose, onSubmit, 
 };
 
 export default function TaskBoardPage() {
+  const { user } = useAuth();
   const params = useParams();
   const router = useRouter();
   const projectIdNum = Number(params.id);
 
   const [columns] = useState(initialColumns);
   const [tasks, setTasks] = useState<TaskItem[]>([]);
+  const [projectMembers, setProjectMembers] = useState<ProjectMemberResponse[]>([]);
   const [loading, setLoading] = useState(true);
   const [formOpen, setFormOpen] = useState(false);
   const [initialColumnId, setInitialColumnId] = useState<string | undefined>();
   const [selectedTask, setSelectedTask] = useState<TaskItem | null>(null);
+
+  // 加载项目成员列表
+  const loadProjectMembers = async () => {
+    try {
+      const members = await getProjectMembers(projectIdNum);
+      setProjectMembers(members || []);
+    } catch (error) {
+      console.error('加载项目成员失败:', error);
+    }
+  };
 
   // 加载任务列表
   const loadTasks = async () => {
@@ -290,6 +332,7 @@ export default function TaskBoardPage() {
 
   useEffect(() => {
     if (projectIdNum) {
+      loadProjectMembers();
       loadTasks();
     }
   }, [projectIdNum]);
@@ -447,6 +490,8 @@ export default function TaskBoardPage() {
         onClose={() => setFormOpen(false)}
         onSubmit={handleCreateTask}
         initialColumnId={initialColumnId}
+        projectMembers={projectMembers}
+        currentUserId={user?.id}
       />
     </div>
   );

@@ -3,43 +3,60 @@
 import { useState, useEffect } from 'react';
 import { Card, Input, Select, Button, Avatar, Tag, Empty, Spin, Pagination, Modal, Form, Drawer, message, FormProps } from 'antd';
 import { FileTextOutlined, PlusOutlined, SearchOutlined, EditOutlined, DeleteOutlined, EyeOutlined } from '@ant-design/icons';
-import { getStories, deleteStory, createStory, updateStory, type UserStory, type StoryStatus, type Priority, type CreateUserStoryDto, type UpdateUserStoryDto } from '@/lib/api/story';
-import { getProjects } from '@/lib/api/project';
+import { getStories, searchStories, deleteStory, createStory, updateStory, type UserStory, type StoryStatus, type Priority, type CreateUserStoryDto, type UpdateUserStoryDto, statusTextMap, priorityTextMap, statusMap, priorityMap } from '@/lib/api/story';
+import { getProjects, getProjectMembers, type ProjectMemberResponse } from '@/lib/api/project';
 import type { Project } from '@/lib/api/project';
+import { useAuth } from '@/lib/hooks/useAuth';
 
 const { Option } = Select;
 const { TextArea } = Input;
 
-// 状态颜色映射
+// 状态颜色映射（支持大写和小写）
 const statusColorMap: Record<string, string> = {
   todo: 'default',
   in_progress: 'processing',
   testing: 'warning',
   done: 'success',
+  TODO: 'default',
+  IN_PROGRESS: 'processing',
+  TESTING: 'warning',
+  DONE: 'success',
 };
 
-// 状态文本映射
-const statusTextMap: Record<string, string> = {
+// 状态文本映射（支持大写和小写）
+const statusTextLabelMap: Record<string, string> = {
   todo: '待办',
   in_progress: '进行中',
   testing: '测试中',
   done: '已完成',
+  TODO: '待办',
+  IN_PROGRESS: '进行中',
+  TESTING: '测试中',
+  DONE: '已完成',
 };
 
-// 优先级颜色映射
+// 优先级颜色映射（支持大写和小写）
 const priorityColorMap: Record<string, string> = {
   low: 'gray',
   medium: 'blue',
   high: 'orange',
   urgent: 'red',
+  LOW: 'gray',
+  MEDIUM: 'blue',
+  HIGH: 'orange',
+  URGENT: 'red',
 };
 
-// 优先级文本映射
-const priorityTextMap: Record<string, string> = {
+// 优先级文本映射（支持大写和小写）
+const priorityTextLabelMap: Record<string, string> = {
   low: '低',
   medium: '中',
   high: '高',
   urgent: '紧急',
+  LOW: '低',
+  MEDIUM: '中',
+  HIGH: '高',
+  URGENT: '紧急',
 };
 
 // 项目图标
@@ -89,9 +106,9 @@ const StoryCard: React.FC<StoryCardProps> = ({ story, project, onView, onEdit, o
                 {project.icon || '📁'}
               </div>
             )}
-            <Tag color={statusColorMap[story.status]}>{statusTextMap[story.status]}</Tag>
+            <Tag color={statusColorMap[story.status]}>{statusTextLabelMap[story.status]}</Tag>
           </div>
-          <Tag color={priorityColorMap[story.priority]}>{priorityTextMap[story.priority]}</Tag>
+          <Tag color={priorityColorMap[story.priority]}>{priorityTextLabelMap[story.priority]}</Tag>
         </div>
 
         {/* 标题 */}
@@ -108,15 +125,6 @@ const StoryCard: React.FC<StoryCardProps> = ({ story, project, onView, onEdit, o
           </div>
         )}
 
-        {/* 标签 */}
-        {story.tags && story.tags.length > 0 && (
-          <div className="flex flex-wrap gap-1 mb-4">
-            {story.tags.map((tag) => (
-              <Tag key={tag} color="blue" className="text-xs">{tag}</Tag>
-            ))}
-          </div>
-        )}
-
         {/* 底部：负责人和操作 */}
         <div className="flex items-center justify-between pt-4 border-t border-gray-700">
           <Avatar
@@ -124,7 +132,7 @@ const StoryCard: React.FC<StoryCardProps> = ({ story, project, onView, onEdit, o
             className="bg-gradient-to-br from-purple-400 to-pink-500"
             icon={!story.assigneeId && <span className="text-xs">?</span>}
           >
-            {story.assigneeId ? `U${story.assigneeId}` : ''}
+            {story.assigneeId ? (story.assigneeName?.charAt(0).toUpperCase() || `U${story.assigneeId}`) : ''}
           </Avatar>
           <div className="flex items-center gap-1">
             <Button
@@ -158,20 +166,21 @@ const StoryCard: React.FC<StoryCardProps> = ({ story, project, onView, onEdit, o
 
 // 创建/编辑表单接口
 interface StoryFormValues {
-  projectId: number;
+  projectId?: number;  // 仅用于选择项目成员，不传给 API
   title: string;
   description?: string;
-  status?: StoryStatus;
-  priority?: Priority;
+  acceptanceCriteria?: string;
+  status?: StoryStatus | string;
+  priority?: Priority | string;
   assigneeId?: number;
   storyPoints?: number;
-  dueDate?: string;
-  tags?: string[];
 }
 
 export default function StoriesPage() {
+  const { user } = useAuth();
   const [stories, setStories] = useState<UserStory[]>([]);
   const [projects, setProjects] = useState<Project[]>([]);
+  const [projectMembers, setProjectMembers] = useState<ProjectMemberResponse[]>([]);
   const [loading, setLoading] = useState(false);
   const [total, setTotal] = useState(0);
   const [page, setPage] = useState(1);
@@ -202,19 +211,42 @@ export default function StoriesPage() {
     }
   };
 
-  // 加载用户故事列表
+  // 加载项目成员列表
+  const fetchProjectMembers = async (projectId: number) => {
+    if (!projectId) return;
+    try {
+      const result = await getProjectMembers(projectId);
+      setProjectMembers(result || []);
+
+      // 如果是创建模式（没有 editingStory），自动设置当前用户为默认负责人
+      if (!editingStory && user?.id) {
+        // 检查当前用户是否是项目成员
+        const isMember = result?.some((m) => m.user.id === user.id);
+        if (isMember) {
+          form.setFieldValue('assigneeId', user.id);
+        }
+      }
+    } catch (error) {
+      console.error('加载项目成员失败:', error);
+    }
+  };
+
+  // 加载用户故事列表 - 使用全局搜索接口
   const fetchStories = async () => {
     setLoading(true);
     try {
       const params: Record<string, unknown> = {
         page,
-        pageSize,
+        size: pageSize,
       };
-      if (selectedProject) params.projectId = selectedProject;
       if (selectedStatus) params.status = selectedStatus;
-      if (searchText) params.title = searchText;
+      if (searchText) params.keyword = searchText;
+      // 如果选择了项目，通过 projectIds 参数筛选
+      if (selectedProject) {
+        params.projectIds = [selectedProject];
+      }
 
-      const result = await getStories(selectedProject || 0, params);
+      const result = await searchStories(params);
       setStories(result?.items || []);
       setTotal(result?.total || 0);
     } catch (error: unknown) {
@@ -230,15 +262,23 @@ export default function StoriesPage() {
   }, []);
 
   useEffect(() => {
+    if (selectedProject) {
+      fetchProjectMembers(selectedProject);
+    } else {
+      setProjectMembers([]);
+    }
+  }, [selectedProject]);
+
+  useEffect(() => {
     fetchStories();
-  }, [page, selectedProject, selectedStatus]);
+  }, [page, selectedProject, selectedStatus, searchText]);
 
   // 删除用户故事
   const handleDelete = async () => {
     if (!deletingStory) return;
     setLoading(true);
     try {
-      await deleteStory(deletingStory.projectId, deletingStory.id);
+      await deleteStory(deletingStory.id);
       message.success('用户故事删除成功');
       setDeleteModalOpen(false);
       setDeletingStory(null);
@@ -258,6 +298,16 @@ export default function StoriesPage() {
     // 默认选择当前筛选的项目
     if (selectedProject) {
       form.setFieldsValue({ projectId: selectedProject });
+      // 如果已选择项目，自动设置当前用户为默认负责人
+      if (user?.id && projectMembers.length > 0) {
+        const isMember = projectMembers.some((m) => m.user.id === user.id);
+        if (isMember) {
+          form.setFieldValue('assigneeId', user.id);
+        }
+      }
+    } else {
+      // 如果没有选择项目，清空表单中的项目字段
+      form.setFieldsValue({ projectId: undefined });
     }
     setFormModalOpen(true);
   };
@@ -265,16 +315,17 @@ export default function StoriesPage() {
   // 打开编辑表单
   const handleEdit = (story: UserStory) => {
     setEditingStory(story);
+    // 编辑时加载对应项目的成员列表
+    fetchProjectMembers(story.projectId);
     form.setFieldsValue({
       projectId: story.projectId,
       title: story.title,
       description: story.description,
-      status: story.status,
-      priority: story.priority,
+      acceptanceCriteria: story.acceptanceCriteria,
+      status: story.status?.toLowerCase(),  // 转小写用于表单
+      priority: story.priority?.toLowerCase(),  // 转小写用于表单
       assigneeId: story.assigneeId,
       storyPoints: story.storyPoints,
-      dueDate: story.dueDate,
-      tags: story.tags,
     });
     setFormModalOpen(true);
   };
@@ -290,33 +341,36 @@ export default function StoriesPage() {
     setLoading(true);
     try {
       if (editingStory) {
-        // 更新
+        // 更新 - 将前端小写状态转换为后端大写
         const updateData: UpdateUserStoryDto = {
           title: values.title,
           description: values.description,
-          status: values.status,
-          priority: values.priority,
+          acceptanceCriteria: values.acceptanceCriteria,
+          status: values.status ? statusMap[String(values.status)] || String(values.status) as StoryStatus : undefined,
+          priority: values.priority ? priorityMap[String(values.priority)] || String(values.priority) as Priority : undefined,
           assigneeId: values.assigneeId,
           storyPoints: values.storyPoints,
-          dueDate: values.dueDate,
-          tags: values.tags,
         };
-        await updateStory(values.projectId, editingStory.id, updateData);
+        await updateStory(editingStory.id, updateData);
         message.success('用户故事更新成功');
       } else {
-        // 创建
+        // 创建 - status 字段由后端设置默认值 (TODO)
         const createData: CreateUserStoryDto = {
-          projectId: values.projectId,
           title: values.title,
           description: values.description,
-          status: values.status || 'todo',
-          priority: values.priority || 'medium',
+          acceptanceCriteria: values.acceptanceCriteria,
+          priority: values.priority ? priorityMap[String(values.priority)] || 'MEDIUM' : 'MEDIUM',  // 默认为 MEDIUM
           assigneeId: values.assigneeId,
           storyPoints: values.storyPoints,
-          dueDate: values.dueDate,
-          tags: values.tags,
         };
-        await createStory(values.projectId, createData);
+        // 需要使用 selectedProject 或 values.projectId
+        const targetProjectId = selectedProject || values.projectId;
+        if (!targetProjectId) {
+          message.error('请选择所属项目');
+          setLoading(false);
+          return;
+        }
+        await createStory(targetProjectId, createData);
         message.success('用户故事创建成功');
       }
       setFormModalOpen(false);
@@ -332,6 +386,12 @@ export default function StoriesPage() {
   // 获取项目
   const getProject = (projectId: number) => {
     return projects.find((p) => p.id === projectId);
+  };
+
+  // 获取项目成员
+  const getProjectMember = (userId?: number) => {
+    if (!userId) return undefined;
+    return projectMembers.find((m) => m.user.id === userId);
   };
 
   return (
@@ -360,7 +420,7 @@ export default function StoriesPage() {
         <div className="flex flex-wrap gap-4">
           <div className="flex-1 min-w-[200px]">
             <Input
-              placeholder="搜索故事标题..."
+              placeholder="搜索故事标题或描述..."
               prefix={<SearchOutlined className="text-gray-400" />}
               value={searchText}
               onChange={(e) => setSearchText(e.target.value)}
@@ -493,23 +553,39 @@ export default function StoriesPage() {
           onFinish={handleFormSubmit}
           size="large"
           initialValues={{
-            status: 'todo',
             priority: 'medium',
           }}
         >
-          <Form.Item
-            name="projectId"
-            label="所属项目"
-            rules={[{ required: true, message: '请选择所属项目' }]}
-          >
-            <Select className="bg-gray-700/50 border-gray-600" placeholder="选择项目">
-              {projects.map((project) => (
-                <Option key={project.id} value={project.id}>
-                  {project.icon || '📁'} {project.name}
-                </Option>
-              ))}
-            </Select>
-          </Form.Item>
+          {/* 创建模式显示项目选择，编辑模式隐藏 */}
+          {!editingStory && (
+            <Form.Item
+              name="projectId"
+              label="所属项目"
+              rules={[{ required: true, message: '请选择所属项目' }]}
+            >
+              <Select
+                className="bg-gray-700/50 border-gray-600"
+                placeholder="选择项目"
+                onChange={(value) => {
+                  // 项目改变时，重新加载项目成员
+                  setSelectedProject(value);
+                  fetchProjectMembers(value);
+                }}
+              >
+                {projects.map((project) => (
+                  <Option key={project.id} value={project.id}>
+                    {project.icon || '📁'} {project.name}
+                  </Option>
+                ))}
+              </Select>
+            </Form.Item>
+          )}
+
+          {editingStory && (
+            <Form.Item label="所属项目">
+              <div className="text-gray-400">{getProject(editingStory.projectId)?.icon} {getProject(editingStory.projectId)?.name}</div>
+            </Form.Item>
+          )}
 
           <Form.Item
             name="title"
@@ -536,17 +612,19 @@ export default function StoriesPage() {
           </Form.Item>
 
           <div className="grid grid-cols-2 gap-4">
-            <Form.Item
-              name="status"
-              label="状态"
-            >
-              <Select className="bg-gray-700/50 border-gray-600">
-                <Option value="todo">待办</Option>
-                <Option value="in_progress">进行中</Option>
-                <Option value="testing">测试中</Option>
-                <Option value="done">已完成</Option>
-              </Select>
-            </Form.Item>
+            {editingStory && (
+              <Form.Item
+                name="status"
+                label="状态"
+              >
+                <Select className="bg-gray-700/50 border-gray-600">
+                  <Option value="todo">待办</Option>
+                  <Option value="in_progress">进行中</Option>
+                  <Option value="testing">测试中</Option>
+                  <Option value="done">已完成</Option>
+                </Select>
+              </Form.Item>
+            )}
 
             <Form.Item
               name="priority"
@@ -559,6 +637,8 @@ export default function StoriesPage() {
                 <Option value="urgent">紧急</Option>
               </Select>
             </Form.Item>
+
+            {editingStory && <div className="hidden" />}
           </div>
 
           <div className="grid grid-cols-2 gap-4">
@@ -578,36 +658,42 @@ export default function StoriesPage() {
             </Form.Item>
 
             <Form.Item
-              name="dueDate"
-              label="截止日期"
+              name="assigneeId"
+              label="负责人"
             >
-              <Input
-                type="date"
-                className="bg-gray-700/50 border-gray-600 text-white"
-              />
+              <Select
+                className="bg-gray-700/50 border-gray-600"
+                placeholder={projectMembers.length > 0 ? "选择负责人" : "当前项目暂无成员"}
+                allowClear
+                disabled={projectMembers.length === 0}
+                showSearch
+                filterOption={(input, option) =>
+                  String(option?.label ?? '').toLowerCase().includes(input.toLowerCase())
+                }
+              >
+                {projectMembers.length > 0 ? (
+                  projectMembers.map((member) => (
+                    <Option key={member.user.id} value={member.user.id} label={`${member.user.username} (${member.user.email})`}>
+                      {member.user.username} ({member.user.email})
+                    </Option>
+                  ))
+                ) : (
+                  <Option value="" disabled>请先选择项目</Option>
+                )}
+              </Select>
             </Form.Item>
           </div>
 
           <Form.Item
-            name="assigneeId"
-            label="负责人 ID"
+            name="acceptanceCriteria"
+            label="验收标准"
           >
-            <Input
-              type="number"
-              placeholder="输入用户 ID"
+            <TextArea
+              rows={3}
+              placeholder="描述用户故事的验收标准..."
               className="bg-gray-700/50 border-gray-600 text-white"
-            />
-          </Form.Item>
-
-          <Form.Item
-            name="tags"
-            label="标签"
-          >
-            <Select
-              mode="tags"
-              placeholder="输入标签后按回车"
-              className="bg-gray-700/50 border-gray-600"
-              tokenSeparators={[',']}
+              showCount
+              maxLength={2000}
             />
           </Form.Item>
 
@@ -669,14 +755,10 @@ export default function StoriesPage() {
               <p className="text-gray-300 whitespace-pre-wrap">{selectedStory.description || '无描述'}</p>
             </div>
 
-            {selectedStory.tags && selectedStory.tags.length > 0 && (
+            {selectedStory.acceptanceCriteria && (
               <div>
-                <h4 className="text-sm font-medium text-gray-400 mb-2">标签</h4>
-                <div className="flex flex-wrap gap-2">
-                  {selectedStory.tags.map((tag) => (
-                    <Tag key={tag} color="blue">{tag}</Tag>
-                  ))}
-                </div>
+                <h4 className="text-sm font-medium text-gray-400 mb-2">验收标准</h4>
+                <p className="text-gray-300 whitespace-pre-wrap">{selectedStory.acceptanceCriteria}</p>
               </div>
             )}
 
@@ -684,11 +766,14 @@ export default function StoriesPage() {
               <div>
                 <h4 className="text-sm font-medium text-gray-400 mb-2">负责人</h4>
                 <div className="flex items-center gap-2">
-                  <Avatar size={24} className="bg-gradient-to-br from-purple-400 to-pink-500">
-                    {selectedStory.assigneeId ? `U${selectedStory.assigneeId}` : '?'}
+                  <Avatar
+                    size={24}
+                    className="bg-gradient-to-br from-purple-400 to-pink-500"
+                  >
+                    {selectedStory.assigneeId ? (selectedStory.assigneeName?.charAt(0).toUpperCase() || 'U') : '?'}
                   </Avatar>
                   <span className="text-gray-300">
-                    {selectedStory.assigneeId ? `用户 ${selectedStory.assigneeId}` : '未分配'}
+                    {selectedStory.assigneeId ? (selectedStory.assigneeName || `用户 ${selectedStory.assigneeId}`) : '未分配'}
                   </span>
                 </div>
               </div>
@@ -704,15 +789,6 @@ export default function StoriesPage() {
                 </div>
               </div>
             </div>
-
-            {selectedStory.dueDate && (
-              <div>
-                <h4 className="text-sm font-medium text-gray-400 mb-2">截止日期</h4>
-                <span className="text-gray-300">
-                  {new Date(selectedStory.dueDate).toLocaleDateString('zh-CN')}
-                </span>
-              </div>
-            )}
 
             <div>
               <h4 className="text-sm font-medium text-gray-400 mb-2">时间信息</h4>

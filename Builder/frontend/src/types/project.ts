@@ -1,5 +1,7 @@
 // 项目相关类型定义
 
+import type { User } from './user';
+
 export interface Project {
   id: number;
   name: string;
@@ -74,6 +76,7 @@ export interface ProjectMember {
   projectId: number;
   role: MemberRole;
   joinedAt: string;
+  user: User;  // 后端返回的完整用户信息
 }
 
 export type MemberRole = 'owner' | 'admin' | 'manager' | 'member';

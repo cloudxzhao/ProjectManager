@@ -439,6 +439,218 @@ CREATE INDEX idx_operation_log_module ON operation_log(module);
 CREATE INDEX idx_operation_log_created_at ON operation_log(created_at);
 
 -- ============================================
+-- 表字段注释
+-- ============================================
+
+-- 用户表注释
+COMMENT ON TABLE sys_user IS '用户表';
+COMMENT ON COLUMN sys_user.id IS '用户 ID，主键';
+COMMENT ON COLUMN sys_user.username IS '用户名，唯一，2-20 字符';
+COMMENT ON COLUMN sys_user.email IS '邮箱，唯一';
+COMMENT ON COLUMN sys_user.password IS '密码，bcrypt 加密存储';
+COMMENT ON COLUMN sys_user.avatar IS '头像 URL';
+COMMENT ON COLUMN sys_user.status IS '用户状态：ACTIVE-激活，INACTIVE-未激活，BANNED-禁用';
+COMMENT ON COLUMN sys_user.created_at IS '创建时间';
+COMMENT ON COLUMN sys_user.updated_at IS '更新时间';
+COMMENT ON COLUMN sys_user.deleted_at IS '删除时间，软删除标记';
+
+-- 角色表注释
+COMMENT ON TABLE sys_role IS '角色表';
+COMMENT ON COLUMN sys_role.id IS '角色 ID，主键';
+COMMENT ON COLUMN sys_role.name IS '角色名称';
+COMMENT ON COLUMN sys_role.code IS '角色编码，唯一标识';
+COMMENT ON COLUMN sys_role.description IS '角色描述';
+COMMENT ON COLUMN sys_role.created_at IS '创建时间';
+
+-- 用户角色关联表注释
+COMMENT ON TABLE sys_user_role IS '用户角色关联表';
+COMMENT ON COLUMN sys_user_role.user_id IS '用户 ID';
+COMMENT ON COLUMN sys_user_role.role_id IS '角色 ID';
+COMMENT ON COLUMN sys_user_role.created_at IS '创建时间';
+
+-- 权限表注释
+COMMENT ON TABLE sys_permission IS '权限表';
+COMMENT ON COLUMN sys_permission.id IS '权限 ID，主键';
+COMMENT ON COLUMN sys_permission.name IS '权限名称';
+COMMENT ON COLUMN sys_permission.code IS '权限编码，唯一标识';
+COMMENT ON COLUMN sys_permission.description IS '权限描述';
+COMMENT ON COLUMN sys_permission.created_at IS '创建时间';
+
+-- 角色权限关联表注释
+COMMENT ON TABLE sys_role_permission IS '角色权限关联表';
+COMMENT ON COLUMN sys_role_permission.role_id IS '角色 ID';
+COMMENT ON COLUMN sys_role_permission.permission_id IS '权限 ID';
+
+-- 项目表注释
+COMMENT ON TABLE project IS '项目表';
+COMMENT ON COLUMN project.id IS '项目 ID，主键';
+COMMENT ON COLUMN project.name IS '项目名称';
+COMMENT ON COLUMN project.description IS '项目描述';
+COMMENT ON COLUMN project.start_date IS '开始日期';
+COMMENT ON COLUMN project.end_date IS '结束日期';
+COMMENT ON COLUMN project.owner_id IS '项目负责人 ID，关联 sys_user.id';
+COMMENT ON COLUMN project.status IS '项目状态：ACTIVE-进行中，COMPLETED-已完成，ARCHIVED-已归档';
+COMMENT ON COLUMN project.icon IS '项目图标';
+COMMENT ON COLUMN project.theme_color IS '主题颜色';
+COMMENT ON COLUMN project.created_at IS '创建时间';
+COMMENT ON COLUMN project.updated_at IS '更新时间';
+COMMENT ON COLUMN project.deleted_at IS '删除时间，软删除标记';
+
+-- 项目成员表注释
+COMMENT ON TABLE project_member IS '项目成员表';
+COMMENT ON COLUMN project_member.id IS '主键 ID';
+COMMENT ON COLUMN project_member.project_id IS '项目 ID';
+COMMENT ON COLUMN project_member.user_id IS '用户 ID';
+COMMENT ON COLUMN project_member.role IS '成员角色：OWNER-负责人，MANAGER-管理员，MEMBER-普通成员';
+COMMENT ON COLUMN project_member.joined_at IS '加入时间';
+
+-- 任务表注释
+COMMENT ON TABLE task IS '任务表';
+COMMENT ON COLUMN task.id IS '任务 ID，主键';
+COMMENT ON COLUMN task.project_id IS '所属项目 ID';
+COMMENT ON COLUMN task.title IS '任务标题';
+COMMENT ON COLUMN task.description IS '任务描述';
+COMMENT ON COLUMN task.status IS '任务状态：TODO-待办，IN_PROGRESS-进行中，IN_REVIEW-审查中，DONE-已完成';
+COMMENT ON COLUMN task.priority IS '优先级：LOW-低，MEDIUM-中，HIGH-高，URGENT-紧急';
+COMMENT ON COLUMN task.assignee_id IS '经办人 ID';
+COMMENT ON COLUMN task.creator_id IS '创建人 ID';
+COMMENT ON COLUMN task.parent_id IS '父任务 ID，用于子任务';
+COMMENT ON COLUMN task.due_date IS '截止日期';
+COMMENT ON COLUMN task.story_points IS '故事点，估算工作量';
+COMMENT ON COLUMN task.position IS '排序位置';
+COMMENT ON COLUMN task.created_at IS '创建时间';
+COMMENT ON COLUMN task.updated_at IS '更新时间';
+COMMENT ON COLUMN task.deleted_at IS '删除时间，软删除标记';
+
+-- 子任务表注释
+COMMENT ON TABLE sub_task IS '子任务表';
+COMMENT ON COLUMN sub_task.id IS '子任务 ID，主键';
+COMMENT ON COLUMN sub_task.task_id IS '所属任务 ID';
+COMMENT ON COLUMN sub_task.title IS '子任务标题';
+COMMENT ON COLUMN sub_task.completed IS '是否完成';
+COMMENT ON COLUMN sub_task.completed_at IS '完成时间';
+COMMENT ON COLUMN sub_task.position IS '排序位置';
+COMMENT ON COLUMN sub_task.created_at IS '创建时间';
+COMMENT ON COLUMN sub_task.updated_at IS '更新时间';
+
+-- 评论表注释
+COMMENT ON TABLE comment IS '评论表';
+COMMENT ON COLUMN comment.id IS '评论 ID，主键';
+COMMENT ON COLUMN comment.task_id IS '关联任务 ID';
+COMMENT ON COLUMN comment.issue_id IS '关联问题 ID';
+COMMENT ON COLUMN comment.story_id IS '关联用户故事 ID';
+COMMENT ON COLUMN comment.user_id IS '评论人 ID';
+COMMENT ON COLUMN comment.content IS '评论内容';
+COMMENT ON COLUMN comment.parent_id IS '父评论 ID，用于回复';
+COMMENT ON COLUMN comment.created_at IS '创建时间';
+COMMENT ON COLUMN comment.updated_at IS '更新时间';
+COMMENT ON COLUMN comment.deleted_at IS '删除时间，软删除标记';
+
+-- 史诗表注释
+COMMENT ON TABLE epic IS '史诗表';
+COMMENT ON COLUMN epic.id IS '史诗 ID，主键';
+COMMENT ON COLUMN epic.project_id IS '所属项目 ID';
+COMMENT ON COLUMN epic.title IS '史诗标题';
+COMMENT ON COLUMN epic.description IS '史诗描述';
+COMMENT ON COLUMN epic.color IS '颜色标识';
+COMMENT ON COLUMN epic.position IS '排序位置';
+COMMENT ON COLUMN epic.created_at IS '创建时间';
+COMMENT ON COLUMN epic.updated_at IS '更新时间';
+
+-- 用户故事表注释
+COMMENT ON TABLE user_story IS '用户故事表';
+COMMENT ON COLUMN user_story.id IS '用户故事 ID，主键';
+COMMENT ON COLUMN user_story.epic_id IS '所属史诗 ID';
+COMMENT ON COLUMN user_story.project_id IS '所属项目 ID';
+COMMENT ON COLUMN user_story.title IS '用户故事标题';
+COMMENT ON COLUMN user_story.description IS '用户故事描述';
+COMMENT ON COLUMN user_story.acceptance_criteria IS '验收标准';
+COMMENT ON COLUMN user_story.priority IS '优先级：LOW-低，MEDIUM-中，HIGH-高，URGENT-紧急';
+COMMENT ON COLUMN user_story.story_points IS '故事点，估算工作量';
+COMMENT ON COLUMN user_story.assignee_id IS '经办人 ID';
+COMMENT ON COLUMN user_story.status IS '状态：TODO-待办，IN_PROGRESS-进行中，IN_REVIEW-审查中，DONE-已完成';
+COMMENT ON COLUMN user_story.position IS '排序位置';
+COMMENT ON COLUMN user_story.created_at IS '创建时间';
+COMMENT ON COLUMN user_story.updated_at IS '更新时间';
+
+-- 问题表注释
+COMMENT ON TABLE issue IS '问题表';
+COMMENT ON COLUMN issue.id IS '问题 ID，主键';
+COMMENT ON COLUMN issue.project_id IS '所属项目 ID';
+COMMENT ON COLUMN issue.title IS '问题标题';
+COMMENT ON COLUMN issue.description IS '问题描述';
+COMMENT ON COLUMN issue.type IS '问题类型：BUG-缺陷，ISSUE-问题，IMPROVEMENT-改进，TECH_DEBT-技术债务';
+COMMENT ON COLUMN issue.severity IS '严重程度：TRIVIAL-轻微，MINOR-次要，NORMAL-普通，MAJOR-严重，CRITICAL-致命';
+COMMENT ON COLUMN issue.status IS '问题状态：NEW-新建，CONFIRMED-已确认，IN_PROGRESS-处理中，RESOLVED-已解决，CLOSED-已关闭，REOPENED-重新打开';
+COMMENT ON COLUMN issue.assignee_id IS '经办人 ID';
+COMMENT ON COLUMN issue.reporter_id IS '报告人 ID';
+COMMENT ON COLUMN issue.found_date IS '发现日期';
+COMMENT ON COLUMN issue.resolved_date IS '解决日期';
+COMMENT ON COLUMN issue.created_at IS '创建时间';
+COMMENT ON COLUMN issue.updated_at IS '更新时间';
+
+-- Wiki 文档表注释
+COMMENT ON TABLE wiki_document IS 'Wiki 文档表';
+COMMENT ON COLUMN wiki_document.id IS '文档 ID，主键';
+COMMENT ON COLUMN wiki_document.project_id IS '所属项目 ID';
+COMMENT ON COLUMN wiki_document.parent_id IS '父文档 ID，用于目录结构';
+COMMENT ON COLUMN wiki_document.title IS '文档标题';
+COMMENT ON COLUMN wiki_document.content IS '文档内容';
+COMMENT ON COLUMN wiki_document.author_id IS '作者 ID';
+COMMENT ON COLUMN wiki_document.version IS '版本号';
+COMMENT ON COLUMN wiki_document.position IS '排序位置';
+COMMENT ON COLUMN wiki_document.is_published IS '是否已发布';
+COMMENT ON COLUMN wiki_document.created_at IS '创建时间';
+COMMENT ON COLUMN wiki_document.updated_at IS '更新时间';
+
+-- Wiki 历史表注释
+COMMENT ON TABLE wiki_history IS 'Wiki 版本历史表';
+COMMENT ON COLUMN wiki_history.id IS '主键 ID';
+COMMENT ON COLUMN wiki_history.document_id IS '文档 ID';
+COMMENT ON COLUMN wiki_history.version IS '版本号';
+COMMENT ON COLUMN wiki_history.content IS '版本内容';
+COMMENT ON COLUMN wiki_history.author_id IS '作者 ID';
+COMMENT ON COLUMN wiki_history.change_summary IS '变更摘要';
+COMMENT ON COLUMN wiki_history.created_at IS '创建时间';
+
+-- 通知表注释
+COMMENT ON TABLE notification IS '通知表';
+COMMENT ON COLUMN notification.id IS '通知 ID，主键';
+COMMENT ON COLUMN notification.user_id IS '接收用户 ID';
+COMMENT ON COLUMN notification.title IS '通知标题';
+COMMENT ON COLUMN notification.content IS '通知内容';
+COMMENT ON COLUMN notification.type IS '通知类型：INFO-信息，WARNING-警告，ERROR-错误，TASK-任务，PROJECT-项目';
+COMMENT ON COLUMN notification.is_read IS '是否已读';
+COMMENT ON COLUMN notification.related_id IS '关联资源 ID';
+COMMENT ON COLUMN notification.related_type IS '关联资源类型';
+COMMENT ON COLUMN notification.created_at IS '创建时间';
+
+-- 系统配置表注释
+COMMENT ON TABLE sys_config IS '系统配置表';
+COMMENT ON COLUMN sys_config.id IS '主键 ID';
+COMMENT ON COLUMN sys_config.config_key IS '配置键，唯一';
+COMMENT ON COLUMN sys_config.config_value IS '配置值';
+COMMENT ON COLUMN sys_config.description IS '配置描述';
+COMMENT ON COLUMN sys_config.created_at IS '创建时间';
+COMMENT ON COLUMN sys_config.updated_at IS '更新时间';
+
+-- 操作日志表注释
+COMMENT ON TABLE operation_log IS '操作日志表';
+COMMENT ON COLUMN operation_log.id IS '主键 ID';
+COMMENT ON COLUMN operation_log.user_id IS '操作用户 ID';
+COMMENT ON COLUMN operation_log.operation IS '操作名称';
+COMMENT ON COLUMN operation_log.module IS '所属模块';
+COMMENT ON COLUMN operation_log.request_method IS '请求方法';
+COMMENT ON COLUMN operation_log.request_url IS '请求 URL';
+COMMENT ON COLUMN operation_log.request_params IS '请求参数';
+COMMENT ON COLUMN operation_log.response_status IS '响应状态码';
+COMMENT ON COLUMN operation_log.error_message IS '错误消息';
+COMMENT ON COLUMN operation_log.ip_address IS 'IP 地址';
+COMMENT ON COLUMN operation_log.user_agent IS '用户代理';
+COMMENT ON COLUMN operation_log.execution_time IS '执行时间 (毫秒)';
+COMMENT ON COLUMN operation_log.created_at IS '创建时间';
+
+-- ============================================
 -- 初始数据
 -- ============================================
 
