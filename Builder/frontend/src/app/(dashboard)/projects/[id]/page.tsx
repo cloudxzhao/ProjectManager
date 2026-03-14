@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { useParams, useRouter } from 'next/navigation';
-import { Card, Tabs, TabsProps, Avatar, Tag, Button, Empty, Dropdown, MenuProps, message, Modal, Form, Input, DatePicker, Select, ColorPicker, Drawer, Spin, Pagination } from 'antd';
+import { Card, Tabs, TabsProps, Avatar, Tag, Button, Empty, Dropdown, MenuProps, message, Modal, Form, Input, DatePicker, Select, ColorPicker, Drawer, Spin, Pagination, Table, TableColumnsType } from 'antd';
 import {
   EditOutlined,
   DeleteOutlined,
@@ -79,29 +79,6 @@ interface EditProjectFormValues {
   color?: string;
   icon?: string;
 }
-
-// 用户故事卡片组件
-const StoryCard = ({ story }: { story: { id: string; title: string; description: string; points: number; tags: string[] } }) => (
-  <div className="story-card">
-    <div className="story-header">
-      <span className="story-id">{story.id}</span>
-    </div>
-    <h3 className="story-title">{story.title}</h3>
-    <p className="story-description">{story.description}</p>
-    <div className="story-meta">
-      <div className="story-points">
-        <div className="points-badge">{story.points}</div>
-      </div>
-      <div className="story-tags">
-        {story.tags.map((tag) => (
-          <span key={tag} className={`story-tag tag-${tag}`}>
-            {tag === 'feature' ? '功能' : tag === 'bug' ? '缺陷' : '史诗'}
-          </span>
-        ))}
-      </div>
-    </div>
-  </div>
-);
 
 // 看板任务卡片组件
 const TaskCard = ({ task }: { task: { id: string; title: string; priority: string; assignee?: string; comments: number } }) => {
@@ -427,44 +404,82 @@ export default function ProjectDetailPage() {
             </div>
           ) : stories.length > 0 ? (
             <>
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                {stories.map((story) => (
-                  <div
-                    key={story.id}
-                    className="bg-gray-800/50 border border-gray-700 rounded-lg p-4 hover:border-orange-500/50 transition-colors"
-                  >
-                    <div className="flex items-start justify-between mb-2">
-                      <h4 className="text-white font-medium flex-1">{story.title}</h4>
-                      {story.storyPoints && (
-                        <span className="ml-2 px-2 py-1 bg-orange-500/20 text-orange-400 text-xs rounded">
-                          {story.storyPoints} pts
-                        </span>
-                      )}
-                    </div>
-                    <p className="text-gray-400 text-sm mb-3 line-clamp-2">{story.description}</p>
-                    <div className="flex items-center justify-between">
-                      <Tag color={getStoryStatusColor(story.status)}>{getStoryStatusText(story.status)}</Tag>
-                      {story.acceptanceCriteria && (
-                        <span className="text-gray-400 text-xs truncate max-w-[200px]" title={story.acceptanceCriteria}>
-                          有验收标准
-                        </span>
-                      )}
-                    </div>
-                  </div>
-                ))}
-              </div>
-              {/* 分页组件 */}
-              <div className="flex justify-end mt-4">
-                <Pagination
-                  current={storiesPage}
-                  total={storiesTotal}
-                  pageSize={storiesPageSize}
-                  onChange={handleStoriesPageChange}
-                  showSizeChanger={false}
-                  showTotal={(total) => `共 ${total} 条`}
-                  className="text-gray-400"
-                />
-              </div>
+              <Table<UserStory>
+                dataSource={stories}
+                rowKey="id"
+                pagination={{
+                  current: storiesPage,
+                  total: storiesTotal,
+                  pageSize: storiesPageSize,
+                  onChange: handleStoriesPageChange,
+                  showSizeChanger: false,
+                  showTotal: (total) => `共 ${total} 条`,
+                }}
+                className="stories-table"
+                columns={[
+                  {
+                    title: '故事标题',
+                    dataIndex: 'title',
+                    key: 'title',
+                    ellipsis: true,
+                    render: (title: string, record: UserStory) => (
+                      <div className="font-medium text-white">
+                        {title}
+                        {record.storyPoints && (
+                          <span className="ml-2 px-2 py-0.5 bg-orange-500/20 text-orange-400 text-xs rounded">
+                            {record.storyPoints} pts
+                          </span>
+                        )}
+                      </div>
+                    ),
+                  },
+                  {
+                    title: '描述',
+                    dataIndex: 'description',
+                    key: 'description',
+                    ellipsis: true,
+                    width: 300,
+                    render: (description: string) => (
+                      <span className="text-gray-400 text-sm" title={description}>
+                        {description?.length > 50 ? `${description.slice(0, 50)}...` : description}
+                      </span>
+                    ),
+                  },
+                  {
+                    title: '状态',
+                    dataIndex: 'status',
+                    key: 'status',
+                    width: 100,
+                    render: (status: string) => (
+                      <Tag color={getStoryStatusColor(status)}>{getStoryStatusText(status)}</Tag>
+                    ),
+                  },
+                  {
+                    title: '负责人',
+                    dataIndex: 'assigneeName',
+                    key: 'assigneeName',
+                    width: 100,
+                    render: (assigneeName?: string) => (
+                      <span className="text-gray-300">
+                        {assigneeName || <span className="text-gray-500">未分配</span>}
+                      </span>
+                    ),
+                  },
+                  {
+                    title: '验收标准',
+                    dataIndex: 'acceptanceCriteria',
+                    key: 'acceptanceCriteria',
+                    width: 120,
+                    render: (acceptanceCriteria?: string) => (
+                      acceptanceCriteria ? (
+                        <Tag color="blue">已定义</Tag>
+                      ) : (
+                        <span className="text-gray-500">-</span>
+                      )
+                    ),
+                  },
+                ].filter(Boolean) as TableColumnsType<UserStory>}
+              />
             </>
           ) : (
             <div className="text-center py-12">
