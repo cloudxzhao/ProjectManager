@@ -62,6 +62,15 @@ const priorityTextLabelMap: Record<string, string> = {
 // 项目图标
 const projectIcons = ['🛒', '📱', '📊', '🤝', '🌐', '🔧', '💼', '🎯', '🚀', '💡'];
 
+// 用户故事图标库（用于随机展示）
+const storyIcons = ['📝', '💭', '🎯', '✨', '🔥', '💡', '🚀', '⭐', '🎨', '🧩', '📌', '💫', '🌟', '🎪', '🎭', '🎸'];
+
+// 根据故事 ID 生成稳定的随机索引（保证同一条故事每次渲染显示相同图标）
+const getStableIconIndex = (id: number) => {
+  const hash = String(id).split('').reduce((acc, char) => acc + char.charCodeAt(0), 0);
+  return hash % storyIcons.length;
+};
+
 interface StoryCardProps {
   story: UserStory;
   project?: Project;
@@ -72,6 +81,9 @@ interface StoryCardProps {
 
 // 用户故事卡片组件
 const StoryCard: React.FC<StoryCardProps> = ({ story, project, onView, onEdit, onDelete }) => {
+  // 获取稳定的图标（基于故事 ID）
+  const storyIcon = storyIcons[getStableIconIndex(story.id)];
+
   return (
     <Card
       hoverable
@@ -95,17 +107,15 @@ const StoryCard: React.FC<StoryCardProps> = ({ story, project, onView, onEdit, o
         {/* 项目和状态 */}
         <div className="flex items-start justify-between mb-3">
           <div className="flex items-center gap-2">
-            {project && (
-              <div
-                className="w-8 h-8 rounded-lg flex items-center justify-center text-sm"
-                style={{
-                  background: `linear-gradient(135deg, ${project.color} 0%, ${project.color}cc 100%)`,
-                  boxShadow: `0 4px 8px -2px ${project.color}40`,
-                }}
-              >
-                {project.icon || '📁'}
-              </div>
-            )}
+            <div
+              className="w-8 h-8 rounded-lg flex items-center justify-center text-sm"
+              style={{
+                background: `linear-gradient(135deg, ${project?.color || '#f97316'} 0%, ${project?.color || '#f97316'}cc 100%)`,
+                boxShadow: `0 4px 8px -2px ${project?.color || '#f97316'}40`,
+              }}
+            >
+              {storyIcon}
+            </div>
             <Tag color={statusColorMap[story.status]}>{statusTextLabelMap[story.status]}</Tag>
           </div>
           <Tag color={priorityColorMap[story.priority]}>{priorityTextLabelMap[story.priority]}</Tag>
