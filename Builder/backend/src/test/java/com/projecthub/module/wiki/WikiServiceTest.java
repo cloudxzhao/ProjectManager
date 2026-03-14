@@ -5,7 +5,7 @@ import static org.junit.jupiter.api.Assertions.*;
 import com.projecthub.common.exception.BusinessException;
 import com.projecthub.module.project.entity.Project;
 import com.projecthub.module.project.entity.ProjectMember;
-import com.projecthub.module.project.entity.ProjectMemberRole;
+import com.projecthub.module.project.entity.ProjectMember.ProjectMemberRole;
 import com.projecthub.module.project.repository.ProjectMemberRepository;
 import com.projecthub.module.project.repository.ProjectRepository;
 import com.projecthub.module.wiki.dto.WikiVO;

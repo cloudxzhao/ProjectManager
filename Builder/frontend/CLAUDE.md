@@ -13,11 +13,9 @@ ProjectHub 是一款现代化项目管理系统，融合敏捷开发理念与现
 ---
 
 ## 约束设计
-- ✅ **API参考**：后端的API文档地址是`http://localhost:9527/v3/api-docs`。
-- ✅ **Swagger参考**：后端的Swagger-UI地址文是`http://localhost:9527/swagger-ui/index.html#/`。
-- ✅ **编译验证**：每次任务完成都通过`npm run build`编译验证。
-- ✅ **Git提交**：每次任务完成提交`git`，并推送到远程仓库。
-
+- ✅ **API参考**：通过`curl http://localhost:9527/v3/api-docs`命令获取后端的API文档 。
+- ✅ **编译验证**：每次任务完成后，都只通过编译验证自己修改的代码。
+- ✅ **Git提交**：每次任务完，只将本会话中修改的文件提交`git`，并推送到远程仓库。
 ---
 
 ## 技术栈要求

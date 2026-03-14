@@ -67,14 +67,23 @@ export interface UpdateWikiDto {
 export const getWikiTree = async (projectId: number) => {
   const res = await api.get<Wiki[]>(endpoints.wiki.list(projectId));
   console.log('[wiki.api] getWikiTree result:', res);
+  console.log('[wiki.api] getWikiTree response data:', res.data.data);
+
   const data = res.data.data;
+
+  // 如果是数组格式，直接返回
   if (data && Array.isArray(data)) {
+    console.log('[wiki.api] Wiki data is array, length:', data.length);
     return data;
   }
-  // 如果是分页格式，返回 list
+
+  // 如果是分页格式 { list, total, ... }，返回 list
   if (data && typeof data === 'object' && 'list' in data) {
+    console.log('[wiki.api] Wiki data is paginated, list length:', (data as any).list?.length);
     return (data as any).list || [];
   }
+
+  console.warn('[wiki.api] Unexpected wiki data format:', data);
   return [];
 };
 

@@ -9,14 +9,13 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.projecthub.common.response.Result;
 import com.projecthub.module.project.entity.Project;
 import com.projecthub.module.project.entity.ProjectMember;
-import com.projecthub.module.project.entity.ProjectMemberRole;
+import com.projecthub.module.project.entity.ProjectMember.ProjectMemberRole;
 import com.projecthub.module.project.repository.ProjectMemberRepository;
 import com.projecthub.module.project.repository.ProjectRepository;
 import com.projecthub.module.wiki.dto.WikiVO;
 import com.projecthub.module.wiki.entity.WikiDocument;
 import com.projecthub.module.wiki.repository.WikiRepository;
 import com.projecthub.security.UserDetailsImpl;
-import com.projecthub.security.UserDetailsServiceImpl;
 import java.time.LocalDateTime;
 import java.util.List;
 import org.junit.jupiter.api.BeforeEach;
@@ -50,8 +49,6 @@ class WikiControllerTest {
   @Autowired private ProjectRepository projectRepository;
 
   @Autowired private ProjectMemberRepository projectMemberRepository;
-
-  @Autowired private UserDetailsServiceImpl userDetailsService;
 
   private Project testProject;
   private UserDetailsImpl testUser;
