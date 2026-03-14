@@ -290,7 +290,7 @@ export default function DashboardPage() {
           },
           {
             title: '待完成任务',
-            value: tasksList.filter((t) => t.status === 'todo').length || 0,
+            value: tasksList.filter((t) => t.status === 'TODO').length || 0,
             iconType: 'task' as const,
             trend: 'up' as const,
             trendValue: 8,
@@ -300,7 +300,7 @@ export default function DashboardPage() {
           },
           {
             title: '本周已完成',
-            value: tasksList.filter((t) => t.status === 'done').length || 0,
+            value: tasksList.filter((t) => t.status === 'DONE').length || 0,
             iconType: 'check' as const,
             trend: 'up' as const,
             trendValue: 24,
@@ -339,10 +339,10 @@ export default function DashboardPage() {
         const taskItems = tasksList.map((task) => ({
           id: String(task.id),
           title: task.title,
-          priority: (task.priority === 'high' ? 'high' : task.priority === 'medium' ? 'medium' : 'low') as 'high' | 'medium' | 'low',
-          priorityText: task.priority === 'high' ? '高优先级' : task.priority === 'medium' ? '中优先级' : '低优先级',
+          priority: (String(task.priority).toLowerCase() === 'high' ? 'high' : String(task.priority).toLowerCase() === 'medium' ? 'medium' : 'low') as 'high' | 'medium' | 'low',
+          priorityText: String(task.priority).toUpperCase() === 'HIGH' ? '高优先级' : String(task.priority).toUpperCase() === 'MEDIUM' ? '中优先级' : '低优先级',
           dueDate: task.dueDate || '无截止日期',
-          checked: task.status === 'done',
+          checked: task.status === 'DONE',
         }));
         setTasksData(taskItems);
       } catch (error) {

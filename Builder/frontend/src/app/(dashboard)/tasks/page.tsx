@@ -3,7 +3,7 @@
 import { useState, useEffect, useMemo, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import {
-  Card, Button, Tag, Avatar, message, Spin, Select, Input,
+  Card, Button, Tag, Avatar, message, Spin, Select, Input, Pagination,
 } from 'antd';
 import { PlusOutlined, ClockCircleOutlined, FlagOutlined, UserOutlined, SearchOutlined, ClearOutlined } from '@ant-design/icons';
 import { DndContext, DragEndEvent, closestCenter } from '@dnd-kit/core';
@@ -19,10 +19,10 @@ const { Option } = Select;
 
 // 状态文本映射
 const statusTextMap: Record<string, string> = {
-  todo: '待办',
-  in_progress: '进行中',
-  testing: '测试中',
-  done: '已完成',
+  TODO: '待办',
+  IN_PROGRESS: '进行中',
+  IN_REVIEW: '审核中',
+  DONE: '已完成',
 };
 
 // 优先级文本映射
@@ -35,18 +35,18 @@ const priorityTextMap: Record<string, string> = {
 
 // 看板列定义
 const columns = [
-  { id: 'todo', title: '待办', color: '#6b7280' },
-  { id: 'in_progress', title: '进行中', color: '#3b82f6' },
-  { id: 'testing', title: '测试中', color: '#f59e0b' },
-  { id: 'done', title: '已完成', color: '#10b981' },
+  { id: 'TODO', title: '待办', color: '#6b7280' },
+  { id: 'IN_PROGRESS', title: '进行中', color: '#3b82f6' },
+  { id: 'IN_REVIEW', title: '审核中', color: '#f59e0b' },
+  { id: 'DONE', title: '已完成', color: '#10b981' },
 ];
 
 // 任务状态映射（后端状态 -> 看板列 ID）
 const statusToColumn: Record<TaskStatus, string> = {
-  'todo': 'todo',
-  'in_progress': 'in_progress',
-  'testing': 'testing',
-  'done': 'done',
+  'TODO': 'TODO',
+  'IN_PROGRESS': 'IN_PROGRESS',
+  'IN_REVIEW': 'IN_REVIEW',
+  'DONE': 'DONE',
 };
 
 // 看板任务项
@@ -200,6 +200,11 @@ export default function TaskBoardPage() {
   const [allProjectMembers, setAllProjectMembers] = useState<Map<number, ProjectMemberResponse[]>>(new Map());  // 所有项目的成员缓存
   const [tasks, setTasks] = useState<TaskBoardItem[]>([]);
 
+  // 分页状态
+  const [page, setPage] = useState(1);
+  const [pageSize] = useState(20);  // 每页 20 条
+  const [total, setTotal] = useState(0);
+
   // 筛选状态
   const [selectedProjectIds, setSelectedProjectIds] = useState<number[]>([]);  // 支持多选项目
   const [selectedStatus, setSelectedStatus] = useState<TaskStatus | undefined>(undefined);
@@ -255,10 +260,11 @@ export default function TaskBoardPage() {
   // 加载任务（使用筛选条件）
   const loadTasks = useCallback(async () => {
     setIsFiltering(true);
+    setLoading(true);
     try {
       const searchParams: Record<string, any> = {
-        page: 1,
-        pageSize: 100,
+        page,
+        size: pageSize,
       };
 
       // 项目筛选（支持多选）
@@ -268,12 +274,12 @@ export default function TaskBoardPage() {
 
       // 状态筛选
       if (selectedStatus) {
-        searchParams.status = selectedStatus.toUpperCase();
+        searchParams.status = selectedStatus;  // 已经是大写格式
       }
 
       // 优先级筛选
       if (selectedPriority) {
-        searchParams.priority = selectedPriority.toUpperCase();
+        searchParams.priority = selectedPriority;
       }
 
       // 责任人筛选
@@ -304,18 +310,20 @@ export default function TaskBoardPage() {
           assigneeName: task.assigneeName,  // 使用后端返回的 assigneeName
           dueDate: task.dueDate,
           storyPoints: task.storyPoints,
-          columnId: statusToColumn[task.status] || 'todo',
+          columnId: statusToColumn[task.status] || 'TODO',
         };
       });
 
       setTasks(tasksWithProjectName);
+      setTotal(tasksResult.total || 0);
     } catch (error) {
       console.error('加载任务失败:', error);
       message.error('加载任务失败');
     } finally {
       setIsFiltering(false);
+      setLoading(false);
     }
-  }, [projects, selectedProjectIds, selectedStatus, selectedPriority, selectedAssigneeId, searchKeyword]);
+  }, [page, pageSize, projects, selectedProjectIds, selectedStatus, selectedPriority, selectedAssigneeId, searchKeyword]);
 
   // 加载项目列表
   useEffect(() => {
@@ -339,9 +347,10 @@ export default function TaskBoardPage() {
     }
   }, [selectedProjectIds]);
 
-  // 筛选条件变化时重新加载任务
+  // 筛选条件变化时重新加载任务（同时重置页码）
   useEffect(() => {
     if (projects.length > 0) {
+      setPage(1);  // 重置到第一页
       loadTasks();
     }
   }, [selectedProjectIds, selectedStatus, selectedPriority, selectedAssigneeId, searchKeyword, loadTasks, projects.length]);
@@ -349,13 +358,14 @@ export default function TaskBoardPage() {
   // 筛选后的任务（本地不再过滤，直接使用 API 返回的结果）
   const filteredTasks = tasks;
 
-  // 清空筛选
+  // 清空筛选（同时重置页码）
   const handleClearFilters = () => {
     setSelectedProjectIds([]);
     setSelectedStatus(undefined);
     setSelectedPriority(undefined);
     setSelectedAssigneeId(undefined);
     setSearchKeyword('');
+    setPage(1);  // 重置页码
   };
 
   // 处理拖拽结束
@@ -492,10 +502,10 @@ export default function TaskBoardPage() {
             allowClear
             dropdownClassName="bg-gray-800 border-gray-700"
           >
-            <Option value="todo">待办</Option>
-            <Option value="in_progress">进行中</Option>
-            <Option value="testing">测试中</Option>
-            <Option value="done">已完成</Option>
+            <Option value="TODO">待办</Option>
+            <Option value="IN_PROGRESS">进行中</Option>
+            <Option value="IN_REVIEW">审核中</Option>
+            <Option value="DONE">已完成</Option>
           </Select>
 
           {/* 优先级筛选 */}
@@ -555,6 +565,22 @@ export default function TaskBoardPage() {
                 })}
               </div>
             </DndContext>
+          </div>
+
+          {/* 分页组件 */}
+          <div className="flex justify-end items-center gap-3 pt-4 border-t border-gray-700">
+            <Pagination
+              current={page}
+              total={total}
+              pageSize={pageSize}
+              onChange={(newPage) => {
+                setPage(newPage);
+                window.scrollTo({ top: 0, behavior: 'smooth' });
+              }}
+              showSizeChanger={false}
+              showTotal={(total) => `共 ${total} 条`}
+              pageSizeOptions={[20]}
+            />
           </div>
         </>
       )}

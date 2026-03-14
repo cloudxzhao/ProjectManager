@@ -1732,7 +1732,7 @@ export default function ProjectDetailPage() {
                 <Tag color="processing">
                   {selectedStory.status === 'TODO' && '待办'}
                   {selectedStory.status === 'IN_PROGRESS' && '进行中'}
-                  {selectedStory.status === 'TESTING' && '测试中'}
+                  {selectedStory.status === 'IN_REVIEW' && '审核中'}
                   {selectedStory.status === 'DONE' && '已完成'}
                 </Tag>
               </div>
@@ -1892,10 +1892,10 @@ export default function ProjectDetailPage() {
                   {selectedTask.priority}
                 </Tag>
                 <Tag color="processing">
-                  {selectedTask.status === 'todo' && '待办'}
-                  {selectedTask.status === 'in_progress' && '进行中'}
-                  {selectedTask.status === 'testing' && '测试中'}
-                  {selectedTask.status === 'done' && '已完成'}
+                  {selectedTask.status === 'TODO' && '待办'}
+                  {selectedTask.status === 'IN_PROGRESS' && '进行中'}
+                  {selectedTask.status === 'IN_REVIEW' && '审核中'}
+                  {selectedTask.status === 'DONE' && '已完成'}
                 </Tag>
               </div>
             </div>

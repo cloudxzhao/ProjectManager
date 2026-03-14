@@ -24,7 +24,7 @@ export interface Task {
   updatedAt?: string;
 }
 
-export type TaskStatus = 'todo' | 'in_progress' | 'testing' | 'done';
+export type TaskStatus = 'TODO' | 'IN_PROGRESS' | 'IN_REVIEW' | 'DONE';
 
 export type Priority = 'low' | 'medium' | 'high' | 'urgent';
 

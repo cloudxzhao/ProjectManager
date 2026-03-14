@@ -32,7 +32,7 @@ export interface UserStory {
 }
 
 // 状态枚举（与后端保持一致，使用大写）
-export type StoryStatus = 'TODO' | 'IN_PROGRESS' | 'TESTING' | 'DONE';
+export type StoryStatus = 'TODO' | 'IN_PROGRESS' | 'IN_REVIEW' | 'DONE';
 
 // 优先级枚举（与后端保持一致，使用大写）
 export type Priority = 'LOW' | 'MEDIUM' | 'HIGH' | 'URGENT';
@@ -41,7 +41,7 @@ export type Priority = 'LOW' | 'MEDIUM' | 'HIGH' | 'URGENT';
 export const statusMap: Record<string, StoryStatus> = {
   todo: 'TODO',
   in_progress: 'IN_PROGRESS',
-  testing: 'TESTING',
+  in_review: 'IN_REVIEW',
   done: 'DONE',
 };
 
@@ -49,7 +49,7 @@ export const statusMap: Record<string, StoryStatus> = {
 export const statusTextMap: Record<StoryStatus, string> = {
   TODO: '待办',
   IN_PROGRESS: '进行中',
-  TESTING: '测试中',
+  IN_REVIEW: '审核中',
   DONE: '已完成',
 };
 

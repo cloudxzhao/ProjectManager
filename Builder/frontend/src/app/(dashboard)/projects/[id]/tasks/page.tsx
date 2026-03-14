@@ -17,10 +17,10 @@ const { TextArea } = Input;
 
 // 看板列定义
 const initialColumns = [
-  { id: 'todo', title: '待办', color: '#6b7280' },
-  { id: 'in-progress', title: '进行中', color: '#3b82f6' },
-  { id: 'testing', title: '测试中', color: '#f59e0b' },
-  { id: 'done', title: '已完成', color: '#10b981' },
+  { id: 'TODO', title: '待办', color: '#6b7280' },
+  { id: 'IN_PROGRESS', title: '进行中', color: '#3b82f6' },
+  { id: 'IN_REVIEW', title: '审核中', color: '#f59e0b' },
+  { id: 'DONE', title: '已完成', color: '#10b981' },
 ];
 
 // 前端看板任务类型
@@ -339,18 +339,18 @@ export default function TaskBoardPage() {
 
   // 状态到列的映射
   const statusToColumn: Record<string, TaskStatus> = {
-    'todo': 'todo',
-    'in-progress': 'in_progress',
-    'testing': 'testing',
-    'done': 'done',
+    'TODO': 'TODO',
+    'IN_PROGRESS': 'IN_PROGRESS',
+    'IN_REVIEW': 'IN_REVIEW',
+    'DONE': 'DONE',
   };
 
   // 列到状态的映射
   const columnToStatus: Record<string, string> = {
-    'todo': 'todo',
-    'in-progress': 'in_progress',
-    'testing': 'testing',
-    'done': 'done',
+    'TODO': 'TODO',
+    'IN_PROGRESS': 'IN_PROGRESS',
+    'IN_REVIEW': 'IN_REVIEW',
+    'DONE': 'DONE',
   };
 
   const handleDragEnd = async (event: DragEndEvent) => {
@@ -390,7 +390,7 @@ export default function TaskBoardPage() {
 
       // 调用API更新任务状态
       try {
-        const newStatus = statusToColumn[newColumnId] || 'todo';
+        const newStatus = statusToColumn[newColumnId] || 'TODO';
         await moveTask(projectIdNum, activeTask.taskId, newStatus);
         message.success('任务已移动');
       } catch (error) {
@@ -415,7 +415,7 @@ export default function TaskBoardPage() {
   const handleCreateTask = async (values: { title: string; description?: string; priority?: Priority; storyPoints?: number; assignee?: string; dueDate?: string }) => {
     try {
       // 将列ID转换为状态
-      const columnId = initialColumnId || 'todo';
+      const columnId = initialColumnId || 'TODO';
       const status = columnToStatus[columnId] || 'todo';
 
       await createTaskApi(projectIdNum, {
@@ -447,7 +447,7 @@ export default function TaskBoardPage() {
         <Button
           type="primary"
           icon={<PlusOutlined />}
-          onClick={() => handleAddTask('todo')}
+          onClick={() => handleAddTask('TODO')}
           className="bg-gradient-to-r from-orange-500 to-orange-600 border-none"
         >
           创建任务

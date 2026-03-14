@@ -13,26 +13,26 @@ const { TextArea } = Input;
 
 // 状态颜色映射（支持大写和小写）
 const statusColorMap: Record<string, string> = {
-  todo: 'default',
-  in_progress: 'processing',
-  testing: 'warning',
-  done: 'success',
   TODO: 'default',
   IN_PROGRESS: 'processing',
-  TESTING: 'warning',
+  IN_REVIEW: 'warning',
   DONE: 'success',
+  todo: 'default',
+  in_progress: 'processing',
+  in_review: 'warning',
+  done: 'success',
 };
 
 // 状态文本映射（支持大写和小写）
 const statusTextLabelMap: Record<string, string> = {
-  todo: '待办',
-  in_progress: '进行中',
-  testing: '测试中',
-  done: '已完成',
   TODO: '待办',
   IN_PROGRESS: '进行中',
-  TESTING: '测试中',
+  IN_REVIEW: '审核中',
   DONE: '已完成',
+  todo: '待办',
+  in_progress: '进行中',
+  in_review: '审核中',
+  done: '已完成',
 };
 
 // 优先级颜色映射（支持大写和小写）
@@ -588,10 +588,10 @@ export default function StoriesPage() {
             className="w-[150px] bg-gray-700/50 border-gray-600"
             allowClear
           >
-            <Option value="todo">待办</Option>
-            <Option value="in_progress">进行中</Option>
-            <Option value="testing">测试中</Option>
-            <Option value="done">已完成</Option>
+            <Option value="TODO">待办</Option>
+            <Option value="IN_PROGRESS">进行中</Option>
+            <Option value="IN_REVIEW">审核中</Option>
+            <Option value="DONE">已完成</Option>
           </Select>
           <Select
             placeholder="选择优先级"
@@ -776,10 +776,10 @@ export default function StoriesPage() {
                 label="状态"
               >
                 <Select className="bg-gray-700/50 border-gray-600">
-                  <Option value="todo">待办</Option>
-                  <Option value="in_progress">进行中</Option>
-                  <Option value="testing">测试中</Option>
-                  <Option value="done">已完成</Option>
+                  <Option value="TODO">待办</Option>
+                  <Option value="IN_PROGRESS">进行中</Option>
+                  <Option value="IN_REVIEW">审核中</Option>
+                  <Option value="DONE">已完成</Option>
                 </Select>
               </Form.Item>
             )}

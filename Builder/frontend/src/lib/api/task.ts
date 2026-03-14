@@ -64,10 +64,10 @@ export interface TaskBoardFilterParams {
 const mapTaskResponse = (response: TaskResponse, columnId?: string): Task => {
   // 处理状态映射：如果没有提供 columnId，从 status 转换
   const statusToColumn: Record<TaskStatus, string> = {
-    'todo': 'todo',
-    'in_progress': 'in-progress',
-    'testing': 'testing',
-    'done': 'done',
+    'TODO': 'TODO',
+    'IN_PROGRESS': 'IN_PROGRESS',
+    'IN_REVIEW': 'IN_REVIEW',
+    'DONE': 'DONE',
   };
 
   return {
@@ -75,7 +75,7 @@ const mapTaskResponse = (response: TaskResponse, columnId?: string): Task => {
     projectId: typeof response.projectId === 'string' ? parseInt(response.projectId, 10) : (response.projectId as number),
     title: response.title || '',
     description: response.description || '',
-    status: response.status || 'todo',
+    status: response.status || 'TODO',
     priority: response.priority || 'medium',
     assigneeId: response.assigneeId ? (typeof response.assigneeId === 'string' ? parseInt(response.assigneeId, 10) : response.assigneeId) : undefined,
     assigneeName: response.assigneeName,  // 保留负责人名称
@@ -100,10 +100,10 @@ const mapTaskResponse = (response: TaskResponse, columnId?: string): Task => {
  */
 const mapTaskToBoardItem = (task: Task, assigneeName?: string): TaskBoardItem => {
   const statusToColumn: Record<TaskStatus, string> = {
-    'todo': 'todo',
-    'in_progress': 'in-progress',
-    'testing': 'testing',
-    'done': 'done',
+    'TODO': 'TODO',
+    'IN_PROGRESS': 'IN_PROGRESS',
+    'IN_REVIEW': 'IN_REVIEW',
+    'DONE': 'DONE',
   };
 
   return {
@@ -114,7 +114,7 @@ const mapTaskToBoardItem = (task: Task, assigneeName?: string): TaskBoardItem =>
     assignee: assigneeName,
     assigneeId: task.assigneeId,
     dueDate: task.dueDate,
-    columnId: statusToColumn[task.status] || 'todo',
+    columnId: statusToColumn[task.status] || 'TODO',
     storyPoints: task.storyPoints,
     taskId: task.id,
     projectId: task.projectId,
