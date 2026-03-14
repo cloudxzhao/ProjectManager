@@ -394,10 +394,6 @@ export default function ProjectDetailPage() {
               </Button>
             </Link>
           </div>
-          <div className="flex justify-between items-center mb-4">
-            <h3 className="text-lg font-semibold text-white">用户故事列表</h3>
-            <span className="text-gray-400">共 {storiesTotal} 个故事</span>
-          </div>
           {storiesLoading ? (
             <div className="text-center py-12">
               <Spin size="large" description="加载用户故事中..." />
