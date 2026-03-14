@@ -170,14 +170,23 @@ export default function ProjectDetailPage() {
   const [storyDetailOpen, setStoryDetailOpen] = useState(false);
   const [storyDetailLoading, setStoryDetailLoading] = useState(false);
   const [selectedStory, setSelectedStory] = useState<UserStory | null>(null);
+  const [storyEditOpen, setStoryEditOpen] = useState(false);
+  const [storyEditLoading, setStoryEditLoading] = useState(false);
+  const [storyForm] = Form.useForm();
 
   const [taskDetailOpen, setTaskDetailOpen] = useState(false);
   const [taskDetailLoading, setTaskDetailLoading] = useState(false);
   const [selectedTask, setSelectedTask] = useState<Task | null>(null);
+  const [taskEditOpen, setTaskEditOpen] = useState(false);
+  const [taskEditLoading, setTaskEditLoading] = useState(false);
+  const [taskForm] = Form.useForm();
 
   const [issueDetailOpen, setIssueDetailOpen] = useState(false);
   const [issueDetailLoading, setIssueDetailLoading] = useState(false);
   const [selectedIssue, setSelectedIssue] = useState<Issue | null>(null);
+  const [issueEditOpen, setIssueEditOpen] = useState(false);
+  const [issueEditLoading, setIssueEditLoading] = useState(false);
+  const [issueForm] = Form.useForm();
 
   // 获取项目详情
   const fetchProject = async () => {
@@ -512,38 +521,167 @@ export default function ProjectDetailPage() {
 
   // 处理编辑
   const handleEditStory = async (story: UserStory) => {
+    setStoryEditLoading(true);
     try {
       const storyDetail = await getStory(story.id);
-      setSelectedStory(storyDetail || story);
-      // TODO: 打开编辑抽屉或弹窗
-      message.info(`编辑用户故事：${storyDetail?.title || story.title}`);
+      if (storyDetail) {
+        setSelectedStory(storyDetail);
+        storyForm.setFieldsValue({
+          title: storyDetail.title,
+          description: storyDetail.description,
+          acceptanceCriteria: storyDetail.acceptanceCriteria,
+          status: storyDetail.status,
+          priority: storyDetail.priority,
+          assigneeId: storyDetail.assigneeId,
+          storyPoints: storyDetail.storyPoints,
+        });
+        setStoryEditOpen(true);
+      }
     } catch (error: unknown) {
       const errorMessage = error instanceof Error ? error.message : '获取用户故事详情失败';
       message.error(errorMessage);
+    } finally {
+      setStoryEditLoading(false);
     }
   };
 
   const handleEditTask = async (task: Task) => {
+    setTaskEditLoading(true);
     try {
       const taskDetail = await getTask(Number(projectId), task.id);
-      setSelectedTask(taskDetail || task);
-      // TODO: 打开编辑抽屉或弹窗
-      message.info(`编辑任务：${taskDetail?.title || task.title}`);
+      if (taskDetail) {
+        setSelectedTask(taskDetail);
+        taskForm.setFieldsValue({
+          title: taskDetail.title,
+          description: taskDetail.description,
+          status: taskDetail.status,
+          priority: taskDetail.priority,
+          assigneeId: taskDetail.assigneeId,
+          storyPoints: taskDetail.storyPoints,
+          dueDate: taskDetail.dueDate ? dayjs(taskDetail.dueDate) : undefined,
+          tags: taskDetail.tags?.join(', '),
+        });
+        setTaskEditOpen(true);
+      }
     } catch (error: unknown) {
       const errorMessage = error instanceof Error ? error.message : '获取任务详情失败';
       message.error(errorMessage);
+    } finally {
+      setTaskEditLoading(false);
     }
   };
 
   const handleEditIssue = async (issue: Issue) => {
+    setIssueEditLoading(true);
     try {
       const issueDetail = await getIssue(Number(projectId), issue.id);
-      setSelectedIssue(issueDetail || issue);
-      // TODO: 打开编辑抽屉或弹窗
-      message.info(`编辑问题：${issueDetail?.title || issue.title}`);
+      if (issueDetail) {
+        setSelectedIssue(issueDetail);
+        issueForm.setFieldsValue({
+          title: issueDetail.title,
+          description: issueDetail.description,
+          type: issueDetail.type,
+          severity: issueDetail.severity,
+          status: issueDetail.status,
+          priority: issueDetail.priority,
+          assigneeId: issueDetail.assigneeId,
+          dueDate: issueDetail.dueDate ? dayjs(issueDetail.dueDate) : undefined,
+          tags: issueDetail.tags?.join(', '),
+        });
+        setIssueEditOpen(true);
+      }
     } catch (error: unknown) {
       const errorMessage = error instanceof Error ? error.message : '获取问题详情失败';
       message.error(errorMessage);
+    } finally {
+      setIssueEditLoading(false);
+    }
+  };
+
+  // 处理用户故事编辑提交
+  const handleStoryEditSubmit = async (values: any) => {
+    if (!selectedStory) return;
+
+    setStoryEditLoading(true);
+    try {
+      await updateStory(selectedStory.id, {
+        title: values.title,
+        description: values.description,
+        acceptanceCriteria: values.acceptanceCriteria,
+        status: values.status,
+        priority: values.priority,
+        assigneeId: values.assigneeId,
+        storyPoints: values.storyPoints,
+      });
+
+      message.success('用户故事更新成功');
+      setStoryEditOpen(false);
+      // 刷新用户故事列表
+      await fetchStories(Number(projectId), storiesPage);
+    } catch (error: unknown) {
+      const errorMessage = error instanceof Error ? error.message : '更新失败，请稍后重试';
+      message.error(errorMessage);
+    } finally {
+      setStoryEditLoading(false);
+    }
+  };
+
+  // 处理任务编辑提交
+  const handleTaskEditSubmit = async (values: any) => {
+    if (!selectedTask) return;
+
+    setTaskEditLoading(true);
+    try {
+      await updateTask(Number(projectId), selectedTask.id, {
+        title: values.title,
+        description: values.description,
+        status: values.status,
+        priority: values.priority,
+        assigneeId: values.assigneeId,
+        storyPoints: values.storyPoints,
+        dueDate: values.dueDate ? dayjs(values.dueDate).format('YYYY-MM-DD') : undefined,
+        tags: values.tags ? values.tags.split(',').map((t: string) => t.trim()) : [],
+      });
+
+      message.success('任务更新成功');
+      setTaskEditOpen(false);
+      // 刷新任务列表
+      await fetchProject();
+    } catch (error: unknown) {
+      const errorMessage = error instanceof Error ? error.message : '更新失败，请稍后重试';
+      message.error(errorMessage);
+    } finally {
+      setTaskEditLoading(false);
+    }
+  };
+
+  // 处理问题编辑提交
+  const handleIssueEditSubmit = async (values: any) => {
+    if (!selectedIssue) return;
+
+    setIssueEditLoading(true);
+    try {
+      await updateIssue(Number(projectId), selectedIssue.id, {
+        title: values.title,
+        description: values.description,
+        type: values.type,
+        severity: values.severity,
+        status: values.status,
+        priority: values.priority,
+        assigneeId: values.assigneeId,
+        dueDate: values.dueDate ? dayjs(values.dueDate).format('YYYY-MM-DD') : undefined,
+        tags: values.tags ? values.tags.split(',').map((t: string) => t.trim()) : [],
+      });
+
+      message.success('问题更新成功');
+      setIssueEditOpen(false);
+      // 刷新问题列表
+      await fetchProject();
+    } catch (error: unknown) {
+      const errorMessage = error instanceof Error ? error.message : '更新失败，请稍后重试';
+      message.error(errorMessage);
+    } finally {
+      setIssueEditLoading(false);
     }
   };
 
@@ -1436,6 +1574,109 @@ export default function ProjectDetailPage() {
         )}
       </Drawer>
 
+      {/* 用户故事编辑弹框 */}
+      <Modal
+        title="编辑用户故事"
+        open={storyEditOpen}
+        onCancel={() => setStoryEditOpen(false)}
+        onOk={() => storyForm.submit()}
+        confirmLoading={storyEditLoading}
+        className="glass-dark"
+        width={700}
+      >
+        <div className="max-h-[70vh] overflow-y-auto pr-4">
+          <Form
+            form={storyForm}
+            layout="vertical"
+            onFinish={handleStoryEditSubmit}
+            size="large"
+          >
+            <Form.Item
+              name="title"
+              label="标题"
+              rules={[{ required: true, message: '请输入用户故事标题' }]}
+            >
+              <Input
+                placeholder="请输入标题"
+                className="bg-gray-700/50 border-gray-600 text-white"
+              />
+            </Form.Item>
+
+            <Form.Item
+              name="description"
+              label="描述"
+            >
+              <TextArea
+                rows={4}
+                placeholder="描述用户故事..."
+                className="bg-gray-700/50 border-gray-600 text-white"
+              />
+            </Form.Item>
+
+            <Form.Item
+              name="acceptanceCriteria"
+              label="验收标准"
+            >
+              <TextArea
+                rows={3}
+                placeholder="输入验收标准..."
+                className="bg-gray-700/50 border-gray-600 text-white"
+              />
+            </Form.Item>
+
+            <div className="grid grid-cols-2 gap-4">
+              <Form.Item
+                name="status"
+                label="状态"
+              >
+                <Select className="bg-gray-700/50 border-gray-600">
+                  <Select.Option value="TODO">待办</Select.Option>
+                  <Select.Option value="IN_PROGRESS">进行中</Select.Option>
+                  <Select.Option value="TESTING">测试中</Select.Option>
+                  <Select.Option value="DONE">已完成</Select.Option>
+                </Select>
+              </Form.Item>
+
+              <Form.Item
+                name="priority"
+                label="优先级"
+              >
+                <Select className="bg-gray-700/50 border-gray-600">
+                  <Select.Option value="LOW">低</Select.Option>
+                  <Select.Option value="MEDIUM">中</Select.Option>
+                  <Select.Option value="HIGH">高</Select.Option>
+                  <Select.Option value="URGENT">紧急</Select.Option>
+                </Select>
+              </Form.Item>
+            </div>
+
+            <div className="grid grid-cols-2 gap-4">
+              <Form.Item
+                name="assigneeId"
+                label="负责人 ID"
+              >
+                <Input
+                  type="number"
+                  placeholder="输入负责人 ID"
+                  className="bg-gray-700/50 border-gray-600 text-white"
+                />
+              </Form.Item>
+
+              <Form.Item
+                name="storyPoints"
+                label="故事点数"
+              >
+                <Input
+                  type="number"
+                  placeholder="输入故事点数"
+                  className="bg-gray-700/50 border-gray-600 text-white"
+                />
+              </Form.Item>
+            </div>
+          </Form>
+        </div>
+      </Modal>
+
       {/* 任务详情抽屉 */}
       <Drawer
         title="任务详情"
@@ -1575,6 +1816,245 @@ export default function ProjectDetailPage() {
           <Empty description="暂无详情" />
         )}
       </Drawer>
+
+      {/* 任务编辑弹框 */}
+      <Modal
+        title="编辑任务"
+        open={taskEditOpen}
+        onCancel={() => setTaskEditOpen(false)}
+        onOk={() => taskForm.submit()}
+        confirmLoading={taskEditLoading}
+        className="glass-dark"
+        width={700}
+      >
+        <div className="max-h-[70vh] overflow-y-auto pr-4">
+          <Form
+            form={taskForm}
+            layout="vertical"
+            onFinish={handleTaskEditSubmit}
+            size="large"
+          >
+            <Form.Item
+              name="title"
+              label="标题"
+              rules={[{ required: true, message: '请输入任务标题' }]}
+            >
+              <Input
+                placeholder="请输入标题"
+                className="bg-gray-700/50 border-gray-600 text-white"
+              />
+            </Form.Item>
+
+            <Form.Item
+              name="description"
+              label="描述"
+            >
+              <TextArea
+                rows={4}
+                placeholder="描述任务..."
+                className="bg-gray-700/50 border-gray-600 text-white"
+              />
+            </Form.Item>
+
+            <div className="grid grid-cols-2 gap-4">
+              <Form.Item
+                name="status"
+                label="状态"
+              >
+                <Select className="bg-gray-700/50 border-gray-600">
+                  <Select.Option value="todo">待办</Select.Option>
+                  <Select.Option value="in_progress">进行中</Select.Option>
+                  <Select.Option value="testing">测试中</Select.Option>
+                  <Select.Option value="done">已完成</Select.Option>
+                </Select>
+              </Form.Item>
+
+              <Form.Item
+                name="priority"
+                label="优先级"
+              >
+                <Select className="bg-gray-700/50 border-gray-600">
+                  <Select.Option value="low">低</Select.Option>
+                  <Select.Option value="medium">中</Select.Option>
+                  <Select.Option value="high">高</Select.Option>
+                  <Select.Option value="urgent">紧急</Select.Option>
+                </Select>
+              </Form.Item>
+            </div>
+
+            <div className="grid grid-cols-2 gap-4">
+              <Form.Item
+                name="assigneeId"
+                label="负责人 ID"
+              >
+                <Input
+                  type="number"
+                  placeholder="输入负责人 ID"
+                  className="bg-gray-700/50 border-gray-600 text-white"
+                />
+              </Form.Item>
+
+              <Form.Item
+                name="storyPoints"
+                label="故事点数"
+              >
+                <Input
+                  type="number"
+                  placeholder="输入故事点数"
+                  className="bg-gray-700/50 border-gray-600 text-white"
+                />
+              </Form.Item>
+            </div>
+
+            <Form.Item
+              name="dueDate"
+              label="截止日期"
+            >
+              <DatePicker
+                className="w-full bg-gray-700/50 border-gray-600 text-white"
+                format="YYYY-MM-DD"
+              />
+            </Form.Item>
+
+            <Form.Item
+              name="tags"
+              label="标签（逗号分隔）"
+            >
+              <Input
+                placeholder="输入标签，用逗号分隔"
+                className="bg-gray-700/50 border-gray-600 text-white"
+              />
+            </Form.Item>
+          </Form>
+        </div>
+      </Modal>
+
+      {/* 问题编辑弹框 */}
+      <Modal
+        title="编辑问题"
+        open={issueEditOpen}
+        onCancel={() => setIssueEditOpen(false)}
+        onOk={() => issueForm.submit()}
+        confirmLoading={issueEditLoading}
+        className="glass-dark"
+        width={700}
+      >
+        <div className="max-h-[70vh] overflow-y-auto pr-4">
+          <Form
+            form={issueForm}
+            layout="vertical"
+            onFinish={handleIssueEditSubmit}
+            size="large"
+          >
+            <Form.Item
+              name="title"
+              label="标题"
+              rules={[{ required: true, message: '请输入问题标题' }]}
+            >
+              <Input
+                placeholder="请输入标题"
+                className="bg-gray-700/50 border-gray-600 text-white"
+              />
+            </Form.Item>
+
+            <Form.Item
+              name="description"
+              label="描述"
+            >
+              <TextArea
+                rows={4}
+                placeholder="描述问题..."
+                className="bg-gray-700/50 border-gray-600 text-white"
+              />
+            </Form.Item>
+
+            <div className="grid grid-cols-2 gap-4">
+              <Form.Item
+                name="type"
+                label="类型"
+              >
+                <Select className="bg-gray-700/50 border-gray-600">
+                  <Select.Option value="bug">缺陷</Select.Option>
+                  <Select.Option value="feature">功能</Select.Option>
+                  <Select.Option value="improvement">改进</Select.Option>
+                  <Select.Option value="task">任务</Select.Option>
+                </Select>
+              </Form.Item>
+
+              <Form.Item
+                name="severity"
+                label="严重程度"
+              >
+                <Select className="bg-gray-700/50 border-gray-600">
+                  <Select.Option value="critical">严重</Select.Option>
+                  <Select.Option value="high">高</Select.Option>
+                  <Select.Option value="medium">中</Select.Option>
+                  <Select.Option value="low">低</Select.Option>
+                </Select>
+              </Form.Item>
+            </div>
+
+            <div className="grid grid-cols-2 gap-4">
+              <Form.Item
+                name="status"
+                label="状态"
+              >
+                <Select className="bg-gray-700/50 border-gray-600">
+                  <Select.Option value="open">打开</Select.Option>
+                  <Select.Option value="in_progress">进行中</Select.Option>
+                  <Select.Option value="resolved">已解决</Select.Option>
+                  <Select.Option value="closed">已关闭</Select.Option>
+                </Select>
+              </Form.Item>
+
+              <Form.Item
+                name="priority"
+                label="优先级"
+              >
+                <Select className="bg-gray-700/50 border-gray-600">
+                  <Select.Option value="low">低</Select.Option>
+                  <Select.Option value="medium">中</Select.Option>
+                  <Select.Option value="high">高</Select.Option>
+                  <Select.Option value="urgent">紧急</Select.Option>
+                </Select>
+              </Form.Item>
+            </div>
+
+            <div className="grid grid-cols-2 gap-4">
+              <Form.Item
+                name="assigneeId"
+                label="负责人 ID"
+              >
+                <Input
+                  type="number"
+                  placeholder="输入负责人 ID"
+                  className="bg-gray-700/50 border-gray-600 text-white"
+                />
+              </Form.Item>
+
+              <Form.Item
+                name="dueDate"
+                label="截止日期"
+              >
+                <DatePicker
+                  className="w-full bg-gray-700/50 border-gray-600 text-white"
+                  format="YYYY-MM-DD"
+                />
+              </Form.Item>
+            </div>
+
+            <Form.Item
+              name="tags"
+              label="标签（逗号分隔）"
+            >
+              <Input
+                placeholder="输入标签，用逗号分隔"
+                className="bg-gray-700/50 border-gray-600 text-white"
+              />
+            </Form.Item>
+          </Form>
+        </div>
+      </Modal>
     </div>
   );
 }
