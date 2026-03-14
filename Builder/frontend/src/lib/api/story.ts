@@ -2,6 +2,7 @@
 
 import { api } from './axios';
 import { endpoints } from './endpoints';
+import { PageInfo } from '@/types/api';
 
 export interface UserStory {
   id: number;
@@ -62,12 +63,12 @@ export interface UpdateUserStoryDto {
 }
 
 /**
- * 获取项目下所有用户故事
+ * 获取项目下所有用户故事（分页）
  * @param projectId 项目 ID
  * @param params 查询参数
  */
 export const getStories = async (projectId: number, params?: QueryParams) => {
-  const res = await api.get<UserStory[]>(endpoints.story.list(projectId), { params });
+  const res = await api.get<PageInfo<UserStory[]>>(endpoints.story.list(projectId), { params });
   return res.data.data;
 };
 

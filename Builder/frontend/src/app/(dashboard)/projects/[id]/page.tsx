@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { useParams, useRouter } from 'next/navigation';
-import { Card, Tabs, TabsProps, Avatar, Tag, Button, Empty, Dropdown, MenuProps, message, Modal, Form, Input, DatePicker, Select, ColorPicker, Drawer, Spin } from 'antd';
+import { Card, Tabs, TabsProps, Avatar, Tag, Button, Empty, Dropdown, MenuProps, message, Modal, Form, Input, DatePicker, Select, ColorPicker, Drawer, Spin, Pagination } from 'antd';
 import {
   EditOutlined,
   DeleteOutlined,
@@ -34,6 +34,7 @@ import { getBurndown } from '@/lib/api/report';
 import type { Project, ProjectStatus } from '@/lib/api/project';
 import type { Task } from '@/lib/api/task';
 import type { UserStory } from '@/lib/api/story';
+import type { PageInfo } from '@/types/api';
 import type { Issue } from '@/lib/api/issue';
 import type { Wiki } from '@/lib/api/wiki';
 import type { BurndownData } from '@/lib/api/report';
@@ -169,7 +170,12 @@ export default function ProjectDetailPage() {
   const [fetchLoading, setFetchLoading] = useState(true);
   const [project, setProject] = useState<Project | null>(null);
   const [tasks, setTasks] = useState<Task[]>([]);
+  // 用户故事分页相关状态
   const [stories, setStories] = useState<UserStory[]>([]);
+  const [storiesTotal, setStoriesTotal] = useState(0);
+  const [storiesPage, setStoriesPage] = useState(1);
+  const [storiesPageSize] = useState(10);
+  const [storiesLoading, setStoriesLoading] = useState(false);
   const [issues, setIssues] = useState<Issue[]>([]);
   const [wikis, setWikis] = useState<Wiki[]>([]);
   const [burndownData, setBurndownData] = useState<BurndownData[]>([]);
@@ -190,9 +196,8 @@ export default function ProjectDetailPage() {
       const tasksResult = await getTasks(Number(projectId));
       setTasks(tasksResult.list || []);
 
-      // 获取用户故事列表
-      const storiesResult = await getStories(Number(projectId));
-      setStories(storiesResult.data || []);
+      // 获取用户故事列表（分页）
+      await fetchStories(Number(projectId), 1);
 
       // 获取问题列表
       const issuesResult = await getIssues(Number(projectId));
@@ -218,6 +223,30 @@ export default function ProjectDetailPage() {
       fetchProject();
     }
   }, [projectId]);
+
+  // 获取用户故事（分页）
+  const fetchStories = async (projectIdNum: number, page: number) => {
+    setStoriesLoading(true);
+    try {
+      const storiesResult = await getStories(projectIdNum, {
+        page,
+        pageSize: storiesPageSize,
+      });
+      setStories(storiesResult?.items || []);
+      setStoriesTotal(storiesResult?.total || 0);
+    } catch (error: unknown) {
+      const errorMessage = error instanceof Error ? error.message : '获取用户故事失败';
+      message.error(errorMessage);
+    } finally {
+      setStoriesLoading(false);
+    }
+  };
+
+  // 页码切换
+  const handleStoriesPageChange = (page: number) => {
+    setStoriesPage(page);
+    fetchStories(Number(projectId), page);
+  };
 
   // 计算进度百分比
   const calculateProgress = () => {
@@ -382,39 +411,57 @@ export default function ProjectDetailPage() {
           </div>
           <div className="flex justify-between items-center mb-4">
             <h3 className="text-lg font-semibold text-white">用户故事列表</h3>
-            <span className="text-gray-400">共 {stories.length} 个故事</span>
+            <span className="text-gray-400">共 {storiesTotal} 个故事</span>
           </div>
-          {stories.length > 0 ? (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-              {stories.map((story) => (
-                <div
-                  key={story.id}
-                  className="bg-gray-800/50 border border-gray-700 rounded-lg p-4 hover:border-orange-500/50 transition-colors"
-                >
-                  <div className="flex items-start justify-between mb-2">
-                    <h4 className="text-white font-medium flex-1">{story.title}</h4>
-                    {story.storyPoints && (
-                      <span className="ml-2 px-2 py-1 bg-orange-500/20 text-orange-400 text-xs rounded">
-                        {story.storyPoints} pts
-                      </span>
-                    )}
-                  </div>
-                  <p className="text-gray-400 text-sm mb-3 line-clamp-2">{story.description}</p>
-                  <div className="flex items-center justify-between">
-                    <Tag color={getStoryStatusColor(story.status)}>{getStoryStatusText(story.status)}</Tag>
-                    {story.tags && story.tags.length > 0 && (
-                      <div className="flex gap-1">
-                        {story.tags.map((tag) => (
-                          <span key={tag} className="px-2 py-0.5 bg-gray-700 text-gray-300 text-xs rounded">
-                            {tag}
-                          </span>
-                        ))}
-                      </div>
-                    )}
-                  </div>
-                </div>
-              ))}
+          {storiesLoading ? (
+            <div className="text-center py-12">
+              <Spin size="large" description="加载用户故事中..." />
             </div>
+          ) : stories.length > 0 ? (
+            <>
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                {stories.map((story) => (
+                  <div
+                    key={story.id}
+                    className="bg-gray-800/50 border border-gray-700 rounded-lg p-4 hover:border-orange-500/50 transition-colors"
+                  >
+                    <div className="flex items-start justify-between mb-2">
+                      <h4 className="text-white font-medium flex-1">{story.title}</h4>
+                      {story.storyPoints && (
+                        <span className="ml-2 px-2 py-1 bg-orange-500/20 text-orange-400 text-xs rounded">
+                          {story.storyPoints} pts
+                        </span>
+                      )}
+                    </div>
+                    <p className="text-gray-400 text-sm mb-3 line-clamp-2">{story.description}</p>
+                    <div className="flex items-center justify-between">
+                      <Tag color={getStoryStatusColor(story.status)}>{getStoryStatusText(story.status)}</Tag>
+                      {story.tags && story.tags.length > 0 && (
+                        <div className="flex gap-1">
+                          {story.tags.map((tag) => (
+                            <span key={tag} className="px-2 py-0.5 bg-gray-700 text-gray-300 text-xs rounded">
+                              {tag}
+                            </span>
+                          ))}
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                ))}
+              </div>
+              {/* 分页组件 */}
+              <div className="flex justify-end mt-4">
+                <Pagination
+                  current={storiesPage}
+                  total={storiesTotal}
+                  pageSize={storiesPageSize}
+                  onChange={handleStoriesPageChange}
+                  showSizeChanger={false}
+                  showTotal={(total) => `共 ${total} 条`}
+                  className="text-gray-400"
+                />
+              </div>
+            </>
           ) : (
             <div className="text-center py-12">
               <FileTextOutlined style={{ fontSize: 64, color: '#6b7280' }} />
