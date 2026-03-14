@@ -51,6 +51,12 @@ public class TaskVO {
   /** 父任务 ID */
   private Long parentId;
 
+  /** 用户故事 ID */
+  private Long userStoryId;
+
+  /** 用户故事标题 */
+  private String userStoryTitle;
+
   /** 截止日期 */
   @JsonFormat(pattern = "yyyy-MM-dd")
   private LocalDate dueDate;
@@ -97,6 +103,8 @@ public class TaskVO {
 
     private Long parentId;
 
+    private Long userStoryId;
+
     private LocalDate dueDate;
 
     private Integer storyPoints;
@@ -118,6 +126,8 @@ public class TaskVO {
     private String priority;
 
     private Long assigneeId;
+
+    private Long userStoryId;
 
     private LocalDate dueDate;
 

@@ -5,6 +5,7 @@ import com.projecthub.common.exception.BusinessException;
 import com.projecthub.common.response.PageResult;
 import com.projecthub.common.util.BeanCopyUtil;
 import com.projecthub.module.project.service.PermissionService;
+import com.projecthub.module.story.repository.UserStoryRepository;
 import com.projecthub.module.task.dto.TaskVO;
 import com.projecthub.module.task.entity.Task;
 import com.projecthub.module.task.repository.CommentRepository;
@@ -35,6 +36,7 @@ public class TaskService {
   private final TaskRepository taskRepository;
   private final PermissionService permissionService;
   private final CommentRepository commentRepository;
+  private final UserStoryRepository userStoryRepository;
 
   /** 创建任务 */
   @Transactional
@@ -65,6 +67,7 @@ public class TaskService {
     task.setAssigneeId(request.getAssigneeId());
     task.setCreatorId(userId);
     task.setParentId(request.getParentId());
+    task.setUserStoryId(request.getUserStoryId());
     task.setDueDate(request.getDueDate());
     task.setStoryPoints(request.getStoryPoints());
     task.setPosition(maxPosition + 1);
@@ -77,6 +80,8 @@ public class TaskService {
     taskVO.setStatus(task.getStatus().name());
     taskVO.setPriority(task.getPriority().name());
     populateTaskStats(taskVO);
+    // 填充用户故事信息
+    populateUserStoryInfo(taskVO);
     return taskVO;
   }
 
@@ -123,6 +128,9 @@ public class TaskService {
     if (request.getAssigneeId() != null) {
       task.setAssigneeId(request.getAssigneeId());
     }
+    if (request.getUserStoryId() != null) {
+      task.setUserStoryId(request.getUserStoryId());
+    }
     if (request.getDueDate() != null) {
       task.setDueDate(request.getDueDate());
     }
@@ -138,6 +146,8 @@ public class TaskService {
     taskVO.setStatus(task.getStatus().name());
     taskVO.setPriority(task.getPriority().name());
     populateTaskStats(taskVO);
+    // 填充用户故事信息
+    populateUserStoryInfo(taskVO);
     return taskVO;
   }
 
@@ -237,6 +247,7 @@ public class TaskService {
                   taskVO.setStatus(task.getStatus().name());
                   taskVO.setPriority(task.getPriority().name());
                   populateTaskStats(taskVO);
+                  populateUserStoryInfo(taskVO);
                   return taskVO;
                 })
             .collect(Collectors.toList());
@@ -261,6 +272,20 @@ public class TaskService {
     // 统计评论数量
     Long commentCount = commentRepository.countByTaskId(taskVO.getId());
     taskVO.setCommentCount(commentCount.intValue());
+  }
+
+  /** 填充用户故事信息 */
+  private void populateUserStoryInfo(TaskVO taskVO) {
+    if (taskVO.getUserStoryId() == null) {
+      return;
+    }
+
+    userStoryRepository
+        .findById(taskVO.getUserStoryId())
+        .ifPresent(
+            userStory -> {
+              taskVO.setUserStoryTitle(userStory.getTitle());
+            });
   }
 
   /** 检查任务权限 */
@@ -327,6 +352,7 @@ public class TaskService {
                   taskVO.setStatus(task.getStatus().name());
                   taskVO.setPriority(task.getPriority().name());
                   populateTaskStats(taskVO);
+                  populateUserStoryInfo(taskVO);
                   return taskVO;
                 })
             .collect(Collectors.toList());
@@ -388,6 +414,7 @@ public class TaskService {
               taskVO.setStatus(task.getStatus().name());
               taskVO.setPriority(task.getPriority().name());
               populateTaskStats(taskVO);
+              populateUserStoryInfo(taskVO);
               return taskVO;
             })
         .collect(Collectors.toList());
@@ -416,6 +443,7 @@ public class TaskService {
     taskVO.setStatus(task.getStatus().name());
     taskVO.setPriority(task.getPriority().name());
     populateTaskStats(taskVO);
+    populateUserStoryInfo(taskVO);
     return taskVO;
   }
 }

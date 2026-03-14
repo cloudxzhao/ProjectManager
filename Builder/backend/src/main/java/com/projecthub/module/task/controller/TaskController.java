@@ -13,7 +13,7 @@ import org.springframework.web.bind.annotation.*;
 
 /** 任务控制器 */
 @RestController
-@RequestMapping("/api/v1/projects/{projectId}/tasks")
+@RequestMapping("/api/v1")
 @RequiredArgsConstructor
 @Tag(name = "任务管理", description = "任务相关接口")
 public class TaskController {
@@ -21,7 +21,7 @@ public class TaskController {
   private final TaskService taskService;
 
   /** 创建任务 */
-  @PostMapping
+  @PostMapping("/projects/{projectId}/tasks")
   @Operation(summary = "创建任务", description = "在项目下创建新任务")
   public Result<TaskVO> createTask(
       @PathVariable Long projectId, @Valid @RequestBody TaskVO.CreateRequest request) {
@@ -30,7 +30,7 @@ public class TaskController {
   }
 
   /** 获取任务详情 */
-  @GetMapping("/{id}")
+  @GetMapping("/projects/{projectId}/tasks/{id}")
   @Operation(summary = "获取任务详情", description = "根据任务 ID 获取详细信息")
   public Result<TaskVO> getTask(@PathVariable Long id) {
     TaskVO task = taskService.getTask(id);
@@ -38,7 +38,7 @@ public class TaskController {
   }
 
   /** 更新任务 */
-  @PutMapping("/{id}")
+  @PutMapping("/projects/{projectId}/tasks/{id}")
   @Operation(summary = "更新任务", description = "更新任务信息")
   public Result<TaskVO> updateTask(
       @PathVariable Long id, @Valid @RequestBody TaskVO.UpdateRequest request) {
@@ -47,7 +47,7 @@ public class TaskController {
   }
 
   /** 删除任务 */
-  @DeleteMapping("/{id}")
+  @DeleteMapping("/projects/{projectId}/tasks/{id}")
   @Operation(summary = "删除任务", description = "删除指定任务")
   public Result<Void> deleteTask(@PathVariable Long id) {
     taskService.deleteTask(id);
@@ -55,7 +55,7 @@ public class TaskController {
   }
 
   /** 移动任务（状态变更） */
-  @PostMapping("/{id}/move")
+  @PostMapping("/projects/{projectId}/tasks/{id}/move")
   @Operation(summary = "移动任务", description = "移动任务状态或位置")
   public Result<TaskVO> moveTask(
       @PathVariable Long id, @Valid @RequestBody TaskVO.MoveRequest request) {
@@ -64,7 +64,7 @@ public class TaskController {
   }
 
   /** 获取任务列表 */
-  @GetMapping
+  @GetMapping("/projects/{projectId}/tasks")
   @Operation(summary = "获取任务列表", description = "获取项目下的任务列表，支持筛选")
   public Result<PageResult<TaskVO>> listTasks(
       @PathVariable Long projectId,
@@ -88,7 +88,7 @@ public class TaskController {
   }
 
   /** 获取子任务列表 */
-  @GetMapping("/{id}/subtasks")
+  @GetMapping("/projects/{projectId}/tasks/{id}/subtasks")
   @Operation(summary = "获取子任务列表", description = "获取指定任务的子任务列表")
   public Result<List<TaskVO>> getSubTasks(@PathVariable Long id) {
     List<TaskVO> subTasks = taskService.getSubTasks(id);
@@ -96,7 +96,7 @@ public class TaskController {
   }
 
   /** 切换子任务完成状态 */
-  @PostMapping("/{id}/toggle-complete")
+  @PostMapping("/projects/{projectId}/tasks/{id}/toggle-complete")
   @Operation(summary = "切换任务完成状态", description = "切换任务的完成状态（完成/未完成）")
   public Result<TaskVO> toggleSubTaskComplete(@PathVariable Long id) {
     TaskVO task = taskService.toggleSubTaskComplete(id);
@@ -104,7 +104,7 @@ public class TaskController {
   }
 
   /** 添加子任务 */
-  @PostMapping("/{id}/subtasks")
+  @PostMapping("/projects/{projectId}/tasks/{id}/subtasks")
   @Operation(summary = "添加子任务", description = "为任务添加子任务")
   public Result<TaskVO> addSubTask(
       @PathVariable Long projectId,
@@ -117,7 +117,7 @@ public class TaskController {
   }
 
   /** 搜索任务列表 */
-  @PostMapping("/search")
+  @PostMapping("/tasks/search")
   @Operation(summary = "搜索任务列表", description = "搜索当前用户参与的所有项目下的任务列表，支持项目筛选和其他复杂筛选条件")
   public Result<PageResult<TaskVO>> searchTasks(
       @RequestBody(required = false) TaskVO.FilterRequest filter,

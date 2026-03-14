@@ -55,6 +55,9 @@ public class Task {
   @Column(name = "parent_id")
   private Long parentId;
 
+  @Column(name = "user_story_id")
+  private Long userStoryId;
+
   @Column(name = "due_date")
   private LocalDate dueDate;
 
