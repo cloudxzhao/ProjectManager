@@ -207,6 +207,9 @@ export default function TasksPage() {
       width: 100,
       render: (status: TaskStatus) => {
         const config = statusConfig[status];
+        if (!config) {
+          return <Tag color="gray" className="text-xs">未知</Tag>;
+        }
         return (
           <Tag color={config.color} className="text-xs">
             <CheckCircleOutlined className="mr-1" />
@@ -227,6 +230,9 @@ export default function TasksPage() {
       width: 90,
       render: (priority: Priority) => {
         const config = priorityConfig[priority];
+        if (!config) {
+          return <Tag color="gray" className="text-xs">未知</Tag>;
+        }
         return (
           <Tag color={config.color} className="text-xs">
             <FlagOutlined className="mr-1" />
