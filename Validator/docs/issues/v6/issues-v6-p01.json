@@ -1,0 +1,115 @@
+{
+  "test_version": "v6",
+  "test_date": "2026/3/14",
+  "tester": "API Test Engineer",
+  "api_base_url": "http://localhost:9527/api/v1",
+  "summary": {
+    "total_tests": 22,
+    "passed": 17,
+    "failed": 5,
+    "pass_rate": "77.3%"
+  },
+  "issues": [
+    {
+      "id": "BACKEND-V6-001",
+      "title": "登出 - 无认证返回 401",
+      "severity": "low",
+      "category": "functionality",
+      "description": "无认证登出的响应测试",
+      "affected_apis": [
+        "POST /api/v1/auth/logout"
+      ],
+      "current_state": "HTTP 500",
+      "expected_state": "HTTP 401",
+      "reproduction_steps": [
+        "1. 不带 Token 发送登出请求"
+      ],
+      "labels": [
+        "auth",
+        "logout"
+      ]
+    },
+    {
+      "id": "BACKEND-V6-002",
+      "title": "修改密码 - 旧密码错误返回 401",
+      "severity": "low",
+      "category": "functionality",
+      "description": "错误旧密码修改密码的测试",
+      "affected_apis": [
+        "POST /api/v1/user/change-password"
+      ],
+      "current_state": "HTTP 404, code=404",
+      "expected_state": "HTTP 401 或 code=3001",
+      "reproduction_steps": [
+        "1. 登录后获取 Token",
+        "2. 使用错误旧密码修改密码"
+      ],
+      "labels": [
+        "user",
+        "password"
+      ]
+    },
+    {
+      "id": "BACKEND-V6-003",
+      "title": "修改密码 - 空新密码返回 400",
+      "severity": "low",
+      "category": "validation",
+      "description": "空新密码的验证测试",
+      "affected_apis": [
+        "POST /api/v1/user/change-password"
+      ],
+      "current_state": "HTTP 404, code=404",
+      "expected_state": "HTTP 400 或 code=400",
+      "reproduction_steps": [
+        "1. 登录后获取 Token",
+        "2. 使用空新密码修改密码"
+      ],
+      "labels": [
+        "user",
+        "password",
+        "validation"
+      ]
+    },
+    {
+      "id": "BACKEND-V6-004",
+      "title": "创建项目返回 200",
+      "severity": "medium",
+      "category": "functionality",
+      "description": "创建项目的测试",
+      "affected_apis": [
+        "POST /api/v1/projects"
+      ],
+      "current_state": "HTTP 400, code=400",
+      "expected_state": "HTTP 200, code=200",
+      "reproduction_steps": [
+        "1. 登录后获取 Token",
+        "2. POST 创建项目"
+      ],
+      "labels": [
+        "project",
+        "create"
+      ]
+    },
+    {
+      "id": "BACKEND-V6-005",
+      "title": "全部标记已读返回 200",
+      "severity": "medium",
+      "category": "functionality",
+      "description": "全部标记已读的测试",
+      "affected_apis": [
+        "POST /api/v1/notifications/mark-all-read"
+      ],
+      "current_state": "HTTP 404, code=404",
+      "expected_state": "HTTP 200, code=200",
+      "reproduction_steps": [
+        "1. 登录后获取 Token",
+        "2. POST 全部标记已读"
+      ],
+      "labels": [
+        "notification",
+        "mark-read"
+      ]
+    }
+  ],
+  "working_features": []
+}

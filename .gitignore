@@ -88,8 +88,7 @@ logs/
 # ================================
 # Memory / Tasks (Optional)
 # ================================
-# .claude/
-# tasks/
+.claude/
 
 # Playwright
 .playwright-mcp/
