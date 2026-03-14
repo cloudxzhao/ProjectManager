@@ -28,13 +28,13 @@ import {
 } from '@ant-design/icons';
 import Link from 'next/link';
 import dayjs from 'dayjs';
-import { getProject, deleteProject, updateProject } from '@/lib/api/project';
+import { getProject, deleteProject, updateProject, getProjectMembers } from '@/lib/api/project';
 import { getTasks, getTask, updateTask, deleteTask, createTask, CreateTaskDto } from '@/lib/api/task';
 import { getStories, getStory, updateStory, deleteStory, createStory, CreateUserStoryDto } from '@/lib/api/story';
 import { getIssues, getIssue, updateIssue, deleteIssue, createIssue, CreateIssueDto } from '@/lib/api/issue';
 import { getWikiTree, createWiki, CreateWikiDto } from '@/lib/api/wiki';
 import { getBurndown } from '@/lib/api/report';
-import type { Project, ProjectStatus } from '@/lib/api/project';
+import type { Project, ProjectStatus, ProjectMemberResponse } from '@/lib/api/project';
 import type { Task } from '@/lib/api/task';
 import type { UserStory } from '@/lib/api/story';
 import type { PageInfo } from '@/types/api';
@@ -205,6 +205,11 @@ export default function ProjectDetailPage() {
   const [wikiCreateLoading, setWikiCreateLoading] = useState(false);
   const [wikiCreateForm] = Form.useForm();
 
+  // 项目成员和用户故事列表（用于创建弹框的下拉选项）
+  const [projectMembers, setProjectMembers] = useState<ProjectMemberResponse[]>([]);
+  const [storiesList, setStoriesList] = useState<UserStory[]>([]);
+  const [membersLoading, setMembersLoading] = useState(false);
+
   // 获取项目详情
   const fetchProject = async () => {
     setFetchLoading(true);
@@ -216,6 +221,9 @@ export default function ProjectDetailPage() {
       // 获取任务列表
       const tasksResult = await getTasks(Number(projectId));
       setTasks(tasksResult.list || []);
+
+      // 获取项目成员列表（用于创建弹框的负责人选择）
+      await fetchProjectMembers(Number(projectId));
 
       // 获取用户故事列表（分页）
       await fetchStories(Number(projectId), 1);
@@ -317,11 +325,27 @@ export default function ProjectDetailPage() {
       });
       setStories(storiesResult?.items || []);
       setStoriesTotal(storiesResult?.total || 0);
+      // 同时更新 storiesList 用于创建弹框的下拉选项
+      setStoriesList(storiesResult?.items || []);
     } catch (error: unknown) {
       const errorMessage = error instanceof Error ? error.message : '获取用户故事失败';
       message.error(errorMessage);
     } finally {
       setStoriesLoading(false);
+    }
+  };
+
+  // 获取项目成员列表
+  const fetchProjectMembers = async (projectIdNum: number) => {
+    setMembersLoading(true);
+    try {
+      const members = await getProjectMembers(projectIdNum);
+      setProjectMembers(members || []);
+    } catch (error: unknown) {
+      const errorMessage = error instanceof Error ? error.message : '获取项目成员失败';
+      message.error(errorMessage);
+    } finally {
+      setMembersLoading(false);
     }
   };
 
@@ -2247,6 +2271,8 @@ export default function ProjectDetailPage() {
         onCancel={() => setStoryCreateOpen(false)}
         onOk={() => storyCreateForm.submit()}
         confirmLoading={storyCreateLoading}
+        okText="确认"
+        cancelText="取消"
         className="glass-dark"
         width={700}
       >
@@ -2317,13 +2343,20 @@ export default function ProjectDetailPage() {
 
             <Form.Item
               name="assigneeId"
-              label="负责人 ID"
+              label="负责人"
             >
-              <Input
-                type="number"
-                placeholder="输入负责人 ID"
-                className="bg-gray-700/50 border-gray-600 text-white"
-              />
+              <Select
+                placeholder="请选择负责人"
+                allowClear
+                className="bg-gray-700/50 border-gray-600"
+                loading={membersLoading}
+              >
+                {projectMembers.map((member) => (
+                  <Select.Option key={member.user.id} value={member.user.id}>
+                    {member.user.username || member.user.email}
+                  </Select.Option>
+                ))}
+              </Select>
             </Form.Item>
           </Form>
         </div>
@@ -2336,6 +2369,8 @@ export default function ProjectDetailPage() {
         onCancel={() => setTaskCreateOpen(false)}
         onOk={() => taskCreateForm.submit()}
         confirmLoading={taskCreateLoading}
+        okText="确认"
+        cancelText="取消"
         className="glass-dark"
         width={700}
       >
@@ -2397,13 +2432,20 @@ export default function ProjectDetailPage() {
             <div className="grid grid-cols-2 gap-4">
               <Form.Item
                 name="assigneeId"
-                label="负责人 ID"
+                label="负责人"
               >
-                <Input
-                  type="number"
-                  placeholder="输入负责人 ID"
-                  className="bg-gray-700/50 border-gray-600 text-white"
-                />
+                <Select
+                  placeholder="请选择负责人"
+                  allowClear
+                  className="bg-gray-700/50 border-gray-600"
+                  loading={membersLoading}
+                >
+                  {projectMembers.map((member) => (
+                    <Select.Option key={member.user.id} value={member.user.id}>
+                      {member.user.username || member.user.email}
+                    </Select.Option>
+                  ))}
+                </Select>
               </Form.Item>
 
               <Form.Item
@@ -2440,13 +2482,20 @@ export default function ProjectDetailPage() {
 
             <Form.Item
               name="userStoryId"
-              label="关联用户故事 ID"
+              label="关联用户故事"
             >
-              <Input
-                type="number"
-                placeholder="输入用户故事 ID（可选）"
-                className="bg-gray-700/50 border-gray-600 text-white"
-              />
+              <Select
+                placeholder="请选择用户故事（可选）"
+                allowClear
+                className="bg-gray-700/50 border-gray-600"
+                loading={storiesLoading}
+              >
+                {storiesList.map((story) => (
+                  <Select.Option key={story.id} value={story.id}>
+                    {story.title}
+                  </Select.Option>
+                ))}
+              </Select>
             </Form.Item>
           </Form>
         </div>
@@ -2459,6 +2508,8 @@ export default function ProjectDetailPage() {
         onCancel={() => setIssueCreateOpen(false)}
         onOk={() => issueCreateForm.submit()}
         confirmLoading={issueCreateLoading}
+        okText="确认"
+        cancelText="取消"
         className="glass-dark"
         width={700}
       >
@@ -2546,13 +2597,20 @@ export default function ProjectDetailPage() {
             <div className="grid grid-cols-2 gap-4">
               <Form.Item
                 name="assigneeId"
-                label="负责人 ID"
+                label="负责人"
               >
-                <Input
-                  type="number"
-                  placeholder="输入负责人 ID"
-                  className="bg-gray-700/50 border-gray-600 text-white"
-                />
+                <Select
+                  placeholder="请选择负责人"
+                  allowClear
+                  className="bg-gray-700/50 border-gray-600"
+                  loading={membersLoading}
+                >
+                  {projectMembers.map((member) => (
+                    <Select.Option key={member.user.id} value={member.user.id}>
+                      {member.user.username || member.user.email}
+                    </Select.Option>
+                  ))}
+                </Select>
               </Form.Item>
 
               <Form.Item
@@ -2586,6 +2644,8 @@ export default function ProjectDetailPage() {
         onCancel={() => setWikiCreateOpen(false)}
         onOk={() => wikiCreateForm.submit()}
         confirmLoading={wikiCreateLoading}
+        okText="确认"
+        cancelText="取消"
         className="glass-dark"
         width={700}
       >

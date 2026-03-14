@@ -3,10 +3,10 @@
 import { useState, useEffect } from 'react';
 import { Card, Input, Select, Button, Avatar, Tag, Empty, Spin, Pagination, Modal, Form, Drawer, message, FormProps } from 'antd';
 import { FileTextOutlined, PlusOutlined, SearchOutlined, EditOutlined, DeleteOutlined, EyeOutlined } from '@ant-design/icons';
-import { getStories, searchStories, deleteStory, createStory, updateStory, type UserStory, type StoryStatus, type Priority, type CreateUserStoryDto, type UpdateUserStoryDto, statusTextMap, priorityTextMap, statusMap, priorityMap } from '@/lib/api/story';
-import { getProjects, getProjectMembers, type ProjectMemberResponse } from '@/lib/api/project';
+import { searchStories, deleteStory, createStory, updateStory, type UserStory, type StoryStatus, type Priority, type CreateUserStoryDto, type UpdateUserStoryDto, statusTextMap, priorityTextMap, statusMap, priorityMap } from '@/lib/api/story';
+import { getProjects, getProjectMembers } from '@/lib/api/project';
 import type { Project } from '@/lib/api/project';
-import { useAuth } from '@/lib/hooks/useAuth';
+import type { ProjectMemberResponse } from '@/lib/api/project';
 
 const { Option } = Select;
 const { TextArea } = Input;
@@ -177,10 +177,8 @@ interface StoryFormValues {
 }
 
 export default function StoriesPage() {
-  const { user } = useAuth();
   const [stories, setStories] = useState<UserStory[]>([]);
   const [projects, setProjects] = useState<Project[]>([]);
-  const [projectMembers, setProjectMembers] = useState<ProjectMemberResponse[]>([]);
   const [loading, setLoading] = useState(false);
   const [total, setTotal] = useState(0);
   const [page, setPage] = useState(1);
@@ -201,6 +199,9 @@ export default function StoriesPage() {
 
   const [form] = Form.useForm();
 
+  // 项目成员列表（用于表单中的负责人选择）
+  const [projectMembers, setProjectMembers] = useState<ProjectMemberResponse[]>([]);
+
   // 加载项目列表
   const fetchProjects = async () => {
     try {
@@ -213,19 +214,9 @@ export default function StoriesPage() {
 
   // 加载项目成员列表
   const fetchProjectMembers = async (projectId: number) => {
-    if (!projectId) return;
     try {
-      const result = await getProjectMembers(projectId);
-      setProjectMembers(result || []);
-
-      // 如果是创建模式（没有 editingStory），自动设置当前用户为默认负责人
-      if (!editingStory && user?.id) {
-        // 检查当前用户是否是项目成员
-        const isMember = result?.some((m) => m.user.id === user.id);
-        if (isMember) {
-          form.setFieldValue('assigneeId', user.id);
-        }
-      }
+      const members = await getProjectMembers(projectId);
+      setProjectMembers(members || []);
     } catch (error) {
       console.error('加载项目成员失败:', error);
     }
@@ -262,14 +253,6 @@ export default function StoriesPage() {
   }, []);
 
   useEffect(() => {
-    if (selectedProjectIds.length === 1) {
-      fetchProjectMembers(selectedProjectIds[0]);
-    } else {
-      setProjectMembers([]);
-    }
-  }, [selectedProjectIds]);
-
-  useEffect(() => {
     fetchStories();
   }, [page, selectedProjectIds, selectedStatus, searchText]);
 
@@ -298,13 +281,8 @@ export default function StoriesPage() {
     // 默认选择当前筛选的项目（如果只选了一个）
     if (selectedProjectIds.length === 1) {
       form.setFieldsValue({ projectId: selectedProjectIds[0] });
-      // 如果已选择项目，自动设置当前用户为默认负责人
-      if (user?.id && projectMembers.length > 0) {
-        const isMember = projectMembers.some((m) => m.user.id === user.id);
-        if (isMember) {
-          form.setFieldValue('assigneeId', user.id);
-        }
-      }
+      // 加载项目成员列表
+      fetchProjectMembers(selectedProjectIds[0]);
     } else {
       // 如果没有选择项目或选了多个，清空表单中的项目字段
       form.setFieldsValue({ projectId: undefined });
