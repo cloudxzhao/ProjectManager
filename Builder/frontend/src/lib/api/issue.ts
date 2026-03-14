@@ -76,7 +76,17 @@ export interface UpdateIssueDto {
  */
 export const getIssues = async (projectId: number, params?: QueryParams) => {
   const res = await api.get<Issue[]>(endpoints.issue.list(projectId), { params });
-  return res.data.data;
+  console.log('[issue.api] getIssues result:', res);
+  // 后端可能返回分页格式 { list, total, page, size } 或直接数组
+  const data = res.data.data;
+  if (data && Array.isArray(data)) {
+    return data;
+  }
+  // 如果是分页格式，返回 list
+  if (data && typeof data === 'object' && 'list' in data) {
+    return (data as any).list || [];
+  }
+  return [];
 };
 
 /**
