@@ -187,6 +187,7 @@ export default function StoriesPage() {
   const [selectedProjectIds, setSelectedProjectIds] = useState<number[]>([]);  // 支持多选
   const [selectedStatus, setSelectedStatus] = useState<StoryStatus | undefined>(undefined);
   const [selectedAssigneeId, setSelectedAssigneeId] = useState<number | undefined>(undefined);  // 责任人筛选
+  const [selectedPriority, setSelectedPriority] = useState<Priority | undefined>(undefined);  // 优先级筛选
   const [searchText, setSearchText] = useState('');
 
   // 模态框状态
@@ -253,6 +254,7 @@ export default function StoriesPage() {
       };
       if (selectedStatus) params.status = selectedStatus;
       if (selectedAssigneeId) params.assigneeId = selectedAssigneeId;  // 责任人筛选
+      if (selectedPriority) params.priority = selectedPriority;  // 优先级筛选
       if (searchText) params.keyword = searchText;
       // 如果选择了项目，通过 projectIds 参数筛选（支持多选）
       if (selectedProjectIds && selectedProjectIds.length > 0) {
@@ -283,7 +285,7 @@ export default function StoriesPage() {
 
   useEffect(() => {
     fetchStories();
-  }, [page, selectedProjectIds, selectedStatus, selectedAssigneeId, searchText]);
+  }, [page, selectedProjectIds, selectedStatus, selectedAssigneeId, selectedPriority, searchText]);
 
   // 删除用户故事
   const handleDelete = async () => {
@@ -513,6 +515,21 @@ export default function StoriesPage() {
             <Option value="in_progress">进行中</Option>
             <Option value="testing">测试中</Option>
             <Option value="done">已完成</Option>
+          </Select>
+          <Select
+            placeholder="选择优先级"
+            value={selectedPriority}
+            onChange={(value) => {
+              setSelectedPriority(value);
+              setPage(1);
+            }}
+            className="w-[150px] bg-gray-700/50 border-gray-600"
+            allowClear
+          >
+            <Option value="low">低</Option>
+            <Option value="medium">中</Option>
+            <Option value="high">高</Option>
+            <Option value="urgent">紧急</Option>
           </Select>
           <Button type="primary" onClick={fetchStories}>
             筛选
