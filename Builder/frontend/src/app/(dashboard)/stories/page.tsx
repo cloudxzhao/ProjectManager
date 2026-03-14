@@ -552,7 +552,10 @@ export default function StoriesPage() {
                 project={getProject(story.projectId)}
                 onView={handleView}
                 onEdit={handleEdit}
-                onDelete={setDeletingStory}
+                onDelete={(story) => {
+                  setDeletingStory(story);
+                  setDeleteModalOpen(true);
+                }}
               />
             ))}
           </div>
