@@ -363,37 +363,6 @@ export default function ProjectDetailPage() {
   // 页签内容
   const tabItems: TabsProps['items'] = [
     {
-      key: 'tasks',
-      label: (
-        <span className="flex items-center gap-2">
-          <CheckSquareOutlined />
-          任务看板
-        </span>
-      ),
-      children: (
-        <div className="text-center py-12">
-          {tasks.length > 0 ? (
-            <div className="space-y-4">
-              <p className="text-gray-400 mb-4">共 {tasks.length} 个任务</p>
-              <Link href={`/projects/${projectId}/tasks`}>
-                <Button type="primary" icon={<CheckSquareOutlined />}>
-                  进入任务看板
-                </Button>
-              </Link>
-            </div>
-          ) : (
-            <>
-              <Link href={`/projects/${projectId}/tasks`}>
-                <Button type="primary" icon={<CheckSquareOutlined />}>
-                  进入任务看板
-                </Button>
-              </Link>
-            </>
-          )}
-        </div>
-      ),
-    },
-    {
       key: 'stories',
       label: (
         <span className="flex items-center gap-2">
@@ -403,6 +372,14 @@ export default function ProjectDetailPage() {
       ),
       children: (
         <div className="space-y-4">
+          {/* 进入任务看板按钮 */}
+          <div className="flex justify-end mb-4">
+            <Link href={`/projects/${projectId}/tasks`}>
+              <Button type="primary" icon={<CheckSquareOutlined />}>
+                进入任务看板
+              </Button>
+            </Link>
+          </div>
           <div className="flex justify-between items-center mb-4">
             <h3 className="text-lg font-semibold text-white">用户故事列表</h3>
             <span className="text-gray-400">共 {stories.length} 个故事</span>
@@ -608,24 +585,6 @@ export default function ProjectDetailPage() {
               <p className="text-gray-500 mt-2">报表功能开发中</p>
             </div>
           )}
-        </div>
-      ),
-    },
-    {
-      key: 'members',
-      label: (
-        <span className="flex items-center gap-2">
-          <TeamOutlined />
-          成员管理
-        </span>
-      ),
-      children: (
-        <div className="text-center py-12">
-          <Link href={`/projects/${projectId}/members`}>
-            <Button type="primary" icon={<UserAddOutlined />}>
-              进入成员管理
-            </Button>
-          </Link>
         </div>
       ),
     },
@@ -836,6 +795,13 @@ export default function ProjectDetailPage() {
         <span style={{ color: 'var(--text-muted)', fontSize: '0.875rem' }}>
           {project.memberCount || 1} 名成员
         </span>
+        <div style={{ marginLeft: 'auto' }}>
+          <Link href={`/projects/${projectId}/members`}>
+            <Button type="primary" icon={<UserAddOutlined />} size="small">
+              进入成员管理
+            </Button>
+          </Link>
+        </div>
       </div>
 
       {/* 页签导航 - 使用自定义样式 */}
