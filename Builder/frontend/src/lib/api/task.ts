@@ -117,10 +117,10 @@ export const getTasks = async (projectId: number) => {
   console.log('[task.api] getTasks result:', result);
 
   return {
-    list: (result.data.list || []).map((item) => mapTaskResponse(item)),
-    total: result.data.total || 0,
-    page: result.data.page || 1,
-    size: result.data.size || 20,
+    list: (result.data.data?.list || []).map((item) => mapTaskResponse(item)),
+    total: result.data.data?.total || 0,
+    page: result.data.data?.page || 1,
+    size: result.data.data?.size || 20,
   };
 };
 
@@ -141,7 +141,7 @@ export const getTasksForBoard = async (projectId: number): Promise<TaskBoardItem
  */
 export const getTask = async (projectId: number, taskId: number) => {
   const result = await api.get<TaskResponse>(endpoints.task.detail(projectId, taskId));
-  return mapTaskResponse(result.data);
+  return mapTaskResponse(result.data.data);
 };
 
 /**
@@ -165,7 +165,7 @@ export const createTask = async (projectId: number, data: CreateTaskDto) => {
   };
 
   const result = await api.post<TaskResponse>(endpoints.task.create(projectId), requestBody);
-  return mapTaskResponse(result.data);
+  return mapTaskResponse(result.data.data);
 };
 
 /**
@@ -188,7 +188,7 @@ export const updateTask = async (projectId: number, taskId: number, data: Update
   if (data.order !== undefined) requestBody.order = data.order;
 
   const result = await api.put<TaskResponse>(endpoints.task.update(projectId, taskId), requestBody);
-  return mapTaskResponse(result.data);
+  return mapTaskResponse(result.data.data);
 };
 
 /**
@@ -222,7 +222,7 @@ export const moveTask = async (
   }
 
   const result = await api.post<TaskResponse>(endpoints.task.move(projectId, taskId), requestBody);
-  return mapTaskResponse(result.data);
+  return mapTaskResponse(result.data.data);
 };
 
 /**
@@ -232,7 +232,7 @@ export const moveTask = async (
  */
 export const toggleTaskComplete = async (projectId: number, taskId: number) => {
   const result = await api.post<TaskResponse>(endpoints.task.toggleComplete(projectId, taskId), {});
-  return mapTaskResponse(result.data);
+  return mapTaskResponse(result.data.data);
 };
 
 /**
