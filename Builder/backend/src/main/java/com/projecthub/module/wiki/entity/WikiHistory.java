@@ -26,6 +26,10 @@ public class WikiHistory {
   @Column(name = "user_id", nullable = false)
   private Long userId;
 
+  @Column(nullable = false)
+  @Builder.Default
+  private Integer version = 1;
+
   @Column(nullable = false, columnDefinition = "TEXT")
   private String content;
 

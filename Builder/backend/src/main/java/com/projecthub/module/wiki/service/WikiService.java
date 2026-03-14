@@ -58,6 +58,7 @@ public class WikiService {
             .parentId(request.getParentId())
             .title(request.getTitle())
             .content(request.getContent())
+            .authorId(userId)
             .position(0)
             .build();
 
@@ -68,6 +69,7 @@ public class WikiService {
         WikiHistory.builder()
             .documentId(document.getId())
             .userId(userId)
+            .version(1)
             .content(document.getContent())
             .build();
     wikiHistoryRepository.save(history);

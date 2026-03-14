@@ -29,9 +29,9 @@ import {
 import Link from 'next/link';
 import dayjs from 'dayjs';
 import { getProject, deleteProject, updateProject } from '@/lib/api/project';
-import { getTasks } from '@/lib/api/task';
-import { getStories } from '@/lib/api/story';
-import { getIssues } from '@/lib/api/issue';
+import { getTasks, getTask, updateTask, deleteTask } from '@/lib/api/task';
+import { getStories, getStory, updateStory, deleteStory } from '@/lib/api/story';
+import { getIssues, getIssue, updateIssue, deleteIssue } from '@/lib/api/issue';
 import { getWikiTree } from '@/lib/api/wiki';
 import { getBurndown } from '@/lib/api/report';
 import type { Project, ProjectStatus } from '@/lib/api/project';
@@ -165,6 +165,19 @@ export default function ProjectDetailPage() {
   const [editDrawerOpen, setEditDrawerOpen] = useState(false);
   const [selectedIcon, setSelectedIcon] = useState<string>('🛒');
   const [form] = Form.useForm();
+
+  // 详情和编辑相关状态
+  const [storyDetailOpen, setStoryDetailOpen] = useState(false);
+  const [storyDetailLoading, setStoryDetailLoading] = useState(false);
+  const [selectedStory, setSelectedStory] = useState<UserStory | null>(null);
+
+  const [taskDetailOpen, setTaskDetailOpen] = useState(false);
+  const [taskDetailLoading, setTaskDetailLoading] = useState(false);
+  const [selectedTask, setSelectedTask] = useState<Task | null>(null);
+
+  const [issueDetailOpen, setIssueDetailOpen] = useState(false);
+  const [issueDetailLoading, setIssueDetailLoading] = useState(false);
+  const [selectedIssue, setSelectedIssue] = useState<Issue | null>(null);
 
   // 获取项目详情
   const fetchProject = async () => {
@@ -455,34 +468,83 @@ export default function ProjectDetailPage() {
   };
 
   // 处理查看详情
-  const handleViewStory = (story: UserStory) => {
-    message.info(`查看用户故事：${story.title}`);
-    // TODO: 打开详情抽屉或弹窗
+  const handleViewStory = async (story: UserStory) => {
+    setStoryDetailLoading(true);
+    try {
+      const storyDetail = await getStory(story.id);
+      setSelectedStory(storyDetail || story);
+      setStoryDetailOpen(true);
+    } catch (error: unknown) {
+      const errorMessage = error instanceof Error ? error.message : '获取用户故事详情失败';
+      message.error(errorMessage);
+    } finally {
+      setStoryDetailLoading(false);
+    }
   };
 
-  const handleViewTask = (task: Task) => {
-    router.push(`/projects/${projectId}/tasks/${task.id}`);
+  const handleViewTask = async (task: Task) => {
+    setTaskDetailLoading(true);
+    try {
+      const taskDetail = await getTask(Number(projectId), task.id);
+      setSelectedTask(taskDetail || task);
+      setTaskDetailOpen(true);
+    } catch (error: unknown) {
+      const errorMessage = error instanceof Error ? error.message : '获取任务详情失败';
+      message.error(errorMessage);
+    } finally {
+      setTaskDetailLoading(false);
+    }
   };
 
-  const handleViewIssue = (issue: Issue) => {
-    message.info(`查看问题：${issue.title}`);
-    // TODO: 打开详情抽屉或弹窗
+  const handleViewIssue = async (issue: Issue) => {
+    setIssueDetailLoading(true);
+    try {
+      const issueDetail = await getIssue(Number(projectId), issue.id);
+      setSelectedIssue(issueDetail || issue);
+      setIssueDetailOpen(true);
+    } catch (error: unknown) {
+      const errorMessage = error instanceof Error ? error.message : '获取问题详情失败';
+      message.error(errorMessage);
+    } finally {
+      setIssueDetailLoading(false);
+    }
   };
 
   // 处理编辑
-  const handleEditStory = (story: UserStory) => {
-    message.info(`编辑用户故事：${story.title}`);
-    // TODO: 打开编辑抽屉或弹窗
+  const handleEditStory = async (story: UserStory) => {
+    try {
+      const storyDetail = await getStory(story.id);
+      setSelectedStory(storyDetail || story);
+      // TODO: 打开编辑抽屉或弹窗
+      message.info(`编辑用户故事：${storyDetail?.title || story.title}`);
+    } catch (error: unknown) {
+      const errorMessage = error instanceof Error ? error.message : '获取用户故事详情失败';
+      message.error(errorMessage);
+    }
   };
 
-  const handleEditTask = (task: Task) => {
-    message.info(`编辑任务：${task.title}`);
-    // TODO: 打开编辑抽屉或弹窗
+  const handleEditTask = async (task: Task) => {
+    try {
+      const taskDetail = await getTask(Number(projectId), task.id);
+      setSelectedTask(taskDetail || task);
+      // TODO: 打开编辑抽屉或弹窗
+      message.info(`编辑任务：${taskDetail?.title || task.title}`);
+    } catch (error: unknown) {
+      const errorMessage = error instanceof Error ? error.message : '获取任务详情失败';
+      message.error(errorMessage);
+    }
   };
 
-  const handleEditIssue = (issue: Issue) => {
-    message.info(`编辑问题：${issue.title}`);
-    // TODO: 打开编辑抽屉或弹窗
+  const handleEditIssue = async (issue: Issue) => {
+    try {
+      const issueDetail = await getIssue(Number(projectId), issue.id);
+      setSelectedIssue(issueDetail || issue);
+      // TODO: 打开编辑抽屉或弹窗
+      message.info(`编辑问题：${issueDetail?.title || issue.title}`);
+    } catch (error: unknown) {
+      const errorMessage = error instanceof Error ? error.message : '获取问题详情失败';
+      message.error(errorMessage);
+    }
   };
 
   // 页签内容
@@ -1317,6 +1379,201 @@ export default function ProjectDetailPage() {
             </div>
           </Form.Item>
         </Form>
+      </Drawer>
+
+      {/* 用户故事详情抽屉 */}
+      <Drawer
+        title="用户故事详情"
+        placement="right"
+        size="large"
+        open={storyDetailOpen}
+        onClose={() => setStoryDetailOpen(false)}
+        className="glass-dark"
+      >
+        {storyDetailLoading ? (
+          <div className="flex justify-center py-12">
+            <Spin size="large" />
+          </div>
+        ) : selectedStory ? (
+          <div className="space-y-4">
+            <div>
+              <h3 className="text-lg font-semibold text-white mb-2">{selectedStory.title}</h3>
+              <div className="flex items-center gap-2 mb-3">
+                <Tag color={selectedStory.storyPoints ? 'orange' : 'default'}>
+                  {selectedStory.storyPoints || 0} pts
+                </Tag>
+                <Tag color="processing">
+                  {selectedStory.status === 'TODO' && '待办'}
+                  {selectedStory.status === 'IN_PROGRESS' && '进行中'}
+                  {selectedStory.status === 'TESTING' && '测试中'}
+                  {selectedStory.status === 'DONE' && '已完成'}
+                </Tag>
+              </div>
+            </div>
+            <div>
+              <h4 className="text-sm font-medium text-gray-400 mb-2">描述</h4>
+              <p className="text-gray-300 text-sm whitespace-pre-wrap">
+                {selectedStory.description || '无描述'}
+              </p>
+            </div>
+            {selectedStory.acceptanceCriteria && (
+              <div>
+                <h4 className="text-sm font-medium text-gray-400 mb-2">验收标准</h4>
+                <p className="text-gray-300 text-sm whitespace-pre-wrap">
+                  {selectedStory.acceptanceCriteria}
+                </p>
+              </div>
+            )}
+            <div className="pt-4 border-t border-gray-700">
+              <div className="flex items-center justify-between text-sm text-gray-400">
+                <span>负责人：{selectedStory.assigneeName || '未分配'}</span>
+                <span>创建时间：{dayjs(selectedStory.createdAt).format('YYYY-MM-DD')}</span>
+              </div>
+            </div>
+          </div>
+        ) : (
+          <Empty description="暂无详情" />
+        )}
+      </Drawer>
+
+      {/* 任务详情抽屉 */}
+      <Drawer
+        title="任务详情"
+        placement="right"
+        size="large"
+        open={taskDetailOpen}
+        onClose={() => setTaskDetailOpen(false)}
+        className="glass-dark"
+      >
+        {taskDetailLoading ? (
+          <div className="flex justify-center py-12">
+            <Spin size="large" />
+          </div>
+        ) : selectedTask ? (
+          <div className="space-y-4">
+            <div>
+              <h3 className="text-lg font-semibold text-white mb-2">{selectedTask.title}</h3>
+              <div className="flex items-center gap-2 mb-3">
+                <Tag color={
+                  selectedTask.priority === 'high' ? 'red' :
+                  selectedTask.priority === 'medium' ? 'orange' :
+                  selectedTask.priority === 'urgent' ? 'purple' : 'gray'
+                }>
+                  {selectedTask.priority}
+                </Tag>
+                <Tag color="processing">
+                  {selectedTask.status === 'todo' && '待办'}
+                  {selectedTask.status === 'in_progress' && '进行中'}
+                  {selectedTask.status === 'testing' && '测试中'}
+                  {selectedTask.status === 'done' && '已完成'}
+                </Tag>
+              </div>
+            </div>
+            <div>
+              <h4 className="text-sm font-medium text-gray-400 mb-2">描述</h4>
+              <p className="text-gray-300 text-sm whitespace-pre-wrap">
+                {selectedTask.description || '无描述'}
+              </p>
+            </div>
+            {selectedTask.dueDate && (
+              <div>
+                <h4 className="text-sm font-medium text-gray-400 mb-2">截止日期</h4>
+                <p className="text-gray-300 text-sm">{dayjs(selectedTask.dueDate).format('YYYY-MM-DD')}</p>
+              </div>
+            )}
+            <div className="pt-4 border-t border-gray-700">
+              <div className="flex items-center justify-between text-sm text-gray-400">
+                <span>负责人：{selectedTask.assigneeId ? `用户${selectedTask.assigneeId}` : '未分配'}</span>
+                <span>创建时间：{dayjs(selectedTask.createdAt).format('YYYY-MM-DD')}</span>
+              </div>
+            </div>
+          </div>
+        ) : (
+          <Empty description="暂无详情" />
+        )}
+      </Drawer>
+
+      {/* 问题详情抽屉 */}
+      <Drawer
+        title="问题详情"
+        placement="right"
+        size="large"
+        open={issueDetailOpen}
+        onClose={() => setIssueDetailOpen(false)}
+        className="glass-dark"
+      >
+        {issueDetailLoading ? (
+          <div className="flex justify-center py-12">
+            <Spin size="large" />
+          </div>
+        ) : selectedIssue ? (
+          <div className="space-y-4">
+            <div>
+              <h3 className="text-lg font-semibold text-white mb-2">
+                #{selectedIssue.id} {selectedIssue.title}
+              </h3>
+              <div className="flex items-center gap-2 mb-3">
+                <Tag color={
+                  selectedIssue.severity === 'critical' ? 'red' :
+                  selectedIssue.severity === 'high' ? 'orange' :
+                  selectedIssue.severity === 'medium' ? 'blue' : 'gray'
+                }>
+                  {selectedIssue.severity}
+                </Tag>
+                <Tag color="processing">
+                  {selectedIssue.status === 'open' && '打开'}
+                  {selectedIssue.status === 'in_progress' && '进行中'}
+                  {selectedIssue.status === 'resolved' && '已解决'}
+                  {selectedIssue.status === 'closed' && '已关闭'}
+                </Tag>
+                <Tag color="default">
+                  {selectedIssue.type === 'bug' && '缺陷'}
+                  {selectedIssue.type === 'feature' && '功能'}
+                  {selectedIssue.type === 'improvement' && '改进'}
+                  {selectedIssue.type === 'task' && '任务'}
+                </Tag>
+              </div>
+            </div>
+            <div>
+              <h4 className="text-sm font-medium text-gray-400 mb-2">描述</h4>
+              <p className="text-gray-300 text-sm whitespace-pre-wrap">
+                {selectedIssue.description || '无描述'}
+              </p>
+            </div>
+            {selectedIssue.resolution && (
+              <div>
+                <h4 className="text-sm font-medium text-gray-400 mb-2">解决方案</h4>
+                <p className="text-gray-300 text-sm whitespace-pre-wrap">
+                  {selectedIssue.resolution}
+                </p>
+              </div>
+            )}
+            <div className="pt-4 border-t border-gray-700">
+              <div className="grid grid-cols-2 gap-4 text-sm text-gray-400">
+                <div>
+                  <span className="text-gray-500">负责人：</span>
+                  {selectedIssue.assigneeId ? `用户${selectedIssue.assigneeId}` : '未分配'}
+                </div>
+                <div>
+                  <span className="text-gray-500">优先级：</span>
+                  {selectedIssue.priority}
+                </div>
+                {selectedIssue.dueDate && (
+                  <div>
+                    <span className="text-gray-500">截止日期：</span>
+                    {dayjs(selectedIssue.dueDate).format('YYYY-MM-DD')}
+                  </div>
+                )}
+                <div>
+                  <span className="text-gray-500">创建时间：</span>
+                  {dayjs(selectedIssue.createdAt).format('YYYY-MM-DD')}
+                </div>
+              </div>
+            </div>
+          </div>
+        ) : (
+          <Empty description="暂无详情" />
+        )}
       </Drawer>
     </div>
   );

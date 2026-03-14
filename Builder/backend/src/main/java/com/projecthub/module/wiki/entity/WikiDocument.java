@@ -37,8 +37,19 @@ public class WikiDocument {
   @Column(columnDefinition = "TEXT")
   private String content;
 
+  @Column(name = "author_id", nullable = false)
+  private Long authorId;
+
+  @Column(nullable = false)
+  @Builder.Default
+  private Integer version = 1;
+
   @Column(nullable = false)
   private Integer position = 0;
+
+  @Column(name = "is_published", nullable = false)
+  @Builder.Default
+  private Boolean isPublished = true;
 
   @CreatedDate
   @Column(name = "created_at", nullable = false, updatable = false)
