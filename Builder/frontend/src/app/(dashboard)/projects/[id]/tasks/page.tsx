@@ -161,7 +161,7 @@ const TaskFormModal: React.FC<TaskFormModalProps> = ({ open, onClose, onSubmit, 
   // 当对话框打开且项目成员加载完成后，自动设置当前用户为默认负责人
   useEffect(() => {
     if (open && currentUserId && projectMembers.length > 0) {
-      const isMember = projectMembers.some((m) => m.user.id === currentUserId);
+      const isMember = projectMembers.some((m) => m.userId === currentUserId);
       if (isMember) {
         form.setFieldValue('assignee', currentUserId);
       }
@@ -256,11 +256,11 @@ const TaskFormModal: React.FC<TaskFormModalProps> = ({ open, onClose, onSubmit, 
               {projectMembers.length > 0 ? (
                 projectMembers.map((member) => (
                   <Option
-                    key={member.user.id}
-                    value={member.user.id}
-                    label={`${member.user.username} (${member.user.email})`}
+                    key={member.userId}
+                    value={member.userId}
+                    label={`${member.nickname || member.username} (${member.email})`}
                   >
-                    {member.user.username} ({member.user.email})
+                    {member.nickname || member.username} ({member.email})
                   </Option>
                 ))
               ) : (

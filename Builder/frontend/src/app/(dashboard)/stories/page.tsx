@@ -415,8 +415,8 @@ export default function StoriesPage() {
     selectedProjectIds.forEach((projectId) => {
       const projectMembers = allProjectMembers.get(projectId) || [];
       projectMembers.forEach((m) => {
-        if (!seenIds.has(m.user.id)) {
-          seenIds.add(m.user.id);
+        if (!seenIds.has(m.userId)) {
+          seenIds.add(m.userId);
           members.push(m);
         }
       });
@@ -496,8 +496,8 @@ export default function StoriesPage() {
               String(option?.label ?? '').toLowerCase().includes(input.toLowerCase())
             }
             options={getFilterMembers().map((member) => ({
-              label: `${member.user.username} (${member.user.email})`,
-              value: member.user.id,
+              label: `${member.nickname || member.username} (${member.email})`,
+              value: member.userId,
             }))}
             disabled={selectedProjectIds.length === 0}
           />
@@ -751,8 +751,8 @@ export default function StoriesPage() {
               >
                 {currentProjectMembers.length > 0 ? (
                   currentProjectMembers.map((member) => (
-                    <Option key={member.user.id} value={member.user.id} label={`${member.user.username} (${member.user.email})`}>
-                      {member.user.username} ({member.user.email})
+                    <Option key={member.userId} value={member.userId} label={`${member.nickname || member.username} (${member.email})`}>
+                      {member.nickname || member.username} ({member.email})
                     </Option>
                   ))
                 ) : (

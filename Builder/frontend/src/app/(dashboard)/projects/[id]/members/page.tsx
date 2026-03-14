@@ -58,10 +58,10 @@ export default function ProjectMembersPage() {
         // 将后端数据转换为前端格式
         const memberList: Member[] = (data || []).map((item, index) => ({
           id: String(item.id || index + 1),
-          userId: String(item.user.id),
-          name: item.user.username || `用户 ${item.user.id}`,
-          email: item.user.email || '',
-          avatar: item.user.avatar || null,
+          userId: String(item.userId),
+          name: item.nickname || item.username || `用户 ${item.userId}`,
+          email: item.email || '',
+          avatar: item.avatar || null,
           role: item.role,
           joinedAt: item.joinedAt ? new Date(item.joinedAt).toISOString().split('T')[0] : '',
         }));
@@ -89,10 +89,10 @@ export default function ProjectMembersPage() {
       const data = await getProjectMembers(projectIdNum);
       const memberList: Member[] = (data || []).map((item, index) => ({
         id: String(item.id || index + 1),
-        userId: String(item.user.id),
-        name: item.user.username || `用户 ${item.user.id}`,
-        email: item.user.email || '',
-        avatar: item.user.avatar || null,
+        userId: String(item.userId),
+        name: item.nickname || item.username || `用户 ${item.userId}`,
+        email: item.email || '',
+        avatar: item.avatar || null,
         role: item.role,
         joinedAt: item.joinedAt ? new Date(item.joinedAt).toISOString().split('T')[0] : '',
       }));

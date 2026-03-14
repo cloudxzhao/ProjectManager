@@ -9,10 +9,14 @@ import type { User } from '@/types/user';
 // 导出类型供外部使用
 export type { ProjectStatus };
 
-/** 后端返回的项目成员数据结构（包含 user 对象） */
+/** 后端返回的项目成员数据结构（扁平结构，用户信息直接在 member 上） */
 export interface ProjectMemberResponse {
   id: number;
-  user: User;
+  userId: number;
+  username: string;
+  nickname?: string;
+  email: string;
+  avatar?: string;
   role: MemberRole;
   joinedAt: string;
 }
@@ -200,24 +204,19 @@ export const deleteProject = async (id: number) => {
 
 /**
  * 获取当前用户有权限访问的项目列表（用于用户故事、任务等筛选）
+ * 后端返回：Result<List<ProjectIdName>> 直接列表，不是分页结构
  */
 export const getAuthorizedProjects = async () => {
-  const result = await api.get<{
-    list: ProjectResponse[];
-    total: number;
-    page: number;
-    size: number;
-    pages: number;
-  }>(endpoints.project.authorized);
+  const result = await api.get<ProjectResponse[]>(endpoints.project.authorized);
 
   console.log('[project.api] getAuthorizedProjects result:', result.data);
 
   return {
-    list: result.data.data.list.map(mapProjectResponse),
-    total: result.data.data.total,
-    page: result.data.data.page,
-    size: result.data.data.size,
-    pages: result.data.data.pages,
+    list: result.data.data.map(mapProjectResponse),
+    total: result.data.data.length,
+    page: 1,
+    size: result.data.data.length,
+    pages: 1,
   };
 };
 

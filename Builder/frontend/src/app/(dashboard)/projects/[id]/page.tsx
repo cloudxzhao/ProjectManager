@@ -2352,8 +2352,8 @@ export default function ProjectDetailPage() {
                 loading={membersLoading}
               >
                 {projectMembers.map((member) => (
-                  <Select.Option key={member.user.id} value={member.user.id}>
-                    {member.user.username || member.user.email}
+                  <Select.Option key={member.userId} value={member.userId}>
+                    {member.nickname || member.username || member.email}
                   </Select.Option>
                 ))}
               </Select>
@@ -2441,8 +2441,8 @@ export default function ProjectDetailPage() {
                   loading={membersLoading}
                 >
                   {projectMembers.map((member) => (
-                    <Select.Option key={member.user.id} value={member.user.id}>
-                      {member.user.username || member.user.email}
+                    <Select.Option key={member.userId} value={member.userId}>
+                      {member.nickname || member.username || member.email}
                     </Select.Option>
                   ))}
                 </Select>
@@ -2606,8 +2606,8 @@ export default function ProjectDetailPage() {
                   loading={membersLoading}
                 >
                   {projectMembers.map((member) => (
-                    <Select.Option key={member.user.id} value={member.user.id}>
-                      {member.user.username || member.user.email}
+                    <Select.Option key={member.userId} value={member.userId}>
+                      {member.nickname || member.username || member.email}
                     </Select.Option>
                   ))}
                 </Select>
