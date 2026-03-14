@@ -68,7 +68,7 @@ export interface UpdateUserStoryDto {
  * @param params 查询参数
  */
 export const getStories = async (projectId: number, params?: QueryParams) => {
-  const res = await api.get<PageInfo<UserStory[]>>(endpoints.story.list(projectId), { params });
+  const res = await api.get<PageInfo<UserStory>>(endpoints.story.list(projectId), { params });
   return res.data.data;
 };
 

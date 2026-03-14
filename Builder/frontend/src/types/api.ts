@@ -14,7 +14,7 @@ export interface ApiResponse<T> {
 }
 
 export interface PageInfo<T> {
-  items: T[];
+  items: T extends any[] ? T : T[];
   total: number;
   page: number;
   pageSize: number;

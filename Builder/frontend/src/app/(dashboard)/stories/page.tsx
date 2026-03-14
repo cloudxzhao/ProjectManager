@@ -195,7 +195,7 @@ export default function StoriesPage() {
   // 加载项目列表
   const fetchProjects = async () => {
     try {
-      const result = await getProjects({ page: 1, pageSize: 100 });
+      const result = await getProjects(1, 100);
       setProjects(result?.list || []);
     } catch (error) {
       console.error('加载项目列表失败:', error);
