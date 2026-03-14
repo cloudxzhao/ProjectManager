@@ -654,36 +654,72 @@ export default function ProjectDetailPage() {
       ),
       children: (
         <div className="space-y-4">
-          <div className="flex justify-between items-center mb-4">
-            <h3 className="text-lg font-semibold text-white">Wiki 文档</h3>
-            <span className="text-gray-400">共 {wikis.length} 篇文档</span>
-          </div>
           {wikis.length > 0 ? (
-            <div className="space-y-3">
-              {wikis.map((wiki) => (
-                <div
-                  key={wiki.id}
-                  className="bg-gray-800/50 border border-gray-700 rounded-lg p-4 hover:border-orange-500/50 transition-colors"
-                >
-                  <div className="flex items-start justify-between">
-                    <div className="flex-1">
-                      <h4 className="text-white font-medium text-lg mb-2">{wiki.title}</h4>
-                      {wiki.summary && (
-                        <p className="text-gray-400 text-sm mb-3">{wiki.summary}</p>
+            <Table<Wiki>
+              dataSource={wikis}
+              rowKey="id"
+              pagination={false}
+              className="wikis-table"
+              columns={[
+                {
+                  title: '文档标题',
+                  dataIndex: 'title',
+                  key: 'title',
+                  ellipsis: true,
+                  render: (title: string, record: Wiki) => (
+                    <div className="flex items-center gap-2">
+                      <span className="font-medium text-white">{title}</span>
+                      {!record.isPublished && (
+                        <Tag color="warning">未发布</Tag>
                       )}
-                      <div className="flex items-center gap-4 text-sm text-gray-500">
-                        <span>作者：{wiki.authorName || '未知'}</span>
-                        <span>浏览：{wiki.viewCount}</span>
-                        <span>更新：{formatDate(wiki.updatedAt || wiki.createdAt)}</span>
-                        {!wiki.isPublished && (
-                          <Tag color="warning">未发布</Tag>
-                        )}
-                      </div>
                     </div>
-                  </div>
-                </div>
-              ))}
-            </div>
+                  ),
+                },
+                {
+                  title: '摘要',
+                  dataIndex: 'summary',
+                  key: 'summary',
+                  ellipsis: true,
+                  width: 300,
+                  render: (summary?: string) => (
+                    <span className="text-gray-400 text-sm" title={summary}>
+                      {summary && summary.length > 50 ? `${summary.slice(0, 50)}...` : summary || '-'}
+                    </span>
+                  ),
+                },
+                {
+                  title: '作者',
+                  dataIndex: 'authorName',
+                  key: 'authorName',
+                  width: 100,
+                  render: (authorName?: string) => (
+                    <span className="text-gray-300">
+                      {authorName || <span className="text-gray-500">未知</span>}
+                    </span>
+                  ),
+                },
+                {
+                  title: '浏览量',
+                  dataIndex: 'viewCount',
+                  key: 'viewCount',
+                  width: 80,
+                  render: (viewCount?: number) => (
+                    <span className="text-gray-300">{viewCount || 0}</span>
+                  ),
+                },
+                {
+                  title: '更新时间',
+                  dataIndex: 'updatedAt',
+                  key: 'updatedAt',
+                  width: 120,
+                  render: (_: unknown, record: Wiki) => (
+                    <span className="text-gray-300">
+                      {formatDate(record.updatedAt || record.createdAt)}
+                    </span>
+                  ),
+                },
+              ].filter(Boolean) as TableColumnsType<Wiki>}
+            />
           ) : (
             <div className="text-center py-12">
               <BookOutlined style={{ fontSize: 64, color: '#6b7280' }} />
