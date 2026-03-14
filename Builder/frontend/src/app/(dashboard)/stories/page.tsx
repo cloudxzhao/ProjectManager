@@ -185,7 +185,7 @@ export default function StoriesPage() {
   const [total, setTotal] = useState(0);
   const [page, setPage] = useState(1);
   const [pageSize] = useState(10);
-  const [selectedProject, setSelectedProject] = useState<number | undefined>(undefined);
+  const [selectedProjectIds, setSelectedProjectIds] = useState<number[]>([]);  // 支持多选
   const [selectedStatus, setSelectedStatus] = useState<StoryStatus | undefined>(undefined);
   const [searchText, setSearchText] = useState('');
 
@@ -241,9 +241,9 @@ export default function StoriesPage() {
       };
       if (selectedStatus) params.status = selectedStatus;
       if (searchText) params.keyword = searchText;
-      // 如果选择了项目，通过 projectIds 参数筛选
-      if (selectedProject) {
-        params.projectIds = [selectedProject];
+      // 如果选择了项目，通过 projectIds 参数筛选（支持多选）
+      if (selectedProjectIds && selectedProjectIds.length > 0) {
+        params.projectIds = selectedProjectIds;
       }
 
       const result = await searchStories(params);
@@ -262,16 +262,16 @@ export default function StoriesPage() {
   }, []);
 
   useEffect(() => {
-    if (selectedProject) {
-      fetchProjectMembers(selectedProject);
+    if (selectedProjectIds.length === 1) {
+      fetchProjectMembers(selectedProjectIds[0]);
     } else {
       setProjectMembers([]);
     }
-  }, [selectedProject]);
+  }, [selectedProjectIds]);
 
   useEffect(() => {
     fetchStories();
-  }, [page, selectedProject, selectedStatus, searchText]);
+  }, [page, selectedProjectIds, selectedStatus, searchText]);
 
   // 删除用户故事
   const handleDelete = async () => {
@@ -295,9 +295,9 @@ export default function StoriesPage() {
   const handleCreate = () => {
     setEditingStory(null);
     form.resetFields();
-    // 默认选择当前筛选的项目
-    if (selectedProject) {
-      form.setFieldsValue({ projectId: selectedProject });
+    // 默认选择当前筛选的项目（如果只选了一个）
+    if (selectedProjectIds.length === 1) {
+      form.setFieldsValue({ projectId: selectedProjectIds[0] });
       // 如果已选择项目，自动设置当前用户为默认负责人
       if (user?.id && projectMembers.length > 0) {
         const isMember = projectMembers.some((m) => m.user.id === user.id);
@@ -306,7 +306,7 @@ export default function StoriesPage() {
         }
       }
     } else {
-      // 如果没有选择项目，清空表单中的项目字段
+      // 如果没有选择项目或选了多个，清空表单中的项目字段
       form.setFieldsValue({ projectId: undefined });
     }
     setFormModalOpen(true);
@@ -363,8 +363,8 @@ export default function StoriesPage() {
           assigneeId: values.assigneeId,
           storyPoints: values.storyPoints,
         };
-        // 需要使用 selectedProject 或 values.projectId
-        const targetProjectId = selectedProject || values.projectId;
+        // 需要使用 selectedProjectIds 的第一个或 values.projectId
+        const targetProjectId = selectedProjectIds.length === 1 ? selectedProjectIds[0] : values.projectId;
         if (!targetProjectId) {
           message.error('请选择所属项目');
           setLoading(false);
@@ -430,18 +430,24 @@ export default function StoriesPage() {
             />
           </div>
           <Select
-            placeholder="选择项目"
-            value={selectedProject}
+            mode="multiple"
+            placeholder="选择项目（可多选）"
+            value={selectedProjectIds}
             onChange={(value) => {
-              setSelectedProject(value);
+              setSelectedProjectIds(value);
               setPage(1);
             }}
-            className="w-[200px] bg-gray-700/50 border-gray-600"
+            className="w-[250px] bg-gray-700/50 border-gray-600"
             allowClear
+            maxTagCount="responsive"
+            optionLabelProp="label"
           >
             {projects.map((project) => (
-              <Option key={project.id} value={project.id}>
-                {project.name}
+              <Option key={project.id} value={project.id} label={project.name}>
+                <div className="flex items-center gap-2">
+                  <span>{project.icon || '📁'}</span>
+                  <span>{project.name}</span>
+                </div>
               </Option>
             ))}
           </Select>
@@ -568,7 +574,7 @@ export default function StoriesPage() {
                 placeholder="选择项目"
                 onChange={(value) => {
                   // 项目改变时，重新加载项目成员
-                  setSelectedProject(value);
+                  setSelectedProjectIds([value]);
                   fetchProjectMembers(value);
                 }}
               >
