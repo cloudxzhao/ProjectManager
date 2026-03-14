@@ -496,7 +496,7 @@ export default function StoriesPage() {
               String(option?.label ?? '').toLowerCase().includes(input.toLowerCase())
             }
             options={getFilterMembers().map((member) => ({
-              label: `${member.nickname || member.username} (${member.email})`,
+              label: member.username,
               value: member.userId,
             }))}
             disabled={selectedProjectIds.length === 0}
@@ -754,8 +754,8 @@ export default function StoriesPage() {
               >
                 {currentProjectMembers.length > 0 ? (
                   currentProjectMembers.map((member) => (
-                    <Option key={member.userId} value={member.userId} label={`${member.nickname || member.username} (${member.email})`}>
-                      {member.nickname || member.username} ({member.email})
+                    <Option key={member.userId} value={member.userId} label={member.username}>
+                      {member.username}
                     </Option>
                   ))
                 ) : (
