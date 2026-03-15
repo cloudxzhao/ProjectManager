@@ -1603,9 +1603,9 @@ export default function ProjectDetailPage() {
             </div>
           </div>
         </div>
-        <div className="project-actions" style={{ display: 'flex', gap: '0.75rem', flexDirection: 'column', alignItems: 'flex-end' }}>
+        <div className="project-actions" style={{ display: 'flex', gap: '1rem', alignItems: 'center' }}>
           {/* 服务筛选框 */}
-          <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.5rem' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
             <FilterOutlined className="text-gray-400" />
             <span className="text-gray-300 text-sm font-medium">服务筛选：</span>
             <Select
