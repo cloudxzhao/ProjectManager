@@ -202,7 +202,7 @@ export default function TaskBoardPage() {
 
   // 分页状态
   const [page, setPage] = useState(1);
-  const [pageSize] = useState(20);  // 每页 20 条
+  const [pageSize, setPageSize] = useState(20);  // 每页条数可选
   const [total, setTotal] = useState(0);
 
   // 筛选状态
@@ -577,9 +577,13 @@ export default function TaskBoardPage() {
                 setPage(newPage);
                 window.scrollTo({ top: 0, behavior: 'smooth' });
               }}
-              showSizeChanger={false}
+              onShowSizeChange={(_, size) => {
+                setPageSize(size);
+                setPage(1);  // 切换 pageSize 时重置到第一页
+              }}
+              showSizeChanger
               showTotal={(total) => `共 ${total} 条`}
-              pageSizeOptions={[20]}
+              pageSizeOptions={['10', '30', '50', '100']}
             />
           </div>
         </>
