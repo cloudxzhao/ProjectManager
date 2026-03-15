@@ -1487,3 +1487,100 @@ body {
     min-width: 280px;
   }
 }
+
+/* ========================================
+   用户故事父子行样式 (Story-Task Tree)
+   ======================================== */
+
+/* 展开按钮样式 */
+.story-expand-btn {
+  width: 24px;
+  height: 24px;
+  padding: 0;
+  margin-right: 8px;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: 4px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #f97316;
+  transition: all 0.2s ease;
+  font-size: 10px;
+}
+
+.story-expand-btn:hover {
+  background: #f97316;
+  color: white;
+  border-color: #f97316;
+}
+
+/* 任务容器样式 */
+.story-tasks-container {
+  background: rgba(77, 171, 247, 0.02);
+  border-radius: 8px;
+  padding: 8px 16px;
+}
+
+/* 子任务行样式 */
+.task-sub-row {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 12px 16px;
+  margin: 4px 0;
+  background: rgba(255, 255, 255, 0.02);
+  border-radius: 8px;
+  border: 1px solid rgba(255, 255, 255, 0.05);
+  transition: all 0.2s ease;
+  font-size: 13px;
+}
+
+.task-sub-row:hover {
+  background: rgba(255, 255, 255, 0.03);
+  border-color: rgba(255, 255, 255, 0.08);
+  transform: translateX(4px);
+}
+
+.task-sub-row-cell {
+  flex: 1;
+  min-width: 0;
+}
+
+.task-sub-row-cell:first-child {
+  flex: 2;
+}
+
+/* 任务标题容器 */
+.task-title {
+  font-weight: 500;
+  color: #f8fafc;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* PTS 标签 */
+.pts-tag {
+  background: rgba(255, 140, 66, 0.1);
+  color: #f97316;
+  padding: 2px 6px;
+  border-radius: 4px;
+  font-size: 11px;
+  margin-left: 8px;
+  font-weight: 600;
+}
+
+/* Ant Design Table 展开行样式覆盖 */
+.stories-table .ant-table-expanded-row {
+  background: transparent !important;
+}
+
+.stories-table .ant-table-expanded-row .ant-table-cell {
+  background: transparent !important;
+  padding: 0 !important;
+  border: none !important;
+}
+
+.stories-table .ant-table-expanded-row-fixed {
+  background: transparent !important;
+}

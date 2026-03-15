@@ -25,6 +25,8 @@ import {
   FolderOutlined,
   FileOutlined,
   EyeOutlined,
+  RightOutlined,
+  DownOutlined,
 } from '@ant-design/icons';
 import Link from 'next/link';
 import dayjs from 'dayjs';
@@ -210,6 +212,10 @@ export default function ProjectDetailPage() {
   const [storiesList, setStoriesList] = useState<UserStory[]>([]);
   const [membersLoading, setMembersLoading] = useState(false);
 
+  // 用户故事关联的任务和展开状态
+  const [storyTasks, setStoryTasks] = useState<Map<number, Task[]>>(new Map());
+  const [expandedRowKeys, setExpandedRowKeys] = useState<React.Key[]>([]);
+
   // 获取项目详情
   const fetchProject = async () => {
     setFetchLoading(true);
@@ -335,6 +341,32 @@ export default function ProjectDetailPage() {
     }
   };
 
+  // 获取用户故事关联的任务
+  const fetchStoryTasks = async (projectIdNum: number, storyId: number) => {
+    // 如果已经加载过该故事的任务，则不再重复加载
+    if (storyTasks.has(storyId)) {
+      return;
+    }
+
+    try {
+      const tasksResult = await getTasks(projectIdNum);
+      const storyTasksList = tasksResult.list.filter((task) => task.userStoryId === storyId);
+      setStoryTasks((prev) => new Map(prev).set(storyId, storyTasksList));
+    } catch (error: unknown) {
+      const errorMessage = error instanceof Error ? error.message : '获取关联任务失败';
+      message.error(errorMessage);
+    }
+  };
+
+  // 处理展开/折叠
+  const handleStoryExpand = (expanded: boolean, record: UserStory) => {
+    const projectIdNum = Number(projectId);
+    if (expanded && projectIdNum) {
+      fetchStoryTasks(projectIdNum, record.id);
+    }
+    setExpandedRowKeys(expanded ? [...expandedRowKeys, record.id] : expandedRowKeys.filter((key) => key !== record.id));
+  };
+
   // 获取项目成员列表
   const fetchProjectMembers = async (projectIdNum: number) => {
     setMembersLoading(true);
@@ -392,6 +424,28 @@ export default function ProjectDetailPage() {
       TODO: 'default',
       IN_PROGRESS: 'processing',
       TESTING: 'warning',
+      DONE: 'success',
+    };
+    return map[status] || 'default';
+  };
+
+  // 格式化任务状态
+  const getTaskStatusText = (status: string) => {
+    const map: Record<string, string> = {
+      TODO: '待办',
+      IN_PROGRESS: '进行中',
+      IN_REVIEW: '测试中',
+      DONE: '已完成',
+    };
+    return map[status] || status;
+  };
+
+  // 获取任务状态颜色
+  const getTaskStatusColor = (status: string) => {
+    const map: Record<string, string> = {
+      TODO: 'default',
+      IN_PROGRESS: 'processing',
+      IN_REVIEW: 'warning',
       DONE: 'success',
     };
     return map[status] || 'default';
@@ -888,6 +942,90 @@ export default function ProjectDetailPage() {
                   showTotal: (total) => `共 ${total} 条`,
                 }}
                 className="stories-table"
+                expandable={{
+                  expandedRowKeys,
+                  onExpand: handleStoryExpand,
+                  expandIcon: ({ expanded, onExpand, record }) => (
+                    <Button
+                      type="text"
+                      size="small"
+                      className="story-expand-btn"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        onExpand(record, e);
+                      }}
+                    >
+                      {expanded ? <DownOutlined /> : <RightOutlined />}
+                    </Button>
+                  ),
+                  expandedRowRender: (record) => {
+                    const tasks = storyTasks.get(record.id) || [];
+                    return (
+                      <div className="story-tasks-container">
+                        {tasks.length === 0 ? (
+                          <div className="text-center py-8 text-gray-500">
+                            <Empty description="暂无关联任务" image={Empty.PRESENTED_IMAGE_SIMPLE} />
+                          </div>
+                        ) : (
+                          <div className="space-y-2">
+                            {tasks.map((task) => (
+                              <div key={task.id} className="task-sub-row">
+                                <div className="task-sub-row-cell">
+                                  <span className="task-title">{task.title}</span>
+                                  {task.storyPoints && (
+                                    <span className="pts-tag">{task.storyPoints} pts</span>
+                                  )}
+                                </div>
+                                <div className="task-sub-row-cell">
+                                  <span className="text-gray-400 text-sm" title={task.description}>
+                                    {task.description?.length > 30 ? `${task.description.slice(0, 30)}...` : task.description || '-'}
+                                  </span>
+                                </div>
+                                <div className="task-sub-row-cell">
+                                  <Tag color={getTaskStatusColor(task.status)}>{getTaskStatusText(task.status)}</Tag>
+                                </div>
+                                <div className="task-sub-row-cell">
+                                  <span className="text-gray-300">
+                                    {task.assigneeName || <span className="text-gray-500">未分配</span>}
+                                  </span>
+                                </div>
+                                <div className="task-sub-row-cell">
+                                  <Tag color={task.priority === 'high' ? 'red' : task.priority === 'medium' ? 'orange' : task.priority === 'urgent' ? 'purple' : 'green'}>
+                                    {task.priority === 'high' ? '高' : task.priority === 'medium' ? '中' : task.priority === 'urgent' ? '紧急' : '低'}
+                                  </Tag>
+                                </div>
+                                <div className="task-sub-row-cell">
+                                  <div className="flex items-center gap-2">
+                                    <Button
+                                      type="text"
+                                      size="small"
+                                      icon={<EyeOutlined />}
+                                      onClick={(e) => {
+                                        e.stopPropagation();
+                                        handleViewTask(task);
+                                      }}
+                                      title="查看详情"
+                                    />
+                                    <Button
+                                      type="text"
+                                      size="small"
+                                      icon={<EditOutlined />}
+                                      onClick={(e) => {
+                                        e.stopPropagation();
+                                        handleEditTask(task);
+                                      }}
+                                      title="编辑"
+                                    />
+                                  </div>
+                                </div>
+                              </div>
+                            ))}
+                          </div>
+                        )}
+                      </div>
+                    );
+                  },
+                }}
                 columns={[
                   {
                     title: '故事标题',
