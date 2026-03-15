@@ -71,25 +71,44 @@ apiClient.interceptors.request.use(
 // 响应拦截器 - 统一错误处理
 apiClient.interceptors.response.use(
   (response) => {
+    // 检查响应体中的 code 字段（业务错误码）
+    const responseData = response.data as Result<unknown>;
+    if (responseData && responseData.code !== 200 && responseData.code !== 201) {
+      // 业务错误，根据 code 显示不同提示
+      const message = responseData.message || getErrorMessageByCode(responseData.code);
+      console.error(`[API Business Error ${responseData.code}]:`, message);
+      if (typeof window !== 'undefined') {
+        window.dispatchEvent(new CustomEvent('api-error', {
+          detail: { code: responseData.code, message, httpStatus: response.status }
+        }));
+      }
+      // 返回 reject，让调用方知道出错了
+      const error: AxiosError<Result<unknown>> = new AxiosError(message);
+      error.response = response;
+      error.code = responseData.code.toString();
+      return Promise.reject(error);
+    }
     // 返回完整响应，在 api 对象的方法中解包
     return response;
   },
   (error: AxiosError<Result<unknown>>) => {
+    // HTTP 错误，根据 status 显示不同提示
+    const status = error.response?.status;
+    const responseData = error.response?.data;
+    const message = responseData?.message || getErrorMessageByCode(status) || '网络错误，请稍后重试';
+
     // 400 错误 - 请求参数错误
-    if (error.response?.status === 400) {
-      const message = error.response.data?.message || '请求参数错误，请检查后重试';
+    if (status === 400) {
       console.error('[API 400 Error]:', message);
-      // 可以通过 window 事件或回调通知上层应用展示 toast
       if (typeof window !== 'undefined') {
-        // 触发自定义事件，让应用层处理
         window.dispatchEvent(new CustomEvent('api-error', {
-          detail: { code: 400, message }
+          detail: { code: responseData?.code || 400, message, httpStatus: status }
         }));
       }
     }
 
     // 401 错误 - Token 过期或未授权
-    if (error.response?.status === 401) {
+    if (status === 401) {
       if (typeof window !== 'undefined') {
         localStorage.removeItem('access_token');
         localStorage.removeItem('refresh_token');
@@ -99,34 +118,31 @@ apiClient.interceptors.response.use(
     }
 
     // 403 错误 - 权限不足
-    if (error.response?.status === 403) {
-      const message = error.response.data?.message || '权限不足，请联系管理员';
+    if (status === 403) {
       console.error('[API 403 Error]:', message);
       if (typeof window !== 'undefined') {
         window.dispatchEvent(new CustomEvent('api-error', {
-          detail: { code: 403, message }
+          detail: { code: responseData?.code || 403, message, httpStatus: status }
         }));
       }
     }
 
     // 404 错误 - 资源不存在
-    if (error.response?.status === 404) {
-      const message = error.response.data?.message || '资源不存在';
+    if (status === 404) {
       console.error('[API 404 Error]:', message);
       if (typeof window !== 'undefined') {
         window.dispatchEvent(new CustomEvent('api-error', {
-          detail: { code: 404, message }
+          detail: { code: responseData?.code || 404, message, httpStatus: status }
         }));
       }
     }
 
     // 500 错误 - 服务器错误
-    if (error.response?.status === 500) {
-      const message = error.response.data?.message || '服务器错误，请稍后重试';
+    if (status === 500) {
       console.error('[API 500 Error]:', message);
       if (typeof window !== 'undefined') {
         window.dispatchEvent(new CustomEvent('api-error', {
-          detail: { code: 500, message }
+          detail: { code: responseData?.code || 500, message, httpStatus: status }
         }));
       }
     }
@@ -134,6 +150,26 @@ apiClient.interceptors.response.use(
     return Promise.reject(error);
   }
 );
+
+// 根据错误码返回友好的错误信息
+const getErrorMessageByCode = (code?: number): string => {
+  if (!code) return '网络错误，请稍后重试';
+
+  const errorMessages: Record<number, string> = {
+    200: '请求成功',
+    201: '创建成功',
+    400: '请求参数错误，请检查后重试',
+    401: '登录已过期，请重新登录',
+    403: '权限不足，请联系管理员',
+    404: '请求的资源不存在',
+    500: '服务器内部错误，技术团队正在处理中',
+    502: '网关错误，请稍后重试',
+    503: '服务暂时不可用，请稍后重试',
+    504: '网关超时，请稍后重试',
+  };
+
+  return errorMessages[code] || '网络错误，请稍后重试';
+};
 
 // 封装的请求方法
 export const api = {
