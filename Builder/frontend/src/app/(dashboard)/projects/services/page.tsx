@@ -24,8 +24,6 @@ import {
 import type { TableColumnsType, MenuProps } from 'antd';
 import {
   PlusOutlined,
-  EditOutlined,
-  DeleteOutlined,
   AppstoreOutlined,
   ArrowLeftOutlined,
   SearchOutlined,
@@ -410,14 +408,14 @@ export default function ServicesPage() {
       width: 150,
       render: (_: unknown, record: ServiceApi) => (
         <Space size="small">
-          <Button
-            type="link"
-            size="small"
-            icon={<EditOutlined />}
+          <button
             onClick={() => handleEditApi(record)}
+            className="text-lg cursor-pointer transition-colors duration-200 hover:scale-110 bg-transparent border-none p-0"
+            style={{ color: '#636e72' }}
+            title="编辑"
           >
-            编辑
-          </Button>
+            ✏️
+          </button>
           <Popconfirm
             title="确认删除"
             description={`确定要删除接口 "${record.name}" 吗？`}
@@ -425,9 +423,13 @@ export default function ServicesPage() {
             okText="确定"
             cancelText="取消"
           >
-            <Button type="link" size="small" danger icon={<DeleteOutlined />}>
-              删除
-            </Button>
+            <button
+              className="text-lg cursor-pointer transition-colors duration-200 hover:scale-110 bg-transparent border-none p-0"
+              style={{ color: '#636e72' }}
+              title="删除"
+            >
+              🗑️
+            </button>
           </Popconfirm>
         </Space>
       ),
@@ -514,14 +516,14 @@ export default function ServicesPage() {
           >
             接口
           </Button>
-          <Button
-            type="link"
-            size="small"
-            icon={<EditOutlined />}
+          <button
             onClick={() => handleEdit(record)}
+            className="text-lg cursor-pointer transition-colors duration-200 hover:scale-110 bg-transparent border-none p-0"
+            style={{ color: '#636e72' }}
+            title="编辑"
           >
-            编辑
-          </Button>
+            ✏️
+          </button>
           <Popconfirm
             title="确认删除"
             description={`确定要删除服务 "${record.title}" 吗？`}
@@ -529,9 +531,13 @@ export default function ServicesPage() {
             okText="确定"
             cancelText="取消"
           >
-            <Button type="link" size="small" danger icon={<DeleteOutlined />}>
-              删除
-            </Button>
+            <button
+              className="text-lg cursor-pointer transition-colors duration-200 hover:scale-110 bg-transparent border-none p-0"
+              style={{ color: '#636e72' }}
+              title="删除"
+            >
+              🗑️
+            </button>
           </Popconfirm>
         </Space>
       ),

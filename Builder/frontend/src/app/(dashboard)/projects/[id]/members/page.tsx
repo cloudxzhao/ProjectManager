@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react';
 import { useParams } from 'next/navigation';
 import { Card, Avatar, Tag, Button, Table, Modal, Form, Select, Input, message, Popconfirm, Space, Spin } from 'antd';
-import { PlusOutlined, DeleteOutlined, EditOutlined, UserAddOutlined } from '@ant-design/icons';
+import { PlusOutlined, UserAddOutlined } from '@ant-design/icons';
 import { getProjectMembers, addProjectMember, removeProjectMember, updateProjectMemberRole } from '@/lib/api/project';
 import { searchUsers } from '@/lib/api/user';
 import type { MemberRole } from '@/types/project';
@@ -243,15 +243,14 @@ export default function ProjectMembersPage() {
         <Space size="middle">
           {record.role !== 'OWNER' && (
             <>
-              <Button
-                type="link"
-                size="small"
-                icon={<EditOutlined />}
+              <button
                 onClick={() => openEditModal(record)}
-                className="text-gray-400 hover:text-white"
+                className="text-lg cursor-pointer transition-colors duration-200 hover:scale-110 bg-transparent border-none p-0"
+                style={{ color: '#636e72' }}
+                title="编辑"
               >
-                编辑
-              </Button>
+                ✏️
+              </button>
               <Popconfirm
                 title="确认移除"
                 description={`确定要移除成员 ${record.name} 吗？`}
@@ -259,15 +258,13 @@ export default function ProjectMembersPage() {
                 okText="确认"
                 cancelText="取消"
               >
-                <Button
-                  type="link"
-                  size="small"
-                  danger
-                  icon={<DeleteOutlined />}
-                  className="text-gray-400"
+                <button
+                  className="text-lg cursor-pointer transition-colors duration-200 hover:scale-110 bg-transparent border-none p-0"
+                  style={{ color: '#636e72' }}
+                  title="移除"
                 >
-                  移除
-                </Button>
+                  🗑️
+                </button>
               </Popconfirm>
             </>
           )}

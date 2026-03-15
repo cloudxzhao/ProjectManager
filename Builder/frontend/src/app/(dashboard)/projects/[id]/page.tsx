@@ -4,7 +4,6 @@ import { useState, useEffect } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import { Card, Tabs, TabsProps, Avatar, Tag, Button, Empty, Dropdown, MenuProps, message, Modal, Form, Input, DatePicker, Select, ColorPicker, Drawer, Spin, Pagination, Table, TableColumnsType, Tree, TreeProps } from 'antd';
 import {
-  EditOutlined,
   DeleteOutlined,
   PlusOutlined,
   ClockCircleOutlined,
@@ -24,7 +23,6 @@ import {
   CheckSquareOutlined,
   FolderOutlined,
   FileOutlined,
-  EyeOutlined,
   RightOutlined,
   DownOutlined,
   FilterOutlined,
@@ -1144,25 +1142,29 @@ export default function ProjectDetailPage() {
                     width: 100,
                     fixed: 'right',
                     render: (_: unknown, record: UserStory) => (
-                      <div className="flex items-center gap-2">
-                        <Button
-                          type="text"
-                          icon={<EyeOutlined />}
+                      <div className="flex items-center gap-3">
+                        <button
                           onClick={(e) => {
                             e.stopPropagation();
                             handleViewStory(record);
                           }}
-                          title="查看详情"
-                        />
-                        <Button
-                          type="text"
-                          icon={<EditOutlined />}
+                          className="text-lg cursor-pointer transition-colors duration-200 hover:scale-110"
+                          style={{ color: '#636e72' }}
+                          title="查看"
+                        >
+                          👁️
+                        </button>
+                        <button
                           onClick={(e) => {
                             e.stopPropagation();
                             handleEditStory(record);
                           }}
+                          className="text-lg cursor-pointer transition-colors duration-200 hover:scale-110"
+                          style={{ color: '#636e72' }}
                           title="编辑"
-                        />
+                        >
+                          ✏️
+                        </button>
                       </div>
                     ),
                   },
@@ -1275,25 +1277,29 @@ export default function ProjectDetailPage() {
                 width: 100,
                 fixed: 'right',
                 render: (_: unknown, record: Task) => (
-                  <div className="flex items-center gap-2">
-                    <Button
-                      type="text"
-                      icon={<EyeOutlined />}
+                  <div className="flex items-center gap-3">
+                    <button
                       onClick={(e) => {
                         e.stopPropagation();
                         handleViewTask(record);
                       }}
-                      title="查看详情"
-                    />
-                    <Button
-                      type="text"
-                      icon={<EditOutlined />}
+                      className="text-lg cursor-pointer transition-colors duration-200 hover:scale-110"
+                      style={{ color: '#636e72' }}
+                      title="查看"
+                    >
+                      👁️
+                    </button>
+                    <button
                       onClick={(e) => {
                         e.stopPropagation();
                         handleEditTask(record);
                       }}
+                      className="text-lg cursor-pointer transition-colors duration-200 hover:scale-110"
+                      style={{ color: '#636e72' }}
                       title="编辑"
-                    />
+                    >
+                      ✏️
+                    </button>
                   </div>
                 ),
               },
@@ -1354,18 +1360,33 @@ export default function ProjectDetailPage() {
                 dataIndex: 'priority',
                 key: 'priority',
                 width: 90,
-                render: (priority: string) => (
-                  <span className="text-gray-300">{priority}</span>
+                render: (priority?: string) => (
+                  <span className="text-gray-300">{priority || '-'}</span>
                 ),
               },
               {
-                title: '负责人',
-                dataIndex: 'assignee',
-                key: 'assignee',
+                title: '严重程度',
+                dataIndex: 'severity',
+                key: 'severity',
                 width: 100,
-                render: (assignee?: string) => (
+                render: (severity: string) => {
+                  const severityColor: Record<string, string> = {
+                    CRITICAL: 'red',
+                    HIGH: 'orange',
+                    NORMAL: 'blue',
+                    LOW: 'gray',
+                  };
+                  return <Tag color={severityColor[severity] || 'default'}>{severity}</Tag>;
+                },
+              },
+              {
+                title: '负责人',
+                dataIndex: 'assigneeName',
+                key: 'assigneeName',
+                width: 100,
+                render: (assigneeName?: string) => (
                   <span className="text-gray-300">
-                    {assignee || <span className="text-gray-500">未分配</span>}
+                    {assigneeName || <span className="text-gray-500">未分配</span>}
                   </span>
                 ),
               },
@@ -1388,25 +1409,29 @@ export default function ProjectDetailPage() {
                 width: 100,
                 fixed: 'right',
                 render: (_: unknown, record: Issue) => (
-                  <div className="flex items-center gap-2">
-                    <Button
-                      type="text"
-                      icon={<EyeOutlined />}
+                  <div className="flex items-center gap-3">
+                    <button
                       onClick={(e) => {
                         e.stopPropagation();
                         handleViewIssue(record);
                       }}
-                      title="查看详情"
-                    />
-                    <Button
-                      type="text"
-                      icon={<EditOutlined />}
+                      className="text-lg cursor-pointer transition-colors duration-200 hover:scale-110"
+                      style={{ color: '#636e72' }}
+                      title="查看"
+                    >
+                      👁️
+                    </button>
+                    <button
                       onClick={(e) => {
                         e.stopPropagation();
                         handleEditIssue(record);
                       }}
+                      className="text-lg cursor-pointer transition-colors duration-200 hover:scale-110"
+                      style={{ color: '#636e72' }}
                       title="编辑"
-                    />
+                    >
+                      ✏️
+                    </button>
                   </div>
                 ),
               },
@@ -2360,11 +2385,11 @@ export default function ProjectDetailPage() {
               <div className="grid grid-cols-2 gap-4 text-sm text-gray-400">
                 <div>
                   <span className="text-gray-500">负责人：</span>
-                  {selectedIssue.assigneeId ? `用户${selectedIssue.assigneeId}` : '未分配'}
+                  {selectedIssue.assigneeName || (selectedIssue.assigneeId ? `用户${selectedIssue.assigneeId}` : '未分配')}
                 </div>
                 <div>
                   <span className="text-gray-500">优先级：</span>
-                  {selectedIssue.priority}
+                  {selectedIssue.priority || '-'}
                 </div>
                 {selectedIssue.dueDate && (
                   <div>
@@ -2703,13 +2728,20 @@ export default function ProjectDetailPage() {
             <div className="grid grid-cols-2 gap-4">
               <Form.Item
                 name="assigneeId"
-                label="负责人 ID"
+                label="负责人"
               >
-                <Input
-                  type="number"
-                  placeholder="输入负责人 ID"
+                <Select
+                  placeholder="选择负责人"
+                  allowClear
                   className="bg-gray-700/50 border-gray-600 text-white"
-                />
+                  dropdownStyle={{ backgroundColor: '#1f242c', border: '1px solid #30363d' }}
+                >
+                  {projectMembers.map((member) => (
+                    <Select.Option key={member.userId} value={member.userId}>
+                      {member.nickname || member.username || member.email}
+                    </Select.Option>
+                  ))}
+                </Select>
               </Form.Item>
 
               <Form.Item
