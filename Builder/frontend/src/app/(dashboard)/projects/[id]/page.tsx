@@ -782,6 +782,72 @@ export default function ProjectDetailPage() {
     }
   };
 
+  // 处理删除用户故事
+  const handleDeleteStory = async (story: UserStory) => {
+    Modal.confirm({
+      title: '确认删除',
+      content: `确定要删除用户故事 "${story.title}" 吗？`,
+      okText: '删除',
+      cancelText: '取消',
+      okType: 'danger',
+      onOk: async () => {
+        try {
+          await deleteStory(Number(projectId), story.id);
+          message.success('用户故事已删除');
+          // 刷新用户故事列表
+          await fetchStories(Number(projectId), storiesPage);
+        } catch (error: unknown) {
+          const errorMessage = error instanceof Error ? error.message : '删除失败，请稍后重试';
+          message.error(errorMessage);
+        }
+      },
+    });
+  };
+
+  // 处理删除任务
+  const handleDeleteTask = async (task: Task) => {
+    Modal.confirm({
+      title: '确认删除',
+      content: `确定要删除任务 "${task.title}" 吗？`,
+      okText: '删除',
+      cancelText: '取消',
+      okType: 'danger',
+      onOk: async () => {
+        try {
+          await deleteTask(Number(projectId), task.id);
+          message.success('任务已删除');
+          // 刷新任务列表
+          await fetchTasks(Number(projectId), tasksPage);
+        } catch (error: unknown) {
+          const errorMessage = error instanceof Error ? error.message : '删除失败，请稍后重试';
+          message.error(errorMessage);
+        }
+      },
+    });
+  };
+
+  // 处理删除问题
+  const handleDeleteIssue = async (issue: Issue) => {
+    Modal.confirm({
+      title: '确认删除',
+      content: `确定要删除问题 "${issue.title}" 吗？`,
+      okText: '删除',
+      cancelText: '取消',
+      okType: 'danger',
+      onOk: async () => {
+        try {
+          await deleteIssue(Number(projectId), issue.id);
+          message.success('问题已删除');
+          // 刷新问题列表
+          await fetchIssues(Number(projectId), issuesPage);
+        } catch (error: unknown) {
+          const errorMessage = error instanceof Error ? error.message : '删除失败，请稍后重试';
+          message.error(errorMessage);
+        }
+      },
+    });
+  };
+
   // 处理用户故事编辑提交
   const handleStoryEditSubmit = async (values: any) => {
     if (!selectedStory) return;
@@ -1174,7 +1240,7 @@ export default function ProjectDetailPage() {
                   {
                     title: '操作',
                     key: 'action',
-                    width: 100,
+                    width: 150,
                     fixed: 'right',
                     render: (_: unknown, record: UserStory) => (
                       <div className="flex items-center gap-3">
@@ -1199,6 +1265,17 @@ export default function ProjectDetailPage() {
                           title="编辑"
                         >
                           ✏️
+                        </button>
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handleDeleteStory(record);
+                          }}
+                          className="text-lg cursor-pointer transition-colors duration-200 hover:scale-110"
+                          style={{ color: '#636e72' }}
+                          title="删除"
+                        >
+                          🗑️
                         </button>
                       </div>
                     ),
@@ -1284,27 +1361,29 @@ export default function ProjectDetailPage() {
                               </Tag>
                             </div>
                             <div className="task-sub-row-cell">
-                              <div className="flex items-center gap-2">
-                                <Button
-                                  type="text"
-                                  size="small"
-                                  icon={<EyeOutlined />}
+                              <div className="flex items-center gap-3">
+                                <button
                                   onClick={(e) => {
                                     e.stopPropagation();
                                     handleViewTask(task);
                                   }}
-                                  title="查看详情"
-                                />
-                                <Button
-                                  type="text"
-                                  size="small"
-                                  icon={<EditOutlined />}
+                                  className="text-lg cursor-pointer transition-colors duration-200 hover:scale-110"
+                                  style={{ color: '#636e72' }}
+                                  title="查看"
+                                >
+                                  👁️
+                                </button>
+                                <button
                                   onClick={(e) => {
                                     e.stopPropagation();
                                     handleEditTask(task);
                                   }}
+                                  className="text-lg cursor-pointer transition-colors duration-200 hover:scale-110"
+                                  style={{ color: '#636e72' }}
                                   title="编辑"
-                                />
+                                >
+                                  ✏️
+                                </button>
                               </div>
                             </div>
                           </div>
@@ -1393,7 +1472,7 @@ export default function ProjectDetailPage() {
               {
                 title: '操作',
                 key: 'action',
-                width: 100,
+                width: 150,
                 fixed: 'right',
                 render: (_: unknown, record: Task) => (
                   <div className="flex items-center gap-3">
@@ -1418,6 +1497,17 @@ export default function ProjectDetailPage() {
                       title="编辑"
                     >
                       ✏️
+                    </button>
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        handleDeleteTask(record);
+                      }}
+                      className="text-lg cursor-pointer transition-colors duration-200 hover:scale-110"
+                      style={{ color: '#636e72' }}
+                      title="删除"
+                    >
+                      🗑️
                     </button>
                   </div>
                 ),
@@ -1525,7 +1615,7 @@ export default function ProjectDetailPage() {
               {
                 title: '操作',
                 key: 'action',
-                width: 100,
+                width: 150,
                 fixed: 'right',
                 render: (_: unknown, record: Issue) => (
                   <div className="flex items-center gap-3">
@@ -1550,6 +1640,17 @@ export default function ProjectDetailPage() {
                       title="编辑"
                     >
                       ✏️
+                    </button>
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        handleDeleteIssue(record);
+                      }}
+                      className="text-lg cursor-pointer transition-colors duration-200 hover:scale-110"
+                      style={{ color: '#636e72' }}
+                      title="删除"
+                    >
+                      🗑️
                     </button>
                   </div>
                 ),
