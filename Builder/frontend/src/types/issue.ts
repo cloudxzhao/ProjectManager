@@ -8,13 +8,16 @@ export interface Issue {
   type: IssueType;
   severity: Severity;
   status: IssueStatus;
-  priority: Priority;
+  priority?: Priority;
   assigneeId?: number;
+  assigneeName?: string;
   reporterId: number;
+  reporterName?: string;
   resolution?: string;
   resolvedAt?: string;
+  foundDate?: string;
   dueDate?: string;
-  tags: string[];
+  tags?: string[];
   createdAt: string;
   updatedAt?: string;
 }

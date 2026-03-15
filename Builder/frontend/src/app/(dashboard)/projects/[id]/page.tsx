@@ -5,6 +5,8 @@ import { useParams, useRouter } from 'next/navigation';
 import { Card, Tabs, TabsProps, Avatar, Tag, Button, Empty, Dropdown, MenuProps, message, Modal, Form, Input, DatePicker, Select, ColorPicker, Drawer, Spin, Pagination, Table, TableColumnsType, Tree, TreeProps } from 'antd';
 import {
   DeleteOutlined,
+  EditOutlined,
+  EyeOutlined,
   PlusOutlined,
   ClockCircleOutlined,
   CheckCircleOutlined,
