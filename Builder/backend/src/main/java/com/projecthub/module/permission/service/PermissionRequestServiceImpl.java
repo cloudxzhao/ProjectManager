@@ -89,24 +89,39 @@ public class PermissionRequestServiceImpl implements PermissionRequestService {
   @Transactional
   public PermissionRequestVO createPermissionRequest(CreatePermissionRequestDTO dto) {
     Long userId = getCurrentUserId();
+    log.info(
+        "开始创建权限申请：userId={}, permissionId={}, reason={}",
+        userId,
+        dto.getPermissionId(),
+        dto.getReason());
 
     // 验证权限是否存在
     SysPermission permission =
         sysPermissionRepository
             .findById(dto.getPermissionId())
-            .orElseThrow(() -> new BusinessException(ErrorCode.PERMISSION_NOT_FOUND, "权限不存在"));
+            .orElseThrow(
+                () -> {
+                  log.error("权限不存在：permissionId={}", dto.getPermissionId());
+                  return new BusinessException(ErrorCode.PERMISSION_NOT_FOUND, "权限不存在");
+                });
+    log.info("权限验证通过：permissionId={}, name={}", permission.getId(), permission.getName());
 
     // 验证项目是否存在（如果传入了 projectId）
     if (dto.getProjectId() != null) {
       projectRepository
           .findById(dto.getProjectId())
-          .orElseThrow(() -> new BusinessException(ErrorCode.PROJECT_NOT_FOUND, "项目不存在"));
+          .orElseThrow(
+              () -> {
+                log.error("项目不存在：projectId={}", dto.getProjectId());
+                return new BusinessException(ErrorCode.PROJECT_NOT_FOUND, "项目不存在");
+              });
     }
 
     // 检查是否已有待审批的相同申请
     List<PermissionRequest> pendingRequests =
         permissionRequestRepository.findPendingByUserIdAndPermissionId(
             userId, dto.getPermissionId());
+    log.info("检查待审批申请：count={}", pendingRequests.size());
     if (!pendingRequests.isEmpty()) {
       throw new BusinessException(ErrorCode.PERMISSION_REQUEST_ALREADY_PROCESSED, "您已有待审批的相同权限申请");
     }
@@ -120,13 +135,28 @@ public class PermissionRequestServiceImpl implements PermissionRequestService {
             .reason(dto.getReason())
             .status(RequestStatus.PENDING)
             .build();
-
-    permissionRequestRepository.save(request);
     log.info(
-        "创建权限申请成功：requestId={}, userId={}, permissionId={}",
-        request.getId(),
+        "准备保存申请记录：userId={}, permissionId={}, reason={}",
         userId,
-        dto.getPermissionId());
+        dto.getPermissionId(),
+        dto.getReason());
+
+    try {
+      permissionRequestRepository.save(request);
+      log.info(
+          "创建权限申请成功：requestId={}, userId={}, permissionId={}",
+          request.getId(),
+          userId,
+          dto.getPermissionId());
+    } catch (Exception e) {
+      log.error(
+          "保存权限申请失败：userId={}, permissionId={}, error={}",
+          userId,
+          dto.getPermissionId(),
+          e.getMessage(),
+          e);
+      throw e;
+    }
 
     return buildPermissionRequestVO(request);
   }
@@ -392,23 +422,31 @@ public class PermissionRequestServiceImpl implements PermissionRequestService {
 
   /** 授予权限 */
   private void grantPermission(Long userId, Long permissionId) {
+    log.info("开始授予权限：userId={}, permissionId={}", userId, permissionId);
+
     // 查找是否有角色已包含此权限，如果有则直接关联用户到该角色
     List<SysRolePermission> rolePermissions = sysRolePermissionRepository.findAll();
+    log.info("查询到角色权限关联总数：{}", rolePermissions.size());
+
     Set<Long> roleIdsWithPermission =
         rolePermissions.stream()
             .filter(rp -> rp.getPermissionId().equals(permissionId))
             .map(SysRolePermission::getRoleId)
             .collect(Collectors.toSet());
+    log.info("包含权限 {} 的角色 ID 列表：{}", permissionId, roleIdsWithPermission);
 
     if (!roleIdsWithPermission.isEmpty()) {
       // 获取用户当前的角色
       List<SysUserRole> userRoles = sysUserRoleRepository.findAllByUserId(userId);
+      log.info("用户 {} 当前的角色关联：{}", userId, userRoles.size());
+
       Set<Long> userRoleIds =
           userRoles.stream().map(SysUserRole::getRoleId).collect(Collectors.toSet());
 
       // 找到用户已有角色中包含该权限的角色
       Set<Long> existingRoleIdsWithPermission =
           userRoleIds.stream().filter(roleIdsWithPermission::contains).collect(Collectors.toSet());
+      log.info("用户已有角色中包含该权限的角色 ID 列表：{}", existingRoleIdsWithPermission);
 
       if (!existingRoleIdsWithPermission.isEmpty()) {
         // 用户已有角色包含该权限，无需额外操作
@@ -419,6 +457,7 @@ public class PermissionRequestServiceImpl implements PermissionRequestService {
       // 将用户关联到第一个包含该权限的角色（如果用户没有任何角色）
       if (userRoles.isEmpty()) {
         Long targetRoleId = roleIdsWithPermission.iterator().next();
+        log.info("准备为用户 {} 分配角色 {} (包含权限 {})", userId, targetRoleId, permissionId);
         SysUserRole userRole = SysUserRole.builder().userId(userId).roleId(targetRoleId).build();
         sysUserRoleRepository.save(userRole);
         log.info(
