@@ -5,6 +5,7 @@ import { Card, Input, Select, Button, Avatar, Tag, Empty, Spin, Pagination, Moda
 import { FileTextOutlined, PlusOutlined, SearchOutlined, EditOutlined, DeleteOutlined, EyeOutlined } from '@ant-design/icons';
 import { searchStories, deleteStory, createStory, updateStory, type UserStory, type StoryStatus, type Priority, type CreateUserStoryDto, type UpdateUserStoryDto, statusTextMap, priorityTextMap, statusMap, priorityMap } from '@/lib/api/story';
 import { getAuthorizedProjects, getProjectMembers } from '@/lib/api/project';
+import { getEpics, type Epic } from '@/lib/api/epic';
 import type { Project } from '@/lib/api/project';
 import type { ProjectMemberResponse } from '@/lib/api/project';
 
@@ -247,6 +248,7 @@ interface StoryFormValues {
   priority?: Priority | string;
   assigneeId?: number;
   storyPoints?: number;
+  epicId?: number;  // 所属服务（史诗）
 }
 
 export default function StoriesPage() {
@@ -277,6 +279,8 @@ export default function StoriesPage() {
 
   // 当前表单中项目对应的成员列表（用于负责人选择）
   const [currentProjectMembers, setCurrentProjectMembers] = useState<ProjectMemberResponse[]>([]);
+  // 当前表单中项目对应的史诗（服务）列表（用于所属服务选择）
+  const [currentEpics, setCurrentEpics] = useState<Epic[]>([]);
 
   // 加载用户有权限的项目列表
   const fetchProjects = async () => {
@@ -296,6 +300,16 @@ export default function StoriesPage() {
       setAllProjectMembers((prev) => new Map(prev).set(projectId, members || []));
     } catch (error) {
       console.error('加载项目成员失败:', error);
+    }
+  };
+
+  // 加载项目史诗（服务）列表（用于所属服务选择）
+  const fetchEpics = async (projectId: number) => {
+    try {
+      const epics = await getEpics(projectId);
+      setCurrentEpics(epics);
+    } catch (error) {
+      console.error('加载项目史诗失败:', error);
     }
   };
 
@@ -389,10 +403,13 @@ export default function StoriesPage() {
       const projectId = selectedProjectIds[0];
       const members = allProjectMembers.get(projectId) || [];
       setCurrentProjectMembers(members);
+      // 加载项目史诗（服务）列表
+      fetchEpics(projectId);
     } else {
       // 如果没有选择项目或选了多个，清空表单中的项目字段
       form.setFieldsValue({ projectId: undefined });
       setCurrentProjectMembers([]);
+      setCurrentEpics([]);
     }
     setFormModalOpen(true);
   };
@@ -409,6 +426,8 @@ export default function StoriesPage() {
         setCurrentProjectMembers(updatedMembers);
       });
     }
+    // 加载项目史诗（服务）列表
+    fetchEpics(story.projectId);
     form.setFieldsValue({
       projectId: story.projectId,
       title: story.title,
@@ -418,6 +437,7 @@ export default function StoriesPage() {
       priority: story.priority?.toLowerCase(),  // 转小写用于表单（优先级 Option 是小写）
       assigneeId: story.assigneeId,
       storyPoints: story.storyPoints,
+      epicId: story.epicId,  // 设置所属服务
     });
     setFormModalOpen(true);
   };
@@ -425,6 +445,8 @@ export default function StoriesPage() {
   // 查看详情
   const handleView = (story: UserStory) => {
     setSelectedStory(story);
+    // 加载项目史诗（服务）列表，用于显示所属服务
+    fetchEpics(story.projectId);
     setDetailDrawerOpen(true);
   };
 
@@ -442,6 +464,7 @@ export default function StoriesPage() {
           priority: values.priority ? priorityMap[String(values.priority)] || String(values.priority) as Priority : undefined,
           assigneeId: values.assigneeId,
           storyPoints: values.storyPoints,
+          epicId: values.epicId,  // 所属服务
         };
         await updateStory(editingStory.id, updateData);
         message.success('用户故事更新成功');
@@ -454,6 +477,7 @@ export default function StoriesPage() {
           priority: values.priority ? priorityMap[String(values.priority)] || 'MEDIUM' : 'MEDIUM',  // 默认为 MEDIUM
           assigneeId: values.assigneeId,
           storyPoints: values.storyPoints,
+          epicId: values.epicId,  // 所属服务
         };
         // 需要使用 selectedProjectIds 的第一个或 values.projectId
         const targetProjectId = selectedProjectIds.length === 1 ? selectedProjectIds[0] : values.projectId;
@@ -724,6 +748,10 @@ export default function StoriesPage() {
                       setCurrentProjectMembers(updatedMembers);
                     });
                   }
+                  // 项目改变时，重新加载项目史诗（服务）列表
+                  fetchEpics(value);
+                  // 清空所属服务选择
+                  form.setFieldsValue({ epicId: undefined });
                 }}
               >
                 {projects.map((project) => (
@@ -740,6 +768,32 @@ export default function StoriesPage() {
               <div className="text-gray-400">{getProject(editingStory.projectId)?.icon} {getProject(editingStory.projectId)?.name}</div>
             </Form.Item>
           )}
+
+          {/* 所属服务（史诗）选择 - 放在所属项目下面 */}
+          <Form.Item
+            name="epicId"
+            label="所属服务"
+            extra="将故事关联到具体服务模块，便于分类管理"
+          >
+            <Select
+              className="bg-gray-700/50 border-gray-600"
+              placeholder={currentEpics.length > 0 ? "选择所属服务（可选）" : "请先选择项目或当前项目无服务"}
+              allowClear
+              disabled={currentEpics.length === 0 && !editingStory?.epicId}
+            >
+              {currentEpics.map((epic) => (
+                <Option key={epic.id} value={epic.id}>
+                  <div className="flex items-center gap-2">
+                    <div
+                      className="w-2.5 h-2.5 rounded-full"
+                      style={{ backgroundColor: epic.color || '#1890ff' }}
+                    />
+                    <span>{epic.title}</span>
+                  </div>
+                </Option>
+              ))}
+            </Select>
+          </Form.Item>
 
           <Form.Item
             name="title"
@@ -948,6 +1002,18 @@ export default function StoriesPage() {
                 </div>
               </div>
             </div>
+
+            {/* 所属服务（史诗） */}
+            {selectedStory.epicId && (
+              <div>
+                <h4 className="text-sm font-medium text-gray-400 mb-2">所属服务</h4>
+                <div className="flex items-center gap-2">
+                  <Tag color={currentEpics.find(e => e.id === selectedStory.epicId)?.color || 'blue'}>
+                    {currentEpics.find(e => e.id === selectedStory.epicId)?.title || `服务 #${selectedStory.epicId}`}
+                  </Tag>
+                </div>
+              </div>
+            )}
 
             <div>
               <h4 className="text-sm font-medium text-gray-400 mb-2">时间信息</h4>
