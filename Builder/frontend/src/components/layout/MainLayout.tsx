@@ -129,7 +129,8 @@ export const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
         {/* 导航菜单 */}
         <nav className="flex-1 p-3 space-y-0.5 overflow-y-auto">
           {menuItems.map((item) => {
-            const isActive = activeKey === item.key || (item.key !== '/dashboard' && activeKey.startsWith(item.key));
+            // 精确匹配激活状态，避免 /projects/services 同时匹配 /projects
+            const isActive = activeKey === item.key;
             const hasChildren = item.children && item.children.length > 0;
             const isExpanded = expandedMenus.includes(item.key);
 
