@@ -12,6 +12,7 @@ import com.projecthub.module.task.dto.TaskVO;
 import com.projecthub.module.task.entity.Task;
 import com.projecthub.module.task.repository.CommentRepository;
 import com.projecthub.module.task.repository.TaskRepository;
+import com.projecthub.module.user.repository.UserRepository;
 import com.projecthub.security.UserDetailsImpl;
 import jakarta.persistence.criteria.Predicate;
 import java.util.ArrayList;
@@ -40,6 +41,7 @@ public class TaskService {
   private final CommentRepository commentRepository;
   private final UserStoryRepository userStoryRepository;
   private final EpicRepository epicRepository;
+  private final UserRepository userRepository;
 
   /** 创建任务 */
   @Transactional
@@ -86,6 +88,8 @@ public class TaskService {
     populateUserStoryInfo(taskVO);
     // 填充史诗信息
     populateEpicInfo(taskVO);
+    // 填充负责人信息
+    populateAssigneeInfo(taskVO);
     return taskVO;
   }
 
@@ -104,6 +108,8 @@ public class TaskService {
     populateTaskStats(taskVO);
     // 填充史诗信息
     populateEpicInfo(taskVO);
+    // 填充负责人信息
+    populateAssigneeInfo(taskVO);
     return taskVO;
   }
 
@@ -159,6 +165,8 @@ public class TaskService {
     populateUserStoryInfo(taskVO);
     // 填充史诗信息
     populateEpicInfo(taskVO);
+    // 填充负责人信息
+    populateAssigneeInfo(taskVO);
     return taskVO;
   }
 
@@ -208,6 +216,8 @@ public class TaskService {
     populateTaskStats(taskVO);
     // 填充史诗信息
     populateEpicInfo(taskVO);
+    // 填充负责人信息
+    populateAssigneeInfo(taskVO);
     return taskVO;
   }
 
@@ -261,6 +271,7 @@ public class TaskService {
                   populateTaskStats(taskVO);
                   populateUserStoryInfo(taskVO);
                   populateEpicInfo(taskVO);
+                  populateAssigneeInfo(taskVO);
                   return taskVO;
                 })
             .collect(Collectors.toList());
@@ -311,7 +322,23 @@ public class TaskService {
         .findById(taskVO.getEpicId())
         .ifPresent(
             epic -> {
+              taskVO.setEpicId(epic.getId());
               taskVO.setEpicTitle(epic.getTitle());
+            });
+  }
+
+  /** 填充负责人信息 */
+  private void populateAssigneeInfo(TaskVO taskVO) {
+    if (taskVO.getAssigneeId() == null) {
+      return;
+    }
+
+    userRepository
+        .findById(taskVO.getAssigneeId())
+        .ifPresent(
+            user -> {
+              taskVO.setAssigneeName(
+                  user.getNickname() != null ? user.getNickname() : user.getUsername());
             });
   }
 
@@ -381,6 +408,7 @@ public class TaskService {
                   populateTaskStats(taskVO);
                   populateUserStoryInfo(taskVO);
                   populateEpicInfo(taskVO);
+                  populateAssigneeInfo(taskVO);
                   return taskVO;
                 })
             .collect(Collectors.toList());
@@ -444,6 +472,7 @@ public class TaskService {
               populateTaskStats(taskVO);
               populateUserStoryInfo(taskVO);
               populateEpicInfo(taskVO);
+              populateAssigneeInfo(taskVO);
               return taskVO;
             })
         .collect(Collectors.toList());
@@ -474,6 +503,7 @@ public class TaskService {
     populateTaskStats(taskVO);
     populateUserStoryInfo(taskVO);
     populateEpicInfo(taskVO);
+    populateAssigneeInfo(taskVO);
     return taskVO;
   }
 }
