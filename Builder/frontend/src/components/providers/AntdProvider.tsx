@@ -1,7 +1,7 @@
 'use client';
 
-import { createContext, useContext, useMemo } from 'react';
-import { ConfigProvider, theme } from 'antd';
+import { createContext, useContext, useMemo, useEffect } from 'react';
+import { ConfigProvider, theme, message } from 'antd';
 
 interface AntdConfigContextValue {
   token: Record<string, unknown>;
@@ -15,6 +15,40 @@ const AntdConfigContext = createContext<AntdConfigContextValue>({
 
 export function useAntdConfig() {
   return useContext(AntdConfigContext);
+}
+
+// 全局 API 错误监听组件
+function ApiErrorListener() {
+  const [messageApi, contextHolder] = message.useMessage();
+
+  useEffect(() => {
+    const handleErrorEvent = (event: CustomEvent<{ code: number; message: string }>) => {
+      const { code, message: errorMsg } = event.detail;
+
+      // 根据错误码显示不同的友好提示
+      const errorMessages: Record<number, string> = {
+        400: errorMsg || '请求参数错误，请检查后重试',
+        403: errorMsg || '权限不足，请联系管理员',
+        404: errorMsg || '请求的资源不存在',
+        500: errorMsg || '服务器开小差了，请稍后重试',
+      };
+
+      const friendlyMessage = errorMessages[code] || `请求失败 (${code})`;
+
+      messageApi.error({
+        content: friendlyMessage,
+        duration: 3,
+      });
+    };
+
+    window.addEventListener('api-error', handleErrorEvent as EventListener);
+
+    return () => {
+      window.removeEventListener('api-error', handleErrorEvent as EventListener);
+    };
+  }, [messageApi]);
+
+  return contextHolder;
 }
 
 interface AntdProviderProps {
@@ -128,7 +162,10 @@ export function AntdProvider({ children }: AntdProviderProps) {
 
   return (
     <AntdConfigContext.Provider value={config as any}>
-      <ConfigProvider theme={config}>{children}</ConfigProvider>
+      <ConfigProvider theme={config}>
+        <ApiErrorListener />
+        {children}
+      </ConfigProvider>
     </AntdConfigContext.Provider>
   );
 }

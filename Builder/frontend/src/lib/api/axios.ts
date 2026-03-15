@@ -75,6 +75,19 @@ apiClient.interceptors.response.use(
     return response;
   },
   (error: AxiosError<Result<unknown>>) => {
+    // 400 错误 - 请求参数错误
+    if (error.response?.status === 400) {
+      const message = error.response.data?.message || '请求参数错误，请检查后重试';
+      console.error('[API 400 Error]:', message);
+      // 可以通过 window 事件或回调通知上层应用展示 toast
+      if (typeof window !== 'undefined') {
+        // 触发自定义事件，让应用层处理
+        window.dispatchEvent(new CustomEvent('api-error', {
+          detail: { code: 400, message }
+        }));
+      }
+    }
+
     // 401 错误 - Token 过期或未授权
     if (error.response?.status === 401) {
       if (typeof window !== 'undefined') {
@@ -87,17 +100,35 @@ apiClient.interceptors.response.use(
 
     // 403 错误 - 权限不足
     if (error.response?.status === 403) {
-      console.error('权限不足');
+      const message = error.response.data?.message || '权限不足，请联系管理员';
+      console.error('[API 403 Error]:', message);
+      if (typeof window !== 'undefined') {
+        window.dispatchEvent(new CustomEvent('api-error', {
+          detail: { code: 403, message }
+        }));
+      }
     }
 
     // 404 错误 - 资源不存在
     if (error.response?.status === 404) {
-      console.error('资源不存在');
+      const message = error.response.data?.message || '资源不存在';
+      console.error('[API 404 Error]:', message);
+      if (typeof window !== 'undefined') {
+        window.dispatchEvent(new CustomEvent('api-error', {
+          detail: { code: 404, message }
+        }));
+      }
     }
 
     // 500 错误 - 服务器错误
     if (error.response?.status === 500) {
-      console.error('服务器错误');
+      const message = error.response.data?.message || '服务器错误，请稍后重试';
+      console.error('[API 500 Error]:', message);
+      if (typeof window !== 'undefined') {
+        window.dispatchEvent(new CustomEvent('api-error', {
+          detail: { code: 500, message }
+        }));
+      }
     }
 
     return Promise.reject(error);
