@@ -21,6 +21,7 @@ import {
   AppstoreOutlined,
   DownOutlined,
   RightOutlined,
+  SafetyOutlined,
 } from '@ant-design/icons';
 
 interface MainLayoutProps {
@@ -45,6 +46,7 @@ const menuItems: MenuItem[] = [
   { key: '/messages', icon: <BellOutlined />, label: '消息', path: '/messages' },
   { key: '/wiki', icon: <BookOutlined />, label: '知识库', path: '/wiki' },
   { key: '/reports', icon: <BarChartOutlined />, label: '报表', path: '/reports' },
+  { key: '/permissions', icon: <SafetyOutlined />, label: '权限', path: '/permissions' },
   { key: '/settings', icon: <SettingOutlined />, label: '设置', path: '/settings' },
 ];
 

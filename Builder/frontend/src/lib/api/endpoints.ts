@@ -103,4 +103,15 @@ export const endpoints = {
     markAllRead: '/notifications/read-all',
     delete: (id: number) => `/notifications/${id}`,
   },
+
+  // 权限申请相关
+  permission: {
+    available: '/permissions/available',
+    requests: '/permissions/requests',
+    myRequests: '/permissions/requests/my',
+    requestDetail: (id: number) => `/permissions/requests/${id}`,
+    approve: (id: number) => `/permissions/requests/${id}/approve`,
+    reject: (id: number) => `/permissions/requests/${id}/reject`,
+    approvals: (id: number) => `/permissions/requests/${id}/approvals`,
+  },
 } as const;
