@@ -25,7 +25,7 @@ export type Severity = 'critical' | 'high' | 'medium' | 'low';
 
 export type IssueStatus = 'TODO' | 'IN_PROGRESS' | 'IN_REVIEW' | 'DONE';
 
-export type Priority = 'low' | 'medium' | 'high' | 'urgent';
+export type Priority = 'LOW' | 'MEDIUM' | 'HIGH' | 'URGENT';
 
 export interface CreateIssueDto {
   title: string;

@@ -214,6 +214,10 @@ export const useAuthStore = create<AuthState>()(
           isAuthenticated: false,
           error: null,
         });
+        // 退出后跳转到登录页
+        if (typeof window !== 'undefined') {
+          window.location.href = '/login';
+        }
       },
 
       updateUser: (user: Partial<User>) => {

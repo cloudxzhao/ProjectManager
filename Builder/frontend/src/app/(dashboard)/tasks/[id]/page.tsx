@@ -36,29 +36,31 @@ const { Option } = Select;
 const { TextArea } = Input;
 
 const statusColorMap: Record<string, string> = {
-  todo: 'default',
-  'in-progress': 'blue',
-  testing: 'orange',
-  done: 'green',
+  TODO: 'default',
+  IN_PROGRESS: 'blue',
+  IN_REVIEW: 'orange',
+  DONE: 'green',
 };
 
 const statusTextMap: Record<string, string> = {
-  todo: '待办',
-  'in-progress': '进行中',
-  testing: '测试中',
-  done: '已完成',
+  TODO: '待办',
+  IN_PROGRESS: '进行中',
+  IN_REVIEW: '测试中',
+  DONE: '已完成',
 };
 
 const priorityColors: Record<string, string> = {
-  high: 'red',
-  medium: 'orange',
-  low: 'green',
+  HIGH: 'red',
+  MEDIUM: 'orange',
+  LOW: 'green',
+  URGENT: 'red',
 };
 
 const priorityText: Record<string, string> = {
-  high: '高',
-  medium: '中',
-  low: '低',
+  HIGH: '高',
+  MEDIUM: '中',
+  LOW: '低',
+  URGENT: '紧急',
 };
 
 interface CommentFormValues {

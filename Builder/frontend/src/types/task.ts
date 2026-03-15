@@ -28,7 +28,7 @@ export interface Task {
 
 export type TaskStatus = 'TODO' | 'IN_PROGRESS' | 'IN_REVIEW' | 'DONE';
 
-export type Priority = 'low' | 'medium' | 'high' | 'urgent';
+export type Priority = 'LOW' | 'MEDIUM' | 'HIGH' | 'URGENT';
 
 export interface CreateTaskDto {
   title: string;

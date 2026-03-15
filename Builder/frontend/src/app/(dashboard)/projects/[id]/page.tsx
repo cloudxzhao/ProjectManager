@@ -605,7 +605,7 @@ export default function ProjectDetailPage() {
 
   // 页签按钮文本映射
   const tabButtonTextMap: Record<string, string> = {
-    stories: '创建用户故事',
+    stories: '创建故事',
     tasks: '创建任务',
     issues: '创建问题',
     wiki: '创建 Wiki',
@@ -1036,8 +1036,8 @@ export default function ProjectDetailPage() {
                                   </span>
                                 </div>
                                 <div className="task-sub-row-cell">
-                                  <Tag color={task.priority === 'high' ? 'red' : task.priority === 'medium' ? 'orange' : task.priority === 'urgent' ? 'purple' : 'green'}>
-                                    {task.priority === 'high' ? '高' : task.priority === 'medium' ? '中' : task.priority === 'urgent' ? '紧急' : '低'}
+                                  <Tag color={task.priority === 'HIGH' ? 'red' : task.priority === 'MEDIUM' ? 'orange' : task.priority === 'URGENT' ? 'purple' : 'green'}>
+                                    {task.priority === 'HIGH' ? '高' : task.priority === 'MEDIUM' ? '中' : task.priority === 'URGENT' ? '紧急' : '低'}
                                   </Tag>
                                 </div>
                                 <div className="task-sub-row-cell">
@@ -1212,9 +1212,9 @@ export default function ProjectDetailPage() {
                   <div className="font-medium text-white">
                     {title}
                     <span className={`ml-2 px-2 py-0.5 text-xs rounded ${
-                      record.priority === 'high' ? 'bg-red-500/20 text-red-400' :
-                      record.priority === 'medium' ? 'bg-orange-500/20 text-orange-400' :
-                      record.priority === 'urgent' ? 'bg-purple-500/20 text-purple-400' :
+                      record.priority === 'HIGH' ? 'bg-red-500/20 text-red-400' :
+                      record.priority === 'MEDIUM' ? 'bg-orange-500/20 text-orange-400' :
+                      record.priority === 'URGENT' ? 'bg-purple-500/20 text-purple-400' :
                       'bg-gray-500/20 text-gray-400'
                     }`}>
                       {record.priority}
@@ -2118,9 +2118,9 @@ export default function ProjectDetailPage() {
               <h3 className="text-lg font-semibold text-white mb-2">{selectedTask.title}</h3>
               <div className="flex items-center gap-2 mb-3">
                 <Tag color={
-                  selectedTask.priority === 'high' ? 'red' :
-                  selectedTask.priority === 'medium' ? 'orange' :
-                  selectedTask.priority === 'urgent' ? 'purple' : 'gray'
+                  selectedTask.priority === 'HIGH' ? 'red' :
+                  selectedTask.priority === 'MEDIUM' ? 'orange' :
+                  selectedTask.priority === 'URGENT' ? 'purple' : 'gray'
                 }>
                   {selectedTask.priority}
                 </Tag>

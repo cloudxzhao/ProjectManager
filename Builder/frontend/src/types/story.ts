@@ -19,7 +19,7 @@ export interface UserStory {
 
 export type StoryStatus = 'todo' | 'in_progress' | 'testing' | 'done';
 
-export type Priority = 'low' | 'medium' | 'high' | 'urgent';
+export type Priority = 'LOW' | 'MEDIUM' | 'HIGH' | 'URGENT';
 
 export interface CreateUserStoryDto {
   epicId?: number;

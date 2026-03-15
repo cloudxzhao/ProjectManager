@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react';
 import { Card, Input, Select, Button, Avatar, Tag, Empty, Spin, Pagination, Modal, Form, Drawer, message, FormProps } from 'antd';
 import { FileTextOutlined, PlusOutlined, SearchOutlined, EditOutlined, DeleteOutlined, EyeOutlined } from '@ant-design/icons';
-import { searchStories, deleteStory, createStory, updateStory, type UserStory, type StoryStatus, type Priority, type CreateUserStoryDto, type UpdateUserStoryDto, statusTextMap, priorityTextMap, statusMap, priorityMap } from '@/lib/api/story';
+import { searchStories, deleteStory, createStory, updateStory, type UserStory, type StoryStatus, type Priority, type CreateUserStoryDto, type UpdateUserStoryDto, statusTextMap, priorityTextMap, statusMap } from '@/lib/api/story';
 import { getAuthorizedProjects, getProjectMembers } from '@/lib/api/project';
 import { getEpics, type Epic } from '@/lib/api/epic';
 import type { Project } from '@/lib/api/project';
@@ -12,19 +12,15 @@ import type { ProjectMemberResponse } from '@/lib/api/project';
 const { Option } = Select;
 const { TextArea } = Input;
 
-// 状态颜色映射（支持大写和小写）
+// 状态颜色映射
 const statusColorMap: Record<string, string> = {
   TODO: 'default',
   IN_PROGRESS: 'processing',
   IN_REVIEW: 'warning',
   DONE: 'success',
-  todo: 'default',
-  in_progress: 'processing',
-  in_review: 'warning',
-  done: 'success',
 };
 
-// 状态文本映射（支持大写和小写）
+// 状态文本映射
 const statusTextLabelMap: Record<string, string> = {
   TODO: '待办',
   IN_PROGRESS: '开发中',
@@ -32,24 +28,16 @@ const statusTextLabelMap: Record<string, string> = {
   DONE: '已完成',
 };
 
-// 优先级颜色映射（支持大写和小写）
+// 优先级颜色映射
 const priorityColorMap: Record<string, string> = {
-  low: 'gray',
-  medium: 'blue',
-  high: 'orange',
-  urgent: 'red',
   LOW: 'gray',
   MEDIUM: 'blue',
   HIGH: 'orange',
   URGENT: 'red',
 };
 
-// 优先级文本映射（支持大写和小写）
+// 优先级文本映射
 const priorityTextLabelMap: Record<string, string> = {
-  low: '低',
-  medium: '中',
-  high: '高',
-  urgent: '紧急',
   LOW: '低',
   MEDIUM: '中',
   HIGH: '高',
@@ -436,7 +424,7 @@ export default function StoriesPage() {
       description: story.description,
       acceptanceCriteria: story.acceptanceCriteria,
       status: story.status,  // 直接使用后端返回的状态值
-      priority: story.priority?.toLowerCase(),  // 转小写用于表单（优先级 Option 是小写）
+      priority: story.priority,  // 直接使用后端返回的大写优先级
       assigneeId: story.assigneeId,
       storyPoints: story.storyPoints,
       epicId: story.epicId,  // 设置所属服务
@@ -457,13 +445,13 @@ export default function StoriesPage() {
     setLoading(true);
     try {
       if (editingStory) {
-        // 更新 - 将前端小写状态转换为后端大写
+        // 更新 - 直接使用大写优先级
         const updateData: UpdateUserStoryDto = {
           title: values.title,
           description: values.description,
           acceptanceCriteria: values.acceptanceCriteria,
           status: values.status ? statusMap[String(values.status)] || String(values.status) as StoryStatus : undefined,
-          priority: values.priority ? priorityMap[String(values.priority)] || String(values.priority) as Priority : undefined,
+          priority: values.priority as Priority | undefined,
           assigneeId: values.assigneeId,
           storyPoints: values.storyPoints,
           epicId: values.epicId,  // 所属服务
@@ -476,7 +464,7 @@ export default function StoriesPage() {
           title: values.title,
           description: values.description,
           acceptanceCriteria: values.acceptanceCriteria,
-          priority: values.priority ? priorityMap[String(values.priority)] || 'MEDIUM' : 'MEDIUM',  // 默认为 MEDIUM
+          priority: values.priority as Priority || 'MEDIUM',
           assigneeId: values.assigneeId,
           storyPoints: values.storyPoints,
           epicId: values.epicId,  // 所属服务
@@ -510,7 +498,7 @@ export default function StoriesPage() {
         title: values.title,
         description: values.description,
         acceptanceCriteria: values.acceptanceCriteria,
-        priority: values.priority ? priorityMap[String(values.priority)] || 'MEDIUM' : 'MEDIUM',
+        priority: values.priority as Priority || 'MEDIUM',
         assigneeId: values.assigneeId,
         storyPoints: values.storyPoints,
         epicId: values.epicId,  // 所属服务
@@ -658,10 +646,10 @@ export default function StoriesPage() {
             className="w-[150px] bg-gray-700/50 border-gray-600"
             allowClear
           >
-            <Option value="low">低</Option>
-            <Option value="medium">中</Option>
-            <Option value="high">高</Option>
-            <Option value="urgent">紧急</Option>
+            <Option value="LOW">低</Option>
+            <Option value="MEDIUM">中</Option>
+            <Option value="HIGH">高</Option>
+            <Option value="URGENT">紧急</Option>
           </Select>
           <Button type="primary" onClick={fetchStories}>
             筛选
@@ -759,7 +747,7 @@ export default function StoriesPage() {
           onFinish={handleFormSubmit}
           size="large"
           initialValues={{
-            priority: 'medium',
+            priority: 'MEDIUM',
           }}
         >
           {/* 创建模式显示项目选择，编辑模式隐藏 */}
@@ -874,10 +862,10 @@ export default function StoriesPage() {
               label="优先级"
             >
               <Select className="bg-gray-700/50 border-gray-600">
-                <Option value="low">低</Option>
-                <Option value="medium">中</Option>
-                <Option value="high">高</Option>
-                <Option value="urgent">紧急</Option>
+                <Option value="LOW">低</Option>
+                <Option value="MEDIUM">中</Option>
+                <Option value="HIGH">高</Option>
+                <Option value="URGENT">紧急</Option>
               </Select>
             </Form.Item>
 
@@ -1032,7 +1020,7 @@ export default function StoriesPage() {
             onFinish={handleCreateFormSubmit}
             size="large"
             initialValues={{
-              priority: 'medium',
+              priority: 'MEDIUM',
             }}
           >
             {/* 项目选择 */}
@@ -1172,10 +1160,10 @@ export default function StoriesPage() {
                     color: '#f0f6fc',
                   }}
                 >
-                  <Option value="low">低</Option>
-                  <Option value="medium">中</Option>
-                  <Option value="high">高</Option>
-                  <Option value="urgent">紧急</Option>
+                  <Option value="LOW">低</Option>
+                  <Option value="MEDIUM">中</Option>
+                  <Option value="HIGH">高</Option>
+                  <Option value="URGENT">紧急</Option>
                 </Select>
               </Form.Item>
 

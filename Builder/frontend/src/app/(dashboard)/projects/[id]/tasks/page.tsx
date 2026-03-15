@@ -190,7 +190,7 @@ const TaskFormModal: React.FC<TaskFormModalProps> = ({ open, onClose, onSubmit, 
         onFinish={handleFinish}
         size="large"
         initialValues={{
-          priority: 'medium',
+          priority: 'MEDIUM',
           columnId: initialColumnId,
         }}
       >
@@ -421,7 +421,7 @@ export default function TaskBoardPage() {
       await createTaskApi(projectIdNum, {
         title: values.title,
         description: values.description,
-        priority: values.priority || 'medium',
+        priority: values.priority || 'MEDIUM',
         storyPoints: values.storyPoints,
         dueDate: values.dueDate,
         status: status as TaskStatus,

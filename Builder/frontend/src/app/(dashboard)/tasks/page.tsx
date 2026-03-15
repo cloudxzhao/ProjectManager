@@ -28,10 +28,10 @@ const statusTextMap: Record<string, string> = {
 
 // 优先级文本映射
 const priorityTextMap: Record<string, string> = {
-  low: '低',
-  medium: '中',
-  high: '高',
-  urgent: '紧急',
+  LOW: '低',
+  MEDIUM: '中',
+  HIGH: '高',
+  URGENT: '紧急',
 };
 
 // 看板列定义
@@ -68,17 +68,17 @@ interface TaskBoardItem {
 }
 
 const priorityColors: Record<string, string> = {
-  high: 'red',
-  medium: 'orange',
-  low: 'green',
-  urgent: 'purple',
+  LOW: 'red',
+  MEDIUM: 'orange',
+  HIGH: 'purple',
+  URGENT: 'purple',
 };
 
 const priorityText: Record<string, string> = {
-  high: '高',
-  medium: '中',
-  low: '低',
-  urgent: '紧急',
+  LOW: '低',
+  MEDIUM: '中',
+  HIGH: '高',
+  URGENT: '紧急',
 };
 
 // 可排序的任务卡片组件
@@ -463,7 +463,7 @@ export default function TaskBoardPage() {
         title: values.title,
         description: values.description || '',
         status: values.status || 'TODO',
-        priority: values.priority || 'medium',
+        priority: values.priority || 'MEDIUM',
         assigneeId: values.assigneeId,
         storyPoints: values.storyPoints,
         dueDate: values.dueDate ? values.dueDate.format('YYYY-MM-DD') : '',
@@ -585,10 +585,10 @@ export default function TaskBoardPage() {
             allowClear
             dropdownClassName="bg-gray-800 border-gray-700"
           >
-            <Option value="low">低</Option>
-            <Option value="medium">中</Option>
-            <Option value="high">高</Option>
-            <Option value="urgent">紧急</Option>
+            <Option value="LOW">低</Option>
+            <Option value="MEDIUM">中</Option>
+            <Option value="HIGH">高</Option>
+            <Option value="URGENT">紧急</Option>
           </Select>
 
           {/* 清空筛选按钮 */}
@@ -799,17 +799,17 @@ export default function TaskBoardPage() {
             <Form.Item
               name="priority"
               label={<span style={{ color: '#8b949e', fontSize: '13px' }}>优先级</span>}
-              initialValue="medium"
+              initialValue="MEDIUM"
               style={{ flex: 1 }}
             >
               <Select
                 style={{ width: '100%' }}
                 dropdownClassName="bg-gray-800 border-gray-700"
               >
-                <Option value="low">低</Option>
-                <Option value="medium">中</Option>
-                <Option value="high">高</Option>
-                <Option value="urgent">紧急</Option>
+                <Option value="LOW">低</Option>
+                <Option value="MEDIUM">中</Option>
+                <Option value="HIGH">高</Option>
+                <Option value="URGENT">紧急</Option>
               </Select>
             </Form.Item>
           </div>
