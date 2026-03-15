@@ -5,6 +5,7 @@ import com.projecthub.module.user.dto.UserVO;
 import com.projecthub.module.user.service.UserService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import java.util.List;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -80,5 +81,13 @@ public class UserController {
   public Result<Void> updatePassword(@RequestBody UpdatePasswordRequest request) {
     userService.updatePassword(request.getOldPassword(), request.getNewPassword());
     return Result.success();
+  }
+
+  /** 搜索用户 */
+  @GetMapping("/search")
+  @Operation(summary = "搜索用户", description = "根据关键词搜索用户（用户名、昵称、邮箱）")
+  public Result<List<UserVO>> searchUsers(@RequestParam(required = false) String keyword) {
+    List<UserVO> users = userService.searchUsers(keyword);
+    return Result.success(users);
   }
 }

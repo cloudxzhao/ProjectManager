@@ -11,6 +11,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
+import java.util.List;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -144,6 +145,21 @@ public class UserService {
     userVO.setStatus(user.getStatus().name());
     setUserRole(userVO, userId);
     return userVO;
+  }
+
+  /** 搜索用户（根据用户名、昵称或邮箱） */
+  @Transactional(readOnly = true)
+  public List<UserVO> searchUsers(String keyword) {
+    List<User> users = userRepository.search(keyword);
+    return users.stream()
+        .map(
+            user -> {
+              UserVO userVO = BeanCopyUtil.copyProperties(user, UserVO.class);
+              userVO.setStatus(user.getStatus().name());
+              setUserRole(userVO, user.getId());
+              return userVO;
+            })
+        .toList();
   }
 
   /** 设置用户角色 */

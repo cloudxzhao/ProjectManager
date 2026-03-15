@@ -90,6 +90,14 @@ public class ProjectService {
     projectRepository.save(project);
     log.info("创建项目成功：projectId={}, ownerId={}", project.getId(), ownerId);
 
+    // 将创建者添加为项目 OWNER 成员
+    ProjectMember ownerMember = new ProjectMember();
+    ownerMember.setProjectId(project.getId());
+    ownerMember.setUserId(ownerId);
+    ownerMember.setRole(ProjectMember.ProjectMemberRole.OWNER);
+    memberRepository.save(ownerMember);
+    log.info("添加项目创建者为 OWNER 成员：projectId={}, userId={}", project.getId(), ownerId);
+
     ProjectVO projectVO = BeanCopyUtil.copyProperties(project, ProjectVO.class);
     // 手动设置枚举字段的字符串表示
     projectVO.setStatus(project.getStatus().name());
@@ -274,29 +282,64 @@ public class ProjectService {
     }
 
     // 检查用户是否已是成员
-    if (memberRepository.findByProjectIdAndUserId(projectId, request.getUserId()).isPresent()) {
-      throw new BusinessException(ErrorCode.PROJECT_MEMBER_ALREADY_EXISTS);
+    ProjectMember existingMember =
+        memberRepository.findByProjectIdAndUserId(projectId, request.getUserId()).orElse(null);
+    if (existingMember != null) {
+      // 如果已是成员，更新角色
+      existingMember.setRole(ProjectMember.ProjectMemberRole.valueOf(request.getRole()));
+      memberRepository.save(existingMember);
+      log.info(
+          "更新项目成员角色成功：projectId={}, userId={}, role={}",
+          projectId,
+          request.getUserId(),
+          request.getRole());
+    } else {
+      // 添加新成员
+      ProjectMember member = new ProjectMember();
+      member.setProjectId(projectId);
+      member.setUserId(request.getUserId());
+      member.setRole(ProjectMember.ProjectMemberRole.valueOf(request.getRole()));
+      memberRepository.save(member);
+      log.info(
+          "添加项目成员成功：projectId={}, userId={}, role={}",
+          projectId,
+          request.getUserId(),
+          request.getRole());
+    }
+  }
+
+  /** 更新项目成员角色 */
+  @Transactional
+  public void updateProjectMemberRole(Long projectId, Long userId, String role) {
+    // 检查项目是否存在
+    Project project =
+        projectRepository
+            .findById(projectId)
+            .orElseThrow(() -> new BusinessException(ErrorCode.PROJECT_NOT_FOUND));
+
+    // 权限校验
+    checkProjectPermission(projectId, "PROJECT_MEMBER_MANAGE", project);
+
+    // 检查角色参数是否有效
+    if (role == null || role.trim().isEmpty()) {
+      throw new BusinessException(400, "角色不能为空");
     }
 
-    // 添加成员 - 添加空值检查
-    ProjectMember.ProjectMemberRole role;
+    // 查找成员
+    ProjectMember member =
+        memberRepository
+            .findByProjectIdAndUserId(projectId, userId)
+            .orElseThrow(() -> new BusinessException(404, "用户不是项目成员"));
+
+    // 更新角色
     try {
-      role = ProjectMember.ProjectMemberRole.valueOf(request.getRole());
+      member.setRole(ProjectMember.ProjectMemberRole.valueOf(role));
     } catch (IllegalArgumentException e) {
-      throw new BusinessException(400, "无效的角色：" + request.getRole());
+      throw new BusinessException(400, "无效的角色：" + role);
     }
-
-    ProjectMember member = new ProjectMember();
-    member.setProjectId(projectId);
-    member.setUserId(request.getUserId());
-    member.setRole(role);
 
     memberRepository.save(member);
-    log.info(
-        "添加项目成员成功：projectId={}, userId={}, role={}",
-        projectId,
-        request.getUserId(),
-        request.getRole());
+    log.info("更新项目成员角色成功：projectId={}, userId={}, role={}", projectId, userId, role);
   }
 
   /** 移除项目成员 */
