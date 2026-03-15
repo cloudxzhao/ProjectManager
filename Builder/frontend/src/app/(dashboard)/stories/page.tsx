@@ -269,6 +269,7 @@ export default function StoriesPage() {
   const [deleteModalOpen, setDeleteModalOpen] = useState(false);
   const [formModalOpen, setFormModalOpen] = useState(false);
   const [detailDrawerOpen, setDetailDrawerOpen] = useState(false);
+  const [createDrawerOpen, setCreateDrawerOpen] = useState(false);  // 创建故事抽屉
 
   // 当前操作的故事
   const [deletingStory, setDeletingStory] = useState<UserStory | null>(null);
@@ -276,6 +277,7 @@ export default function StoriesPage() {
   const [selectedStory, setSelectedStory] = useState<UserStory | null>(null);
 
   const [form] = Form.useForm();
+  const [createForm] = Form.useForm();  // 创建故事表单
 
   // 当前表单中项目对应的成员列表（用于负责人选择）
   const [currentProjectMembers, setCurrentProjectMembers] = useState<ProjectMemberResponse[]>([]);
@@ -395,10 +397,10 @@ export default function StoriesPage() {
   // 打开创建表单
   const handleCreate = () => {
     setEditingStory(null);
-    form.resetFields();
+    createForm.resetFields();
     // 默认选择当前筛选的项目（如果只选了一个）
     if (selectedProjectIds.length === 1) {
-      form.setFieldsValue({ projectId: selectedProjectIds[0] });
+      createForm.setFieldsValue({ projectId: selectedProjectIds[0] });
       // 加载项目成员列表
       const projectId = selectedProjectIds[0];
       const members = allProjectMembers.get(projectId) || [];
@@ -407,11 +409,11 @@ export default function StoriesPage() {
       fetchEpics(projectId);
     } else {
       // 如果没有选择项目或选了多个，清空表单中的项目字段
-      form.setFieldsValue({ projectId: undefined });
+      createForm.setFieldsValue({ projectId: undefined });
       setCurrentProjectMembers([]);
       setCurrentEpics([]);
     }
-    setFormModalOpen(true);
+    setCreateDrawerOpen(true);
   };
 
   // 打开编辑表单
@@ -493,6 +495,39 @@ export default function StoriesPage() {
       fetchStories();
     } catch (error: unknown) {
       const errorMessage = error instanceof Error ? error.message : (editingStory ? '更新失败' : '创建失败');
+      message.error(errorMessage);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // 创建表单提交
+  const handleCreateFormSubmit = async (values: StoryFormValues) => {
+    setLoading(true);
+    try {
+      // 创建 - status 字段由后端设置默认值 (TODO)
+      const createData: CreateUserStoryDto = {
+        title: values.title,
+        description: values.description,
+        acceptanceCriteria: values.acceptanceCriteria,
+        priority: values.priority ? priorityMap[String(values.priority)] || 'MEDIUM' : 'MEDIUM',
+        assigneeId: values.assigneeId,
+        storyPoints: values.storyPoints,
+        epicId: values.epicId,  // 所属服务
+      };
+      // 需要使用 selectedProjectIds 的第一个或 values.projectId
+      const targetProjectId = selectedProjectIds.length === 1 ? selectedProjectIds[0] : values.projectId;
+      if (!targetProjectId) {
+        message.error('请选择所属项目');
+        setLoading(false);
+        return;
+      }
+      await createStory(targetProjectId, createData);
+      message.success('用户故事创建成功');
+      setCreateDrawerOpen(false);
+      fetchStories();
+    } catch (error: unknown) {
+      const errorMessage = error instanceof Error ? error.message : '创建失败';
       message.error(errorMessage);
     } finally {
       setLoading(false);
@@ -933,6 +968,303 @@ export default function StoriesPage() {
           </Form.Item>
         </Form>
       </Modal>
+
+      {/* 创建用户故事抽屉 - 左侧边栏式 */}
+      <Drawer
+        title="创建用户故事"
+        placement="left"
+        open={createDrawerOpen}
+        onClose={() => {
+          setCreateDrawerOpen(false);
+          createForm.resetFields();
+        }}
+        width={600}
+        styles={{
+          body: { padding: 0, background: '#161b22', color: '#f0f6fc' },
+          header: {
+            background: '#161b22',
+            borderBottom: '1px solid rgba(255,255,255,0.05)',
+            padding: '20px 24px',
+          },
+          footer: {
+            background: '#161b22',
+            borderTop: '1px solid rgba(255,255,255,0.05)',
+          },
+        }}
+        footer={
+          <div style={{ display: 'flex', gap: '12px', justifyContent: 'flex-end' }}>
+            <Button
+              onClick={() => {
+                setCreateDrawerOpen(false);
+                createForm.resetFields();
+              }}
+              style={{
+                background: 'transparent',
+                border: '1px solid #30363d',
+                color: '#c9d1d9',
+                borderRadius: '6px',
+                padding: '8px 16px',
+              }}
+            >
+              取消
+            </Button>
+            <Button
+              type="primary"
+              onClick={() => createForm.submit()}
+              loading={loading}
+              style={{
+                background: '#ff8c42',
+                border: 'none',
+                borderRadius: '6px',
+                padding: '8px 24px',
+                fontWeight: 'bold',
+              }}
+            >
+              创建故事
+            </Button>
+          </div>
+        }
+      >
+        <div style={{ padding: '24px', height: '100%', overflowY: 'auto' }}>
+          <Form
+            form={createForm}
+            layout="vertical"
+            onFinish={handleCreateFormSubmit}
+            size="large"
+            initialValues={{
+              priority: 'medium',
+            }}
+          >
+            {/* 项目选择 */}
+            <Form.Item
+              name="projectId"
+              label="所属项目"
+              labelCol={{ style: { color: '#8b949e', fontSize: '13px' } }}
+              rules={[{ required: true, message: '请选择所属项目' }]}
+            >
+              <Select
+                placeholder="选择项目"
+                onChange={(value) => {
+                  // 项目改变时，重新加载项目成员
+                  const members = allProjectMembers.get(value) || [];
+                  if (members.length > 0) {
+                    setCurrentProjectMembers(members);
+                  } else {
+                    fetchProjectMembers(value).then(() => {
+                      const updatedMembers = allProjectMembers.get(value) || [];
+                      setCurrentProjectMembers(updatedMembers);
+                    });
+                  }
+                  // 项目改变时，重新加载项目史诗（服务）列表
+                  fetchEpics(value);
+                  // 清空所属服务选择
+                  createForm.setFieldsValue({ epicId: undefined });
+                }}
+                style={{
+                  background: 'rgba(255,255,255,0.05)',
+                  border: '1px solid rgba(255,255,255,0.1)',
+                  color: '#f0f6fc',
+                  borderRadius: '6px',
+                }}
+                dropdownStyle={{
+                  background: '#161b22',
+                  color: '#f0f6fc',
+                }}
+              >
+                {projects.map((project) => (
+                  <Option key={project.id} value={project.id}>
+                    {project.icon || '📁'} {project.name}
+                  </Option>
+                ))}
+              </Select>
+            </Form.Item>
+
+            {/* 所属服务（史诗）选择 */}
+            <Form.Item
+              name="epicId"
+              label="所属服务"
+              labelCol={{ style: { color: '#8b949e', fontSize: '13px' } }}
+              extra={<span style={{ color: '#8b949e', fontSize: '12px' }}>将故事关联到具体服务模块，便于分类管理</span>}
+            >
+              <Select
+                placeholder={currentEpics.length > 0 ? "选择所属服务（可选）" : "请先选择项目或当前项目无服务"}
+                allowClear
+                disabled={currentEpics.length === 0}
+                style={{
+                  background: 'rgba(255,255,255,0.05)',
+                  border: '1px solid rgba(255,255,255,0.1)',
+                  color: '#f0f6fc',
+                  borderRadius: '6px',
+                }}
+                dropdownStyle={{
+                  background: '#161b22',
+                  color: '#f0f6fc',
+                }}
+              >
+                {currentEpics.map((epic) => (
+                  <Option key={epic.id} value={epic.id}>
+                    <div className="flex items-center gap-2">
+                      <div
+                        className="w-2.5 h-2.5 rounded-full"
+                        style={{ backgroundColor: epic.color || '#1890ff' }}
+                      />
+                      <span>{epic.title}</span>
+                    </div>
+                  </Option>
+                ))}
+              </Select>
+            </Form.Item>
+
+            <Form.Item
+              name="title"
+              label="故事标题"
+              labelCol={{ style: { color: '#8b949e', fontSize: '13px' } }}
+              rules={[{ required: true, message: '请输入故事标题' }]}
+            >
+              <Input
+                placeholder="请输入故事标题"
+                style={{
+                  background: 'rgba(255,255,255,0.05)',
+                  border: '1px solid rgba(255,255,255,0.1)',
+                  color: '#f0f6fc',
+                  borderRadius: '6px',
+                  padding: '10px',
+                }}
+              />
+            </Form.Item>
+
+            <Form.Item
+              name="description"
+              label="故事描述"
+              labelCol={{ style: { color: '#8b949e', fontSize: '13px' } }}
+            >
+              <TextArea
+                rows={10}
+                placeholder="描述用户故事的内容..."
+                style={{
+                  background: 'rgba(255,255,255,0.05)',
+                  border: '1px solid rgba(255,255,255,0.1)',
+                  color: '#f0f6fc',
+                  borderRadius: '6px',
+                  padding: '10px',
+                  minHeight: '200px',
+                }}
+                showCount
+                maxLength={2000}
+              />
+            </Form.Item>
+
+            <div className="grid grid-cols-2 gap-4">
+              <Form.Item
+                name="priority"
+                label="优先级"
+                labelCol={{ style: { color: '#8b949e', fontSize: '13px' } }}
+              >
+                <Select
+                  style={{
+                    background: 'rgba(255,255,255,0.05)',
+                    border: '1px solid rgba(255,255,255,0.1)',
+                    color: '#f0f6fc',
+                    borderRadius: '6px',
+                  }}
+                  dropdownStyle={{
+                    background: '#161b22',
+                    color: '#f0f6fc',
+                  }}
+                >
+                  <Option value="low">低</Option>
+                  <Option value="medium">中</Option>
+                  <Option value="high">高</Option>
+                  <Option value="urgent">紧急</Option>
+                </Select>
+              </Form.Item>
+
+              <Form.Item
+                name="storyPoints"
+                label="故事点"
+                labelCol={{ style: { color: '#8b949e', fontSize: '13px' } }}
+              >
+                <Select
+                  allowClear
+                  style={{
+                    background: 'rgba(255,255,255,0.05)',
+                    border: '1px solid rgba(255,255,255,0.1)',
+                    color: '#f0f6fc',
+                    borderRadius: '6px',
+                  }}
+                  dropdownStyle={{
+                    background: '#161b22',
+                    color: '#f0f6fc',
+                  }}
+                >
+                  <Option value={1}>1</Option>
+                  <Option value={2}>2</Option>
+                  <Option value={3}>3</Option>
+                  <Option value={5}>5</Option>
+                  <Option value={8}>8</Option>
+                  <Option value={13}>13</Option>
+                  <Option value={21}>21</Option>
+                </Select>
+              </Form.Item>
+            </div>
+
+            <Form.Item
+              name="assigneeId"
+              label="负责人"
+              labelCol={{ style: { color: '#8b949e', fontSize: '13px' } }}
+            >
+              <Select
+                placeholder={currentProjectMembers.length > 0 ? "选择负责人" : "当前项目暂无成员"}
+                allowClear
+                disabled={currentProjectMembers.length === 0}
+                showSearch
+                filterOption={(input, option) =>
+                  String(option?.label ?? '').toLowerCase().includes(input.toLowerCase())
+                }
+                style={{
+                  background: 'rgba(255,255,255,0.05)',
+                  border: '1px solid rgba(255,255,255,0.1)',
+                  color: '#f0f6fc',
+                  borderRadius: '6px',
+                }}
+                dropdownStyle={{
+                  background: '#161b22',
+                  color: '#f0f6fc',
+                }}
+              >
+                {currentProjectMembers.length > 0 ? (
+                  currentProjectMembers.map((member) => (
+                    <Option key={member.userId} value={member.userId} label={member.username}>
+                      {member.username}
+                    </Option>
+                  ))
+                ) : null}
+              </Select>
+            </Form.Item>
+
+            <Form.Item
+              name="acceptanceCriteria"
+              label="验收标准"
+              labelCol={{ style: { color: '#8b949e', fontSize: '13px' } }}
+            >
+              <TextArea
+                rows={6}
+                placeholder="描述用户故事的验收标准..."
+                style={{
+                  background: 'rgba(255,255,255,0.05)',
+                  border: '1px solid rgba(255,255,255,0.1)',
+                  color: '#f0f6fc',
+                  borderRadius: '6px',
+                  padding: '10px',
+                  minHeight: '150px',
+                }}
+                showCount
+                maxLength={2000}
+              />
+            </Form.Item>
+          </Form>
+        </div>
+      </Drawer>
 
       {/* 详情抽屉 */}
       <Drawer

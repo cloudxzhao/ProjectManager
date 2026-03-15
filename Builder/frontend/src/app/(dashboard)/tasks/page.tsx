@@ -3,17 +3,18 @@
 import { useState, useEffect, useMemo, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import {
-  Card, Button, Tag, Avatar, message, Spin, Select, Input, Pagination,
+  Card, Button, Tag, Avatar, message, Spin, Select, Input, Pagination, Form, DatePicker, Drawer,
 } from 'antd';
 import { PlusOutlined, ClockCircleOutlined, FlagOutlined, UserOutlined, SearchOutlined, ClearOutlined } from '@ant-design/icons';
 import { DndContext, DragEndEvent, closestCenter } from '@dnd-kit/core';
 import { SortableContext, verticalListSortingStrategy, useSortable } from '@dnd-kit/sortable';
 import { useDroppable } from '@dnd-kit/core';
 import { CSS } from '@dnd-kit/utilities';
-import { searchTasks as searchTasksApi, moveTask as moveTaskApi, type Task, type TaskStatus, type Priority } from '@/lib/api/task';
+import { searchTasks as searchTasksApi, moveTask as moveTaskApi, createTask as createTaskApi, type Task, type TaskStatus, type Priority } from '@/lib/api/task';
 import { getAuthorizedProjects, getProjectMembers } from '@/lib/api/project';
 import type { Project } from '@/lib/api/project';
 import type { ProjectMemberResponse } from '@/lib/api/project';
+import dayjs from 'dayjs';
 
 const { Option } = Select;
 
@@ -199,6 +200,11 @@ export default function TaskBoardPage() {
   const [projects, setProjects] = useState<Project[]>([]);
   const [allProjectMembers, setAllProjectMembers] = useState<Map<number, ProjectMemberResponse[]>>(new Map());  // 所有项目的成员缓存
   const [tasks, setTasks] = useState<TaskBoardItem[]>([]);
+
+  // 创建任务抽屉状态
+  const [createDrawerVisible, setCreateDrawerVisible] = useState(false);
+  const [createForm] = Form.useForm();
+  const [currentProjectMembers, setCurrentProjectMembers] = useState<ProjectMemberResponse[]>([]);
 
   // 分页状态
   const [page, setPage] = useState(1);
@@ -429,6 +435,59 @@ export default function TaskBoardPage() {
     router.push(`/tasks/${task.taskId}`);
   };
 
+  // 打开创建任务抽屉
+  const handleCreateTask = () => {
+    createForm.resetFields();
+    // 如果只选择了一个项目，默认选中
+    if (selectedProjectIds.length === 1) {
+      createForm.setFieldsValue({ projectId: selectedProjectIds[0] });
+      const projectId = selectedProjectIds[0];
+      const members = allProjectMembers.get(projectId) || [];
+      setCurrentProjectMembers(members);
+    } else {
+      setCurrentProjectMembers([]);
+    }
+    setCreateDrawerVisible(true);
+  };
+
+  // 创建任务提交
+  const handleCreateTaskSubmit = async (values: any) => {
+    try {
+      const targetProjectId = values.projectId;
+      if (!targetProjectId) {
+        message.error('请选择所属项目');
+        return;
+      }
+
+      const payload = {
+        title: values.title,
+        description: values.description || '',
+        status: values.status || 'TODO',
+        priority: values.priority || 'medium',
+        assigneeId: values.assigneeId,
+        storyPoints: values.storyPoints,
+        dueDate: values.dueDate ? values.dueDate.format('YYYY-MM-DD') : '',
+        tags: values.tags || [],
+        userStoryId: values.userStoryId,
+      };
+
+      await createTaskApi(targetProjectId, payload);
+      message.success('任务创建成功');
+      setCreateDrawerVisible(false);
+      loadTasks();
+    } catch (error) {
+      console.error('创建任务失败:', error);
+      message.error('创建任务失败');
+    }
+  };
+
+  // 当项目选择变化时，加载项目成员
+  const handleProjectChange = (projectId: number) => {
+    const members = allProjectMembers.get(projectId) || [];
+    setCurrentProjectMembers(members);
+    createForm.setFieldsValue({ assigneeId: undefined });
+  };
+
   return (
     <div className="space-y-4">
       {/* 页面头部 - 筛选区域 */}
@@ -438,6 +497,15 @@ export default function TaskBoardPage() {
             <h1 className="text-2xl font-bold text-white">任务看板</h1>
             <p className="text-gray-400 text-sm mt-1">查看所有项目的任务，拖拽卡片更新状态</p>
           </div>
+          <Button
+            type="primary"
+            icon={<PlusOutlined />}
+            size="large"
+            onClick={handleCreateTask}
+            className="bg-gradient-to-r from-orange-500 to-orange-600 hover:from-orange-600 hover:to-orange-700 border-none shadow-lg shadow-orange-500/20"
+          >
+            新建任务
+          </Button>
         </div>
 
         {/* 筛选工具栏 - 所有控件放在一行 */}
@@ -588,6 +656,246 @@ export default function TaskBoardPage() {
           </div>
         </>
       )}
+
+      {/* 创建任务抽屉 */}
+      <Drawer
+        title="创建任务"
+        placement="left"
+        open={createDrawerVisible}
+        onClose={() => {
+          setCreateDrawerVisible(false);
+          createForm.resetFields();
+        }}
+        width={600}
+        styles={{
+          body: { padding: 0, background: '#161b22', color: '#f0f6fc' },
+          header: {
+            background: '#161b22',
+            borderBottom: '1px solid rgba(255,255,255,0.05)',
+            padding: '20px 24px',
+          },
+          footer: {
+            background: '#161b22',
+            borderTop: '1px solid rgba(255,255,255,0.05)',
+          },
+        }}
+        footer={
+          <div style={{ display: 'flex', gap: '12px', justifyContent: 'flex-end' }}>
+            <Button
+              onClick={() => {
+                setCreateDrawerVisible(false);
+                createForm.resetFields();
+              }}
+              style={{
+                background: 'transparent',
+                border: '1px solid #30363d',
+                color: '#c9d1d9',
+                borderRadius: '6px',
+                padding: '8px 16px',
+              }}
+            >
+              取消
+            </Button>
+            <Button
+              type="primary"
+              onClick={() => createForm.submit()}
+              style={{
+                background: '#ff8c42',
+                border: 'none',
+                fontWeight: 'bold',
+                borderRadius: '6px',
+                padding: '8px 24px',
+              }}
+            >
+              创建任务
+            </Button>
+          </div>
+        }
+      >
+        <Form
+          form={createForm}
+          onFinish={handleCreateTaskSubmit}
+          layout="vertical"
+          style={{ padding: '24px' }}
+        >
+          {/* 所属项目 */}
+          {selectedProjectIds.length !== 1 && (
+            <Form.Item
+              name="projectId"
+              label={<span style={{ color: '#8b949e', fontSize: '13px' }}>所属项目</span>}
+              rules={[{ required: true, message: '请选择所属项目' }]}
+            >
+              <Select
+                placeholder="选择项目"
+                onChange={handleProjectChange}
+                style={{ width: '100%' }}
+                dropdownClassName="bg-gray-800 border-gray-700"
+              >
+                {projects.map((project) => (
+                  <Option key={project.id} value={project.id}>
+                    {project.icon || '📁'} {project.name}
+                  </Option>
+                ))}
+              </Select>
+            </Form.Item>
+          )}
+
+          {/* 任务标题 */}
+          <Form.Item
+            name="title"
+            label={<span style={{ color: '#8b949e', fontSize: '13px' }}>任务标题</span>}
+            rules={[{ required: true, message: '请输入任务标题' }]}
+          >
+            <Input
+              placeholder="输入任务标题"
+              style={{
+                background: 'rgba(255,255,255,0.05)',
+                border: '1px solid rgba(255,255,255,0.1)',
+                borderRadius: '6px',
+                padding: '10px',
+                color: '#f0f6fc',
+              }}
+            />
+          </Form.Item>
+
+          {/* 任务描述 */}
+          <Form.Item
+            name="description"
+            label={<span style={{ color: '#8b949e', fontSize: '13px' }}>任务描述</span>}
+          >
+            <Input.TextArea
+              placeholder="输入任务描述"
+              rows={6}
+              style={{
+                background: 'rgba(255,255,255,0.05)',
+                border: '1px solid rgba(255,255,255,0.1)',
+                borderRadius: '6px',
+                padding: '10px',
+                color: '#f0f6fc',
+                minHeight: '150px',
+              }}
+            />
+          </Form.Item>
+
+          {/* 状态和优先级 */}
+          <div style={{ display: 'flex', gap: '20px' }}>
+            <Form.Item
+              name="status"
+              label={<span style={{ color: '#8b949e', fontSize: '13px' }}>状态</span>}
+              initialValue="TODO"
+              style={{ flex: 1 }}
+            >
+              <Select
+                style={{ width: '100%' }}
+                dropdownClassName="bg-gray-800 border-gray-700"
+              >
+                <Option value="TODO">待办</Option>
+                <Option value="IN_PROGRESS">开发中</Option>
+                <Option value="IN_REVIEW">测试中</Option>
+                <Option value="DONE">已完成</Option>
+              </Select>
+            </Form.Item>
+
+            <Form.Item
+              name="priority"
+              label={<span style={{ color: '#8b949e', fontSize: '13px' }}>优先级</span>}
+              initialValue="medium"
+              style={{ flex: 1 }}
+            >
+              <Select
+                style={{ width: '100%' }}
+                dropdownClassName="bg-gray-800 border-gray-700"
+              >
+                <Option value="low">低</Option>
+                <Option value="medium">中</Option>
+                <Option value="high">高</Option>
+                <Option value="urgent">紧急</Option>
+              </Select>
+            </Form.Item>
+          </div>
+
+          {/* 责任人和故事点 */}
+          <div style={{ display: 'flex', gap: '20px' }}>
+            <Form.Item
+              name="assigneeId"
+              label={<span style={{ color: '#8b949e', fontSize: '13px' }}>责任人</span>}
+              style={{ flex: 1 }}
+            >
+              <Select
+                placeholder="选择责任人"
+                allowClear
+                showSearch
+                filterOption={(input, option) =>
+                  String(option?.label ?? '').toLowerCase().includes(input.toLowerCase())
+                }
+                dropdownClassName="bg-gray-800 border-gray-700"
+              >
+                {currentProjectMembers.map((member) => (
+                  <Option key={member.userId} value={member.userId}>
+                    {member.username}
+                  </Option>
+                ))}
+              </Select>
+            </Form.Item>
+
+            <Form.Item
+              name="storyPoints"
+              label={<span style={{ color: '#8b949e', fontSize: '13px' }}>故事点</span>}
+              style={{ flex: 1 }}
+            >
+              <Select
+                placeholder="故事点"
+                allowClear
+                style={{ width: '100%' }}
+                dropdownClassName="bg-gray-800 border-gray-700"
+              >
+                <Option value={1}>1</Option>
+                <Option value={2}>2</Option>
+                <Option value={3}>3</Option>
+                <Option value={5}>5</Option>
+                <Option value={8}>8</Option>
+                <Option value={13}>13</Option>
+                <Option value={21}>21</Option>
+              </Select>
+            </Form.Item>
+          </div>
+
+          {/* 截止日期 */}
+          <Form.Item
+            name="dueDate"
+            label={<span style={{ color: '#8b949e', fontSize: '13px' }}>截止日期</span>}
+          >
+            <DatePicker
+              style={{
+                width: '100%',
+                background: 'rgba(255,255,255,0.05)',
+                border: '1px solid rgba(255,255,255,0.1)',
+                borderRadius: '6px',
+                padding: '10px',
+                color: '#f0f6fc',
+              }}
+              dropdownClassName="bg-gray-800 border-gray-700"
+              placeholder="选择截止日期"
+            />
+          </Form.Item>
+
+          {/* 关联用户故事 */}
+          <Form.Item
+            name="userStoryId"
+            label={<span style={{ color: '#8b949e', fontSize: '13px' }}>关联用户故事</span>}
+          >
+            <Select
+              placeholder="选择用户故事（可选）"
+              allowClear
+              style={{ width: '100%' }}
+              dropdownClassName="bg-gray-800 border-gray-700"
+            >
+              <Option value={1}>示例故事 1</Option>
+              <Option value={2}>示例故事 2</Option>
+            </Select>
+          </Form.Item>
+        </Form>
+      </Drawer>
     </div>
   );
 }
