@@ -858,6 +858,7 @@ export default function ProjectDetailPage() {
         priority: values.priority,
         assigneeId: values.assigneeId,
         storyPoints: values.storyPoints,
+        epicId: values.epicId,
       });
 
       message.success('用户故事创建成功');
@@ -2496,19 +2497,69 @@ export default function ProjectDetailPage() {
         </div>
       </Modal>
 
-      {/* 用户故事创建弹框 */}
-      <Modal
+      {/* 用户故事创建抽屉 - 左侧边栏式 */}
+      <Drawer
         title="创建用户故事"
+        placement="left"
         open={storyCreateOpen}
-        onCancel={() => setStoryCreateOpen(false)}
-        onOk={() => storyCreateForm.submit()}
-        confirmLoading={storyCreateLoading}
-        okText="确认"
-        cancelText="取消"
-        className="glass-dark"
-        width={700}
+        onClose={() => setStoryCreateOpen(false)}
+        width={600}
+        className="story-drawer"
+        styles={{
+          body: {
+            padding: 0,
+            background: '#161b22',
+            color: '#f0f6fc',
+          },
+          header: {
+            background: '#161b22',
+            borderBottom: '1px solid rgba(255,255,255,0.05)',
+            padding: '20px 24px',
+            display: 'flex',
+            justifyContent: 'space-between',
+            alignItems: 'center',
+          },
+          footer: {
+            background: '#161b22',
+            borderTop: '1px solid rgba(255,255,255,0.05)',
+            padding: '16px 24px',
+            display: 'flex',
+            gap: '12px',
+            justifyContent: 'flex-end',
+          },
+        }}
+        footer={
+          <div style={{ display: 'flex', gap: '12px', justifyContent: 'flex-end' }}>
+            <Button
+              onClick={() => setStoryCreateOpen(false)}
+              style={{
+                background: 'transparent',
+                border: '1px solid #30363d',
+                color: '#c9d1d9',
+                borderRadius: '6px',
+                padding: '8px 16px',
+              }}
+            >
+              取消
+            </Button>
+            <Button
+              type="primary"
+              onClick={() => storyCreateForm.submit()}
+              loading={storyCreateLoading}
+              style={{
+                background: '#ff8c42',
+                border: 'none',
+                borderRadius: '6px',
+                padding: '8px 24px',
+                fontWeight: 'bold',
+              }}
+            >
+              创建故事
+            </Button>
+          </div>
+        }
       >
-        <div className="max-h-[70vh] overflow-y-auto pr-4">
+        <div className="max-h-full overflow-y-auto pr-4" style={{ background: '#161b22', minHeight: '100%' }}>
           <Form
             form={storyCreateForm}
             layout="vertical"
@@ -2517,43 +2568,94 @@ export default function ProjectDetailPage() {
           >
             <Form.Item
               name="title"
-              label="标题"
+              label={<span style={{ color: '#8b949e', fontSize: '13px' }}>故事标题</span>}
               rules={[{ required: true, message: '请输入用户故事标题' }]}
             >
               <Input
                 placeholder="请输入标题"
-                className="bg-gray-700/50 border-gray-600 text-white"
+                style={{
+                  background: 'rgba(255,255,255,0.05)',
+                  border: '1px solid rgba(255,255,255,0.1)',
+                  borderRadius: '6px',
+                  padding: '10px',
+                  color: 'white',
+                }}
               />
             </Form.Item>
 
             <Form.Item
               name="description"
-              label="描述"
+              label={<span style={{ color: '#8b949e', fontSize: '13px' }}>故事描述</span>}
             >
               <TextArea
-                rows={4}
-                placeholder="描述用户故事..."
-                className="bg-gray-700/50 border-gray-600 text-white"
+                rows={10}
+                placeholder="作为一名...用户，我想要...功能，以便我可以...价值"
+                style={{
+                  background: 'rgba(255,255,255,0.05)',
+                  border: '1px solid rgba(255,255,255,0.1)',
+                  borderRadius: '6px',
+                  padding: '10px',
+                  color: 'white',
+                  minHeight: '200px',
+                }}
               />
             </Form.Item>
 
             <Form.Item
-              name="acceptanceCriteria"
-              label="验收标准"
+              name="epicId"
+              label={<span style={{ color: '#8b949e', fontSize: '13px' }}>所属服务</span>}
             >
-              <TextArea
-                rows={3}
-                placeholder="输入验收标准..."
-                className="bg-gray-700/50 border-gray-600 text-white"
-              />
+              <Select
+                placeholder="请选择所属服务"
+                allowClear
+                style={{
+                  background: 'rgba(255,255,255,0.05)',
+                  border: '1px solid rgba(255,255,255,0.1)',
+                  borderRadius: '6px',
+                  color: 'white',
+                }}
+                loading={epicsLoading}
+                optionLabelProp="label"
+              >
+                {epics.map((epic) => (
+                  <Select.Option
+                    key={epic.id}
+                    value={epic.id}
+                    label={
+                      <div className="flex items-center gap-2">
+                        <div
+                          className="w-2 h-2 rounded-full"
+                          style={{ backgroundColor: epic.color || '#1890ff' }}
+                        />
+                        <span>{epic.title}</span>
+                      </div>
+                    }
+                  >
+                    <div className="flex items-center gap-2">
+                      <div
+                        className="w-2 h-2 rounded-full"
+                        style={{ backgroundColor: epic.color || '#1890ff' }}
+                      />
+                      <span>{epic.title}</span>
+                    </div>
+                  </Select.Option>
+                ))}
+              </Select>
             </Form.Item>
 
             <div className="grid grid-cols-2 gap-4">
               <Form.Item
                 name="priority"
-                label="优先级"
+                label={<span style={{ color: '#8b949e', fontSize: '13px' }}>优先级</span>}
               >
-                <Select className="bg-gray-700/50 border-gray-600">
+                <Select
+                  style={{
+                    background: 'rgba(255,255,255,0.05)',
+                    border: '1px solid rgba(255,255,255,0.1)',
+                    borderRadius: '6px',
+                    color: 'white',
+                  }}
+                >
                   <Select.Option value="LOW">低</Select.Option>
                   <Select.Option value="MEDIUM">中</Select.Option>
                   <Select.Option value="HIGH">高</Select.Option>
@@ -2563,24 +2665,35 @@ export default function ProjectDetailPage() {
 
               <Form.Item
                 name="storyPoints"
-                label="故事点数"
+                label={<span style={{ color: '#8b949e', fontSize: '13px' }}>故事点数</span>}
               >
                 <Input
                   type="number"
                   placeholder="输入故事点数"
-                  className="bg-gray-700/50 border-gray-600 text-white"
+                  style={{
+                    background: 'rgba(255,255,255,0.05)',
+                    border: '1px solid rgba(255,255,255,0.1)',
+                    borderRadius: '6px',
+                    padding: '10px',
+                    color: 'white',
+                  }}
                 />
               </Form.Item>
             </div>
 
             <Form.Item
               name="assigneeId"
-              label="负责人"
+              label={<span style={{ color: '#8b949e', fontSize: '13px' }}>负责人</span>}
             >
               <Select
                 placeholder="请选择负责人"
                 allowClear
-                className="bg-gray-700/50 border-gray-600"
+                style={{
+                  background: 'rgba(255,255,255,0.05)',
+                  border: '1px solid rgba(255,255,255,0.1)',
+                  borderRadius: '6px',
+                  color: 'white',
+                }}
                 loading={membersLoading}
               >
                 {projectMembers.map((member) => (
@@ -2590,23 +2703,78 @@ export default function ProjectDetailPage() {
                 ))}
               </Select>
             </Form.Item>
+
+            <Form.Item
+              name="acceptanceCriteria"
+              label={<span style={{ color: '#8b949e', fontSize: '13px' }}>验收标准</span>}
+            >
+              <TextArea
+                rows={4}
+                placeholder="输入验收标准，用逗号分隔多条标准..."
+                style={{
+                  background: 'rgba(255,255,255,0.05)',
+                  border: '1px solid rgba(255,255,255,0.1)',
+                  borderRadius: '6px',
+                  padding: '10px',
+                  color: 'white',
+                }}
+              />
+            </Form.Item>
           </Form>
         </div>
-      </Modal>
+      </Drawer>
 
-      {/* 任务创建弹框 */}
-      <Modal
+      {/* 任务创建抽屉 */}
+      <Drawer
         title="创建任务"
+        placement="left"
         open={taskCreateOpen}
-        onCancel={() => setTaskCreateOpen(false)}
-        onOk={() => taskCreateForm.submit()}
-        confirmLoading={taskCreateLoading}
-        okText="确认"
-        cancelText="取消"
-        className="glass-dark"
-        width={700}
+        onClose={() => setTaskCreateOpen(false)}
+        width={600}
+        styles={{
+          body: { padding: 0, background: '#161b22', color: '#f0f6fc' },
+          header: {
+            background: '#161b22',
+            borderBottom: '1px solid rgba(255,255,255,0.05)',
+            padding: '20px 24px',
+          },
+          footer: {
+            background: '#161b22',
+            borderTop: '1px solid rgba(255,255,255,0.05)',
+          },
+        }}
+        footer={
+          <div style={{ display: 'flex', gap: '12px', justifyContent: 'flex-end' }}>
+            <Button
+              onClick={() => setTaskCreateOpen(false)}
+              style={{
+                background: 'transparent',
+                border: '1px solid #30363d',
+                color: '#c9d1d9',
+                borderRadius: '6px',
+                padding: '8px 16px',
+              }}
+            >
+              取消
+            </Button>
+            <Button
+              type="primary"
+              onClick={() => taskCreateForm.submit()}
+              loading={taskCreateLoading}
+              style={{
+                background: '#ff8c42',
+                border: 'none',
+                borderRadius: '6px',
+                padding: '8px 24px',
+                fontWeight: 'bold',
+              }}
+            >
+              创建任务
+            </Button>
+          </div>
+        }
       >
-        <div className="max-h-[70vh] overflow-y-auto pr-4">
+        <div style={{ padding: '24px', height: '100%', overflowY: 'auto' }}>
           <Form
             form={taskCreateForm}
             layout="vertical"
@@ -2616,22 +2784,37 @@ export default function ProjectDetailPage() {
             <Form.Item
               name="title"
               label="标题"
+              labelCol={{ style: { color: '#8b949e', fontSize: '13px' } }}
               rules={[{ required: true, message: '请输入任务标题' }]}
             >
               <Input
                 placeholder="请输入标题"
-                className="bg-gray-700/50 border-gray-600 text-white"
+                style={{
+                  background: 'rgba(255,255,255,0.05)',
+                  border: '1px solid rgba(255,255,255,0.1)',
+                  color: '#f0f6fc',
+                  borderRadius: '6px',
+                  padding: '10px',
+                }}
               />
             </Form.Item>
 
             <Form.Item
               name="description"
               label="描述"
+              labelCol={{ style: { color: '#8b949e', fontSize: '13px' } }}
             >
               <TextArea
-                rows={4}
+                rows={10}
                 placeholder="描述任务..."
-                className="bg-gray-700/50 border-gray-600 text-white"
+                style={{
+                  background: 'rgba(255,255,255,0.05)',
+                  border: '1px solid rgba(255,255,255,0.1)',
+                  color: '#f0f6fc',
+                  borderRadius: '6px',
+                  padding: '10px',
+                  minHeight: '200px',
+                }}
               />
             </Form.Item>
 
@@ -2639,8 +2822,20 @@ export default function ProjectDetailPage() {
               <Form.Item
                 name="status"
                 label="状态"
+                labelCol={{ style: { color: '#8b949e', fontSize: '13px' } }}
               >
-                <Select className="bg-gray-700/50 border-gray-600">
+                <Select
+                  style={{
+                    background: 'rgba(255,255,255,0.05)',
+                    border: '1px solid rgba(255,255,255,0.1)',
+                    color: '#f0f6fc',
+                    borderRadius: '6px',
+                  }}
+                  dropdownStyle={{
+                    background: '#161b22',
+                    color: '#f0f6fc',
+                  }}
+                >
                   <Select.Option value="TODO">待办</Select.Option>
                   <Select.Option value="IN_PROGRESS">进行中</Select.Option>
                   <Select.Option value="IN_REVIEW">测试中</Select.Option>
@@ -2651,8 +2846,20 @@ export default function ProjectDetailPage() {
               <Form.Item
                 name="priority"
                 label="优先级"
+                labelCol={{ style: { color: '#8b949e', fontSize: '13px' } }}
               >
-                <Select className="bg-gray-700/50 border-gray-600">
+                <Select
+                  style={{
+                    background: 'rgba(255,255,255,0.05)',
+                    border: '1px solid rgba(255,255,255,0.1)',
+                    color: '#f0f6fc',
+                    borderRadius: '6px',
+                  }}
+                  dropdownStyle={{
+                    background: '#161b22',
+                    color: '#f0f6fc',
+                  }}
+                >
                   <Select.Option value="low">低</Select.Option>
                   <Select.Option value="medium">中</Select.Option>
                   <Select.Option value="high">高</Select.Option>
@@ -2665,12 +2872,22 @@ export default function ProjectDetailPage() {
               <Form.Item
                 name="assigneeId"
                 label="负责人"
+                labelCol={{ style: { color: '#8b949e', fontSize: '13px' } }}
               >
                 <Select
                   placeholder="请选择负责人"
                   allowClear
-                  className="bg-gray-700/50 border-gray-600"
                   loading={membersLoading}
+                  style={{
+                    background: 'rgba(255,255,255,0.05)',
+                    border: '1px solid rgba(255,255,255,0.1)',
+                    color: '#f0f6fc',
+                    borderRadius: '6px',
+                  }}
+                  dropdownStyle={{
+                    background: '#161b22',
+                    color: '#f0f6fc',
+                  }}
                 >
                   {projectMembers.map((member) => (
                     <Select.Option key={member.userId} value={member.userId}>
@@ -2683,11 +2900,18 @@ export default function ProjectDetailPage() {
               <Form.Item
                 name="storyPoints"
                 label="故事点数"
+                labelCol={{ style: { color: '#8b949e', fontSize: '13px' } }}
               >
                 <Input
                   type="number"
                   placeholder="输入故事点数"
-                  className="bg-gray-700/50 border-gray-600 text-white"
+                  style={{
+                    background: 'rgba(255,255,255,0.05)',
+                    border: '1px solid rgba(255,255,255,0.1)',
+                    color: '#f0f6fc',
+                    borderRadius: '6px',
+                    padding: '10px',
+                  }}
                 />
               </Form.Item>
             </div>
@@ -2695,9 +2919,16 @@ export default function ProjectDetailPage() {
             <Form.Item
               name="dueDate"
               label="截止日期"
+              labelCol={{ style: { color: '#8b949e', fontSize: '13px' } }}
             >
               <DatePicker
-                className="w-full bg-gray-700/50 border-gray-600 text-white"
+                style={{
+                  width: '100%',
+                  background: 'rgba(255,255,255,0.05)',
+                  border: '1px solid rgba(255,255,255,0.1)',
+                  color: '#f0f6fc',
+                  borderRadius: '6px',
+                }}
                 format="YYYY-MM-DD"
               />
             </Form.Item>
@@ -2705,22 +2936,39 @@ export default function ProjectDetailPage() {
             <Form.Item
               name="tags"
               label="标签（逗号分隔）"
+              labelCol={{ style: { color: '#8b949e', fontSize: '13px' } }}
             >
               <Input
                 placeholder="输入标签，用逗号分隔"
-                className="bg-gray-700/50 border-gray-600 text-white"
+                style={{
+                  background: 'rgba(255,255,255,0.05)',
+                  border: '1px solid rgba(255,255,255,0.1)',
+                  color: '#f0f6fc',
+                  borderRadius: '6px',
+                  padding: '10px',
+                }}
               />
             </Form.Item>
 
             <Form.Item
               name="userStoryId"
               label="关联用户故事"
+              labelCol={{ style: { color: '#8b949e', fontSize: '13px' } }}
             >
               <Select
                 placeholder="请选择用户故事（可选）"
                 allowClear
-                className="bg-gray-700/50 border-gray-600"
                 loading={storiesLoading}
+                style={{
+                  background: 'rgba(255,255,255,0.05)',
+                  border: '1px solid rgba(255,255,255,0.1)',
+                  color: '#f0f6fc',
+                  borderRadius: '6px',
+                }}
+                dropdownStyle={{
+                  background: '#161b22',
+                  color: '#f0f6fc',
+                }}
               >
                 {storiesList.map((story) => (
                   <Select.Option key={story.id} value={story.id}>
@@ -2731,21 +2979,59 @@ export default function ProjectDetailPage() {
             </Form.Item>
           </Form>
         </div>
-      </Modal>
+      </Drawer>
 
-      {/* 问题创建弹框 */}
-      <Modal
+      {/* 问题创建抽屉 */}
+      <Drawer
         title="创建问题"
+        placement="left"
         open={issueCreateOpen}
-        onCancel={() => setIssueCreateOpen(false)}
-        onOk={() => issueCreateForm.submit()}
-        confirmLoading={issueCreateLoading}
-        okText="确认"
-        cancelText="取消"
-        className="glass-dark"
-        width={700}
+        onClose={() => setIssueCreateOpen(false)}
+        width={600}
+        styles={{
+          body: { padding: 0, background: '#161b22', color: '#f0f6fc' },
+          header: {
+            background: '#161b22',
+            borderBottom: '1px solid rgba(255,255,255,0.05)',
+            padding: '20px 24px',
+          },
+          footer: {
+            background: '#161b22',
+            borderTop: '1px solid rgba(255,255,255,0.05)',
+          },
+        }}
+        footer={
+          <div style={{ display: 'flex', gap: '12px', justifyContent: 'flex-end' }}>
+            <Button
+              onClick={() => setIssueCreateOpen(false)}
+              style={{
+                background: 'transparent',
+                border: '1px solid #30363d',
+                color: '#c9d1d9',
+                borderRadius: '6px',
+                padding: '8px 16px',
+              }}
+            >
+              取消
+            </Button>
+            <Button
+              type="primary"
+              onClick={() => issueCreateForm.submit()}
+              loading={issueCreateLoading}
+              style={{
+                background: '#ff8c42',
+                border: 'none',
+                borderRadius: '6px',
+                padding: '8px 24px',
+                fontWeight: 'bold',
+              }}
+            >
+              创建问题
+            </Button>
+          </div>
+        }
       >
-        <div className="max-h-[70vh] overflow-y-auto pr-4">
+        <div style={{ padding: '24px', height: '100%', overflowY: 'auto' }}>
           <Form
             form={issueCreateForm}
             layout="vertical"
@@ -2755,22 +3041,37 @@ export default function ProjectDetailPage() {
             <Form.Item
               name="title"
               label="标题"
+              labelCol={{ style: { color: '#8b949e', fontSize: '13px' } }}
               rules={[{ required: true, message: '请输入问题标题' }]}
             >
               <Input
                 placeholder="请输入标题"
-                className="bg-gray-700/50 border-gray-600 text-white"
+                style={{
+                  background: 'rgba(255,255,255,0.05)',
+                  border: '1px solid rgba(255,255,255,0.1)',
+                  color: '#f0f6fc',
+                  borderRadius: '6px',
+                  padding: '10px',
+                }}
               />
             </Form.Item>
 
             <Form.Item
               name="description"
               label="描述"
+              labelCol={{ style: { color: '#8b949e', fontSize: '13px' } }}
             >
               <TextArea
-                rows={4}
+                rows={10}
                 placeholder="描述问题..."
-                className="bg-gray-700/50 border-gray-600 text-white"
+                style={{
+                  background: 'rgba(255,255,255,0.05)',
+                  border: '1px solid rgba(255,255,255,0.1)',
+                  color: '#f0f6fc',
+                  borderRadius: '6px',
+                  padding: '10px',
+                  minHeight: '200px',
+                }}
               />
             </Form.Item>
 
@@ -2778,8 +3079,20 @@ export default function ProjectDetailPage() {
               <Form.Item
                 name="type"
                 label="类型"
+                labelCol={{ style: { color: '#8b949e', fontSize: '13px' } }}
               >
-                <Select className="bg-gray-700/50 border-gray-600">
+                <Select
+                  style={{
+                    background: 'rgba(255,255,255,0.05)',
+                    border: '1px solid rgba(255,255,255,0.1)',
+                    color: '#f0f6fc',
+                    borderRadius: '6px',
+                  }}
+                  dropdownStyle={{
+                    background: '#161b22',
+                    color: '#f0f6fc',
+                  }}
+                >
                   <Select.Option value="bug">缺陷</Select.Option>
                   <Select.Option value="feature">功能</Select.Option>
                   <Select.Option value="improvement">改进</Select.Option>
@@ -2790,8 +3103,20 @@ export default function ProjectDetailPage() {
               <Form.Item
                 name="severity"
                 label="严重程度"
+                labelCol={{ style: { color: '#8b949e', fontSize: '13px' } }}
               >
-                <Select className="bg-gray-700/50 border-gray-600">
+                <Select
+                  style={{
+                    background: 'rgba(255,255,255,0.05)',
+                    border: '1px solid rgba(255,255,255,0.1)',
+                    color: '#f0f6fc',
+                    borderRadius: '6px',
+                  }}
+                  dropdownStyle={{
+                    background: '#161b22',
+                    color: '#f0f6fc',
+                  }}
+                >
                   <Select.Option value="critical">严重</Select.Option>
                   <Select.Option value="high">高</Select.Option>
                   <Select.Option value="medium">中</Select.Option>
@@ -2804,8 +3129,20 @@ export default function ProjectDetailPage() {
               <Form.Item
                 name="status"
                 label="状态"
+                labelCol={{ style: { color: '#8b949e', fontSize: '13px' } }}
               >
-                <Select className="bg-gray-700/50 border-gray-600">
+                <Select
+                  style={{
+                    background: 'rgba(255,255,255,0.05)',
+                    border: '1px solid rgba(255,255,255,0.1)',
+                    color: '#f0f6fc',
+                    borderRadius: '6px',
+                  }}
+                  dropdownStyle={{
+                    background: '#161b22',
+                    color: '#f0f6fc',
+                  }}
+                >
                   <Select.Option value="TODO">待办</Select.Option>
                   <Select.Option value="IN_PROGRESS">进行中</Select.Option>
                   <Select.Option value="IN_REVIEW">已解决</Select.Option>
@@ -2816,8 +3153,20 @@ export default function ProjectDetailPage() {
               <Form.Item
                 name="priority"
                 label="优先级"
+                labelCol={{ style: { color: '#8b949e', fontSize: '13px' } }}
               >
-                <Select className="bg-gray-700/50 border-gray-600">
+                <Select
+                  style={{
+                    background: 'rgba(255,255,255,0.05)',
+                    border: '1px solid rgba(255,255,255,0.1)',
+                    color: '#f0f6fc',
+                    borderRadius: '6px',
+                  }}
+                  dropdownStyle={{
+                    background: '#161b22',
+                    color: '#f0f6fc',
+                  }}
+                >
                   <Select.Option value="low">低</Select.Option>
                   <Select.Option value="medium">中</Select.Option>
                   <Select.Option value="high">高</Select.Option>
@@ -2830,12 +3179,22 @@ export default function ProjectDetailPage() {
               <Form.Item
                 name="assigneeId"
                 label="负责人"
+                labelCol={{ style: { color: '#8b949e', fontSize: '13px' } }}
               >
                 <Select
                   placeholder="请选择负责人"
                   allowClear
-                  className="bg-gray-700/50 border-gray-600"
                   loading={membersLoading}
+                  style={{
+                    background: 'rgba(255,255,255,0.05)',
+                    border: '1px solid rgba(255,255,255,0.1)',
+                    color: '#f0f6fc',
+                    borderRadius: '6px',
+                  }}
+                  dropdownStyle={{
+                    background: '#161b22',
+                    color: '#f0f6fc',
+                  }}
                 >
                   {projectMembers.map((member) => (
                     <Select.Option key={member.userId} value={member.userId}>
@@ -2848,9 +3207,16 @@ export default function ProjectDetailPage() {
               <Form.Item
                 name="dueDate"
                 label="截止日期"
+                labelCol={{ style: { color: '#8b949e', fontSize: '13px' } }}
               >
                 <DatePicker
-                  className="w-full bg-gray-700/50 border-gray-600 text-white"
+                  style={{
+                    width: '100%',
+                    background: 'rgba(255,255,255,0.05)',
+                    border: '1px solid rgba(255,255,255,0.1)',
+                    color: '#f0f6fc',
+                    borderRadius: '6px',
+                  }}
                   format="YYYY-MM-DD"
                 />
               </Form.Item>
@@ -2859,29 +3225,74 @@ export default function ProjectDetailPage() {
             <Form.Item
               name="tags"
               label="标签（逗号分隔）"
+              labelCol={{ style: { color: '#8b949e', fontSize: '13px' } }}
             >
               <Input
                 placeholder="输入标签，用逗号分隔"
-                className="bg-gray-700/50 border-gray-600 text-white"
+                style={{
+                  background: 'rgba(255,255,255,0.05)',
+                  border: '1px solid rgba(255,255,255,0.1)',
+                  color: '#f0f6fc',
+                  borderRadius: '6px',
+                  padding: '10px',
+                }}
               />
             </Form.Item>
           </Form>
         </div>
-      </Modal>
+      </Drawer>
 
-      {/* Wiki 创建弹框 */}
-      <Modal
+      {/* Wiki 创建抽屉 */}
+      <Drawer
         title="创建 Wiki 文档"
+        placement="left"
         open={wikiCreateOpen}
-        onCancel={() => setWikiCreateOpen(false)}
-        onOk={() => wikiCreateForm.submit()}
-        confirmLoading={wikiCreateLoading}
-        okText="确认"
-        cancelText="取消"
-        className="glass-dark"
-        width={700}
+        onClose={() => setWikiCreateOpen(false)}
+        width={600}
+        styles={{
+          body: { padding: 0, background: '#161b22', color: '#f0f6fc' },
+          header: {
+            background: '#161b22',
+            borderBottom: '1px solid rgba(255,255,255,0.05)',
+            padding: '20px 24px',
+          },
+          footer: {
+            background: '#161b22',
+            borderTop: '1px solid rgba(255,255,255,0.05)',
+          },
+        }}
+        footer={
+          <div style={{ display: 'flex', gap: '12px', justifyContent: 'flex-end' }}>
+            <Button
+              onClick={() => setWikiCreateOpen(false)}
+              style={{
+                background: 'transparent',
+                border: '1px solid #30363d',
+                color: '#c9d1d9',
+                borderRadius: '6px',
+                padding: '8px 16px',
+              }}
+            >
+              取消
+            </Button>
+            <Button
+              type="primary"
+              onClick={() => wikiCreateForm.submit()}
+              loading={wikiCreateLoading}
+              style={{
+                background: '#ff8c42',
+                border: 'none',
+                borderRadius: '6px',
+                padding: '8px 24px',
+                fontWeight: 'bold',
+              }}
+            >
+              创建文档
+            </Button>
+          </div>
+        }
       >
-        <div className="max-h-[70vh] overflow-y-auto pr-4">
+        <div style={{ padding: '24px', height: '100%', overflowY: 'auto' }}>
           <Form
             form={wikiCreateForm}
             layout="vertical"
@@ -2891,59 +3302,100 @@ export default function ProjectDetailPage() {
             <Form.Item
               name="title"
               label="标题"
+              labelCol={{ style: { color: '#8b949e', fontSize: '13px' } }}
               rules={[{ required: true, message: '请输入 Wiki 标题' }]}
             >
               <Input
                 placeholder="请输入标题"
-                className="bg-gray-700/50 border-gray-600 text-white"
+                style={{
+                  background: 'rgba(255,255,255,0.05)',
+                  border: '1px solid rgba(255,255,255,0.1)',
+                  color: '#f0f6fc',
+                  borderRadius: '6px',
+                  padding: '10px',
+                }}
               />
             </Form.Item>
 
             <Form.Item
               name="summary"
               label="摘要"
+              labelCol={{ style: { color: '#8b949e', fontSize: '13px' } }}
             >
               <TextArea
-                rows={2}
+                rows={4}
                 placeholder="输入文档摘要..."
-                className="bg-gray-700/50 border-gray-600 text-white"
+                style={{
+                  background: 'rgba(255,255,255,0.05)',
+                  border: '1px solid rgba(255,255,255,0.1)',
+                  color: '#f0f6fc',
+                  borderRadius: '6px',
+                  padding: '10px',
+                }}
               />
             </Form.Item>
 
             <Form.Item
               name="content"
               label="内容"
+              labelCol={{ style: { color: '#8b949e', fontSize: '13px' } }}
             >
               <TextArea
-                rows={10}
+                rows={12}
                 placeholder="输入 Wiki 内容..."
-                className="bg-gray-700/50 border-gray-600 text-white"
+                style={{
+                  background: 'rgba(255,255,255,0.05)',
+                  border: '1px solid rgba(255,255,255,0.1)',
+                  color: '#f0f6fc',
+                  borderRadius: '6px',
+                  padding: '10px',
+                  minHeight: '250px',
+                }}
               />
             </Form.Item>
 
             <Form.Item
               name="tags"
               label="标签（逗号分隔）"
+              labelCol={{ style: { color: '#8b949e', fontSize: '13px' } }}
             >
               <Input
                 placeholder="输入标签，用逗号分隔"
-                className="bg-gray-700/50 border-gray-600 text-white"
+                style={{
+                  background: 'rgba(255,255,255,0.05)',
+                  border: '1px solid rgba(255,255,255,0.1)',
+                  color: '#f0f6fc',
+                  borderRadius: '6px',
+                  padding: '10px',
+                }}
               />
             </Form.Item>
 
             <Form.Item
               name="isPublished"
               label="发布状态"
+              labelCol={{ style: { color: '#8b949e', fontSize: '13px' } }}
               valuePropName="checked"
             >
-              <Select className="bg-gray-700/50 border-gray-600">
+              <Select
+                style={{
+                  background: 'rgba(255,255,255,0.05)',
+                  border: '1px solid rgba(255,255,255,0.1)',
+                  color: '#f0f6fc',
+                  borderRadius: '6px',
+                }}
+                dropdownStyle={{
+                  background: '#161b22',
+                  color: '#f0f6fc',
+                }}
+              >
                 <Select.Option value={false}>草稿</Select.Option>
                 <Select.Option value={true}>已发布</Select.Option>
               </Select>
             </Form.Item>
           </Form>
         </div>
-      </Modal>
+      </Drawer>
     </div>
   );
 }
