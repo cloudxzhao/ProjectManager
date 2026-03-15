@@ -1,0 +1,365 @@
+'use client';
+
+import { useState, useEffect } from 'react';
+import { useRouter } from 'next/navigation';
+import {
+  Table,
+  Button,
+  Modal,
+  Form,
+  Input,
+  ColorPicker,
+  message,
+  Empty,
+  Spin,
+  Typography,
+  Select,
+} from 'antd';
+import type { TableColumnsType } from 'antd';
+import {
+  PlusOutlined,
+  EditOutlined,
+  DeleteOutlined,
+  AppstoreOutlined,
+  ArrowLeftOutlined,
+} from '@ant-design/icons';
+import { getEpics, createEpic, updateEpic, deleteEpic, Epic, CreateEpicDto, UpdateEpicDto } from '@/lib/api/epic';
+import { getAuthorizedProjects } from '@/lib/api/project';
+import type { Project } from '@/lib/api/project';
+
+const { TextArea } = Input;
+const { Title } = Typography;
+
+export default function ServicesPage() {
+  const router = useRouter();
+  const [loading, setLoading] = useState(false);
+  const [services, setServices] = useState<Epic[]>([]);
+  const [projects, setProjects] = useState<{ value: number; label: string }[]>([]);
+  const [selectedProjectId, setSelectedProjectId] = useState<number | undefined>(undefined);
+  const [modalOpen, setModalOpen] = useState(false);
+  const [deleteModalOpen, setDeleteModalOpen] = useState(false);
+  const [selectedService, setSelectedService] = useState<Epic | null>(null);
+  const [form] = Form.useForm();
+  const [confirmLoading, setConfirmLoading] = useState(false);
+
+  // 获取有权限的项目列表
+  const fetchProjects = async () => {
+    try {
+      const res = await getAuthorizedProjects();
+      const projectList = res.list || [];
+      setProjects(projectList.map((p: Project) => ({ value: p.id, label: p.name })));
+      if (projectList.length > 0 && !selectedProjectId) {
+        setSelectedProjectId(projectList[0].id);
+      }
+    } catch (error: unknown) {
+      const errorMessage = error instanceof Error ? error.message : '获取项目列表失败';
+      message.error(errorMessage);
+    }
+  };
+
+  // 获取服务列表
+  const fetchServices = async (projectId: number) => {
+    setLoading(true);
+    try {
+      const data = await getEpics(projectId);
+      setServices(data);
+    } catch (error: unknown) {
+      const errorMessage = error instanceof Error ? error.message : '获取服务列表失败';
+      message.error(errorMessage);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchProjects();
+  }, []);
+
+  useEffect(() => {
+    if (selectedProjectId) {
+      fetchServices(selectedProjectId);
+    }
+  }, [selectedProjectId]);
+
+  // 打开创建弹框
+  const handleCreate = () => {
+    if (!selectedProjectId) {
+      message.error('请先选择项目');
+      return;
+    }
+    setSelectedService(null);
+    form.resetFields();
+    setModalOpen(true);
+  };
+
+  // 打开编辑弹框
+  const handleEdit = (record: Epic) => {
+    setSelectedService(record);
+    form.setFieldsValue({
+      title: record.title,
+      description: record.description,
+      color: record.color,
+    });
+    setModalOpen(true);
+  };
+
+  // 打开删除确认弹框
+  const handleDelete = (record: Epic) => {
+    setSelectedService(record);
+    setDeleteModalOpen(true);
+  };
+
+  // 提交创建/编辑
+  const handleSubmit = async () => {
+    if (!selectedProjectId) {
+      message.error('请先选择项目');
+      return;
+    }
+
+    try {
+      await form.validateFields();
+      const values = form.getFieldsValue();
+      setConfirmLoading(true);
+
+      if (selectedService) {
+        // 编辑
+        await updateEpic(selectedProjectId, selectedService.id, {
+          title: values.title,
+          description: values.description,
+          color: values.color,
+        });
+        message.success('服务更新成功');
+      } else {
+        // 创建
+        await createEpic(selectedProjectId, {
+          title: values.title,
+          description: values.description,
+          color: values.color || '#1890ff',
+        });
+        message.success('服务创建成功');
+      }
+
+      setModalOpen(false);
+      form.resetFields();
+      fetchServices(selectedProjectId);
+    } catch (error: unknown) {
+      if (error instanceof Error && error.message !== 'Validation failed') {
+        const errorMessage = error.message || '操作失败，请稍后重试';
+        message.error(errorMessage);
+      }
+    } finally {
+      setConfirmLoading(false);
+    }
+  };
+
+  // 确认删除
+  const handleDeleteConfirm = async () => {
+    if (!selectedService || !selectedProjectId) return;
+
+    setConfirmLoading(true);
+    try {
+      await deleteEpic(selectedProjectId, selectedService.id);
+      message.success('服务删除成功');
+      setDeleteModalOpen(false);
+      fetchServices(selectedProjectId);
+    } catch (error: unknown) {
+      const errorMessage = error instanceof Error ? error.message : '删除失败，请稍后重试';
+      message.error(errorMessage);
+    } finally {
+      setConfirmLoading(false);
+    }
+  };
+
+  const columns: TableColumnsType<Epic> = [
+    {
+      title: '服务名称',
+      dataIndex: 'title',
+      key: 'title',
+      ellipsis: true,
+      render: (title: string, record: Epic) => (
+        <div className="flex items-center gap-2">
+          <div
+            className="w-3 h-3 rounded-full"
+            style={{ backgroundColor: record.color || '#1890ff' }}
+          />
+          <span className="font-medium text-white">{title}</span>
+        </div>
+      ),
+    },
+    {
+      title: '描述',
+      dataIndex: 'description',
+      key: 'description',
+      ellipsis: true,
+      width: 300,
+      render: (description?: string) => (
+        <span className="text-gray-400 text-sm" title={description}>
+          {description && description.length > 50 ? `${description.slice(0, 50)}...` : description || '-'}
+        </span>
+      ),
+    },
+    {
+      title: '位置',
+      dataIndex: 'position',
+      key: 'position',
+      width: 80,
+      render: (position?: number) => (
+        <span className="text-gray-400">{position !== undefined ? `#${position}` : '-'}</span>
+      ),
+    },
+    {
+      title: '创建时间',
+      dataIndex: 'createdAt',
+      key: 'createdAt',
+      width: 180,
+      render: (createdAt: string) => (
+        <span className="text-gray-400">{new Date(createdAt).toLocaleString('zh-CN')}</span>
+      ),
+    },
+    {
+      title: '操作',
+      key: 'action',
+      width: 150,
+      fixed: 'right',
+      render: (_: unknown, record: Epic) => (
+        <div className="flex items-center gap-2">
+          <Button
+            type="text"
+            icon={<EditOutlined />}
+            onClick={() => handleEdit(record)}
+            title="编辑"
+          />
+          <Button
+            type="text"
+            danger
+            icon={<DeleteOutlined />}
+            onClick={() => handleDelete(record)}
+            title="删除"
+          />
+        </div>
+      ),
+    },
+  ];
+
+  return (
+    <div className="space-y-4">
+      {/* 头部操作区 */}
+      <div className="flex items-center justify-between">
+        <div className="flex items-center gap-4">
+          <Button
+            type="text"
+            icon={<ArrowLeftOutlined />}
+            onClick={() => router.push('/projects')}
+            className="text-gray-400 hover:text-white"
+          />
+          <div className="flex items-center gap-2">
+            <AppstoreOutlined className="text-orange-500" style={{ fontSize: 20 }} />
+            <Title level={4} className="text-white mb-0">服务管理</Title>
+          </div>
+        </div>
+        <div className="flex items-center gap-4">
+          <Select
+            placeholder="选择项目"
+            value={selectedProjectId}
+            onChange={setSelectedProjectId}
+            className="w-48"
+            options={projects}
+          />
+          <Button
+            type="primary"
+            icon={<PlusOutlined />}
+            onClick={handleCreate}
+            disabled={!selectedProjectId}
+          >
+            新建服务
+          </Button>
+        </div>
+      </div>
+
+      {/* 服务列表表格 */}
+      {loading ? (
+        <div className="text-center py-12">
+          <Spin size="large" description="加载服务列表中..." />
+        </div>
+      ) : !selectedProjectId ? (
+        <Empty
+          description="请先选择项目"
+          image={Empty.PRESENTED_IMAGE_SIMPLE}
+        />
+      ) : services.length > 0 ? (
+        <Table<Epic>
+          dataSource={services}
+          rowKey="id"
+          columns={columns}
+          pagination={false}
+          className="services-table"
+        />
+      ) : (
+        <Empty
+          description="暂无服务"
+          image={Empty.PRESENTED_IMAGE_SIMPLE}
+        >
+          <Button
+            type="primary"
+            icon={<PlusOutlined />}
+            onClick={handleCreate}
+            disabled={!selectedProjectId}
+          >
+            创建第一个服务
+          </Button>
+        </Empty>
+      )}
+
+      {/* 创建/编辑弹框 */}
+      <Modal
+        title={selectedService ? '编辑服务' : '新建服务'}
+        open={modalOpen}
+        onOk={handleSubmit}
+        onCancel={() => setModalOpen(false)}
+        confirmLoading={confirmLoading}
+        width={600}
+      >
+        <Form form={form} layout="vertical" className="mt-4">
+          <Form.Item
+            name="title"
+            label="服务名称"
+            rules={[{ required: true, message: '请输入服务名称' }]}
+          >
+            <Input placeholder="请输入服务名称" />
+          </Form.Item>
+          <Form.Item
+            name="description"
+            label="服务描述"
+            rules={[{ required: false }]}
+          >
+            <TextArea
+              rows={4}
+              placeholder="请输入服务描述（可选）"
+            />
+          </Form.Item>
+          <Form.Item
+            name="color"
+            label="服务颜色"
+            initialValue="#1890ff"
+          >
+            <ColorPicker showText format="hex" />
+          </Form.Item>
+        </Form>
+      </Modal>
+
+      {/* 删除确认弹框 */}
+      <Modal
+        title="确认删除"
+        open={deleteModalOpen}
+        onOk={handleDeleteConfirm}
+        onCancel={() => setDeleteModalOpen(false)}
+        confirmLoading={confirmLoading}
+      >
+        <p>
+          确定要删除服务 <span className="font-medium text-white">{selectedService?.title}</span> 吗？
+          此操作不可恢复。
+        </p>
+      </Modal>
+    </div>
+  );
+}

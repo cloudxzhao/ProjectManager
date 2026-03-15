@@ -1,82 +1,91 @@
-// 史诗 (Epic) 管理模块 API
+// 史诗 (Epic) 管理模块 API - 服务管理
 
 import { api } from './axios';
 import { endpoints } from './endpoints';
 
+// 后端 PageResult 类型
+interface PageResult<T> {
+  list: T[];
+  total: number;
+  page: number;
+  size: number;
+  pages: number;
+}
+
+// 史诗数据结构（与后端 EpicVO 对应）
 export interface Epic {
   id: number;
   projectId: number;
-  name: string;
+  title: string;
   description: string;
   color: string;
-  startDate: string;
-  endDate: string;
-  status: EpicStatus;
-  progress: number;
-  issueCount: number;
-  completedIssueCount: number;
+  position?: number;
   createdAt: string;
   updatedAt?: string;
 }
 
-export type EpicStatus = 'PLANNING' | 'ACTIVE' | 'COMPLETED' | 'ARCHIVED';
-
+// 创建请求 DTO（与后端 CreateRequest 对应）
 export interface CreateEpicDto {
-  projectId: number;
-  name: string;
+  title: string;
   description?: string;
   color?: string;
-  startDate?: string;
-  endDate?: string;
-  status?: EpicStatus;
+  position?: number;
 }
 
+// 更新请求 DTO（与后端 UpdateRequest 对应）
 export interface UpdateEpicDto {
-  name?: string;
+  title?: string;
   description?: string;
   color?: string;
-  startDate?: string;
-  endDate?: string;
-  status?: EpicStatus;
-  progress?: number;
+  position?: number;
 }
 
 /**
- * 获取项目下所有史诗
+ * 获取项目下所有史诗（服务列表）
  * @param projectId 项目 ID
  */
-export const getEpics = (projectId: number) =>
-  api.get<Epic[]>(endpoints.epic.list(projectId));
+export const getEpics = async (projectId: number) => {
+  const res = await api.get<Epic[]>(endpoints.epic.list(projectId));
+  return res.data.data || [];
+};
 
 /**
  * 获取史诗详情
  * @param projectId 项目 ID
  * @param id 史诗 ID
  */
-export const getEpic = (projectId: number, id: number) =>
-  api.get<Epic>(endpoints.epic.detail(projectId, id));
+export const getEpic = async (projectId: number, id: number) => {
+  const res = await api.get<Epic>(endpoints.epic.detail(projectId, id));
+  return res.data.data;
+};
 
 /**
- * 创建史诗
+ * 创建史诗（服务）
  * @param projectId 项目 ID
  * @param data 创建数据
  */
-export const createEpic = (projectId: number, data: CreateEpicDto) =>
-  api.post<Epic>(endpoints.epic.create(projectId), data);
+export const createEpic = async (projectId: number, data: CreateEpicDto) => {
+  const res = await api.post<Epic>(endpoints.epic.create(projectId), data);
+  return res.data.data;
+};
 
 /**
- * 更新史诗
+ * 更新史诗（服务）
  * @param projectId 项目 ID
  * @param id 史诗 ID
  * @param data 更新数据
  */
-export const updateEpic = (projectId: number, id: number, data: UpdateEpicDto) =>
-  api.put<Epic>(endpoints.epic.update(projectId, id), data);
+export const updateEpic = async (projectId: number, id: number, data: UpdateEpicDto) => {
+  const res = await api.put<Epic>(endpoints.epic.update(projectId, id), data);
+  return res.data.data;
+};
 
 /**
- * 删除史诗
+ * 删除史诗（服务）
  * @param projectId 项目 ID
  * @param id 史诗 ID
  */
-export const deleteEpic = (projectId: number, id: number) =>
-  api.delete(endpoints.epic.delete(projectId, id));
+export const deleteEpic = async (projectId: number, id: number) => {
+  const res = await api.delete(endpoints.epic.delete(projectId, id));
+  return res.data.data;
+};

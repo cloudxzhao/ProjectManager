@@ -18,16 +18,28 @@ import {
   LogoutOutlined,
   UserOutlined,
   FileTextOutlined,
+  AppstoreOutlined,
+  DownOutlined,
+  RightOutlined,
 } from '@ant-design/icons';
 
 interface MainLayoutProps {
   children: React.ReactNode;
 }
 
-// 侧边栏菜单项
+// 侧边栏菜单项（支持子菜单）
 const menuItems = [
   { key: '/dashboard', icon: <HomeOutlined />, label: '工作台', path: '/dashboard' },
-  { key: '/projects', icon: <ProjectOutlined />, label: '项目', path: '/projects' },
+  {
+    key: '/projects',
+    icon: <ProjectOutlined />,
+    label: '项目',
+    path: '/projects',
+    children: [
+      { key: '/projects', icon: null, label: '项目列表', path: '/projects' },
+      { key: '/projects/services', icon: null, label: '服务', path: '/projects/services' },
+    ]
+  },
   { key: '/stories', icon: <FileTextOutlined />, label: '用户故事', path: '/stories' },
   { key: '/tasks', icon: <CheckCircleOutlined />, label: '任务看板', path: '/tasks' },
   { key: '/messages', icon: <BellOutlined />, label: '消息', path: '/messages' },
@@ -40,6 +52,14 @@ export const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
   const pathname = usePathname();
   const { user, logout } = useAuth();
   const [drawerOpen, setDrawerOpen] = useState(false);
+  const [expandedMenus, setExpandedMenus] = useState<string[]>(['/projects']);
+
+  // 切换子菜单展开状态
+  const toggleMenu = (key: string) => {
+    setExpandedMenus(prev =>
+      prev.includes(key) ? prev.filter(k => k !== key) : [...prev, key]
+    );
+  };
 
   // 用户菜单
   const userMenuItems: MenuProps['items'] = [
@@ -110,6 +130,58 @@ export const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
         <nav className="flex-1 p-3 space-y-0.5 overflow-y-auto">
           {menuItems.map((item) => {
             const isActive = activeKey === item.key || (item.key !== '/dashboard' && activeKey.startsWith(item.key));
+            const hasChildren = item.children && item.children.length > 0;
+            const isExpanded = expandedMenus.includes(item.key);
+
+            if (hasChildren) {
+              return (
+                <div key={item.key}>
+                  <div
+                    className={`flex items-center gap-3 px-3 py-2.5 rounded-xl transition-all duration-200 group relative cursor-pointer ${
+                      isActive
+                        ? 'bg-orange-500/10 text-orange-400'
+                        : 'text-gray-400 hover:text-white hover:bg-white/5'
+                    }`}
+                    onClick={() => toggleMenu(item.key)}
+                  >
+                    <span
+                      className={`absolute left-0 top-1/2 -translate-y-1/2 w-0.5 h-6 rounded-r-full transition-all duration-200 ${
+                        isActive ? 'bg-orange-500' : 'bg-transparent group-hover:bg-orange-500/50'
+                      }`}
+                    />
+                    <span className={`text-lg ${isActive ? 'text-orange-400' : 'text-gray-400 group-hover:text-white'}`}>
+                      {item.icon}
+                    </span>
+                    <span className="font-medium text-sm flex-1">{item.label}</span>
+                    <span className="text-xs">
+                      {isExpanded ? <DownOutlined /> : <RightOutlined />}
+                    </span>
+                  </div>
+                  {isExpanded && (
+                    <div className="ml-4 mt-0.5 space-y-0.5">
+                      {item.children?.map((child) => {
+                        const isChildActive = activeKey === child.key || activeKey.startsWith(child.key);
+                        return (
+                          <Link
+                            key={child.key}
+                            href={child.path}
+                            className={`flex items-center gap-3 px-3 py-2 rounded-lg transition-all duration-200 ${
+                              isChildActive
+                                ? 'bg-orange-500/10 text-orange-400'
+                                : 'text-gray-400 hover:text-white hover:bg-white/5'
+                            }`}
+                          >
+                            {child.icon && <span className="text-base">{child.icon}</span>}
+                            <span className="font-medium text-sm">{child.label}</span>
+                          </Link>
+                        );
+                      })}
+                    </div>
+                  )}
+                </div>
+              );
+            }
+
             return (
               <Link
                 key={item.key}
@@ -178,6 +250,52 @@ export const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
           <nav className="flex-1 p-3 space-y-0.5 overflow-y-auto">
             {menuItems.map((item) => {
               const isActive = activeKey === item.key || (item.key !== '/dashboard' && activeKey.startsWith(item.key));
+              const hasChildren = item.children && item.children.length > 0;
+              const isExpanded = expandedMenus.includes(item.key);
+
+              if (hasChildren) {
+                return (
+                  <div key={item.key}>
+                    <div
+                      className={`flex items-center gap-3 px-3 py-2.5 rounded-xl transition-all duration-200 group relative cursor-pointer ${
+                        isActive
+                          ? 'bg-orange-500/10 text-orange-400'
+                          : 'text-gray-400 hover:text-white hover:bg-white/5'
+                      }`}
+                      onClick={() => toggleMenu(item.key)}
+                    >
+                      <span className="text-lg">{item.icon}</span>
+                      <span className="font-medium flex-1">{item.label}</span>
+                      <span className="text-xs">
+                        {isExpanded ? <DownOutlined /> : <RightOutlined />}
+                      </span>
+                    </div>
+                    {isExpanded && (
+                      <div className="ml-4 mt-0.5 space-y-0.5">
+                        {item.children?.map((child) => {
+                          const isChildActive = activeKey === child.key || activeKey.startsWith(child.key);
+                          return (
+                            <Link
+                              key={child.key}
+                              href={child.path}
+                              onClick={() => setDrawerOpen(false)}
+                              className={`flex items-center gap-3 px-3 py-2 rounded-lg transition-all ${
+                                isChildActive
+                                  ? 'bg-orange-500/10 text-orange-400'
+                                  : 'text-gray-400 hover:text-white hover:bg-white/5'
+                              }`}
+                            >
+                              {child.icon && <span className="text-base">{child.icon}</span>}
+                              <span className="font-medium">{child.label}</span>
+                            </Link>
+                          );
+                        })}
+                      </div>
+                    )}
+                  </div>
+                );
+              }
+
               return (
                 <Link
                   key={item.key}
