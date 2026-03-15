@@ -1,5 +1,6 @@
 package com.projecthub.module.issue.entity;
 
+import com.projecthub.common.constant.TaskStatus;
 import jakarta.persistence.*;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -50,7 +51,7 @@ public class Issue {
   @Enumerated(EnumType.STRING)
   @JdbcTypeCode(SqlTypes.VARCHAR)
   @Column(nullable = false, length = 20)
-  private IssueStatus status = IssueStatus.NEW;
+  private TaskStatus status = TaskStatus.TODO;
 
   @Column(name = "assignee_id")
   private Long assigneeId;
@@ -89,14 +90,5 @@ public class Issue {
     NORMAL,
     HIGH,
     CRITICAL
-  }
-
-  /** 问题状态枚举 */
-  public enum IssueStatus {
-    NEW,
-    IN_PROGRESS,
-    RESOLVED,
-    CLOSED,
-    REOPENED
   }
 }

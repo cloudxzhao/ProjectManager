@@ -1,5 +1,6 @@
 package com.projecthub.module.task.entity;
 
+import com.projecthub.common.constant.TaskStatus;
 import jakarta.persistence.*;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -77,13 +78,6 @@ public class Task {
 
   @Column(name = "deleted_at")
   private LocalDateTime deletedAt;
-
-  public enum TaskStatus {
-    TODO,
-    IN_PROGRESS,
-    IN_REVIEW,
-    DONE
-  }
 
   public enum Priority {
     LOW,

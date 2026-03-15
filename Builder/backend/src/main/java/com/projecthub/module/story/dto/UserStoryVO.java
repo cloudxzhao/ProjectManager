@@ -46,6 +46,12 @@ public class UserStoryVO {
   /** 负责人姓名 */
   private String assigneeName;
 
+  /** 服务 ID */
+  private Long serviceId;
+
+  /** 服务名称 */
+  private String serviceName;
+
   /** 状态 */
   private String status;
 
@@ -85,6 +91,9 @@ public class UserStoryVO {
 
     /** 负责人 ID */
     private Long assigneeId;
+
+    /** 服务 ID */
+    private Long serviceId;
   }
 
   /** 更新用户故事请求 */
@@ -114,6 +123,9 @@ public class UserStoryVO {
     /** 负责人 ID */
     private Long assigneeId;
 
+    /** 服务 ID */
+    private Long serviceId;
+
     /** 状态 */
     private String status;
   }
@@ -138,6 +150,9 @@ public class UserStoryVO {
 
     /** 关键字 */
     private String keyword;
+
+    /** 服务 ID */
+    private Long serviceId;
 
     /** 项目 ID 列表（可选，为空时查询所有项目） */
     private List<Long> projectIds;

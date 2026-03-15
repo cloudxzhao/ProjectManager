@@ -1,5 +1,6 @@
 package com.projecthub.module.task.repository;
 
+import com.projecthub.common.constant.TaskStatus;
 import com.projecthub.module.task.entity.Task;
 import java.util.List;
 import org.springframework.data.domain.Page;
@@ -37,7 +38,7 @@ public interface TaskRepository extends JpaRepository<Task, Long>, JpaSpecificat
       "SELECT t FROM Task t WHERE t.projectId = :projectId AND t.status = :status AND t.deletedAt IS NULL "
           + "ORDER BY t.position ASC")
   List<Task> findByProjectIdAndStatus(
-      @Param("projectId") Long projectId, @Param("status") Task.TaskStatus status);
+      @Param("projectId") Long projectId, @Param("status") TaskStatus status);
 
   /** 统计项目下的任务数量 */
   @Query("SELECT COUNT(t) FROM Task t WHERE t.projectId = :projectId AND t.deletedAt IS NULL")
@@ -59,7 +60,7 @@ public interface TaskRepository extends JpaRepository<Task, Long>, JpaSpecificat
   /** 统计父任务下已完成的子任务数量 */
   @Query(
       "SELECT COUNT(t) FROM Task t WHERE t.parentId = :parentId "
-          + "AND t.status = com.projecthub.module.task.entity.Task$TaskStatus.DONE "
+          + "AND t.status = com.projecthub.common.constant.TaskStatus.DONE "
           + "AND t.deletedAt IS NULL")
   Long countCompletedSubTasksByParentId(@Param("parentId") Long parentId);
 }

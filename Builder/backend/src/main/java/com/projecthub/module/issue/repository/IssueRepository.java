@@ -1,5 +1,6 @@
 package com.projecthub.module.issue.repository;
 
+import com.projecthub.common.constant.TaskStatus;
 import com.projecthub.module.issue.entity.Issue;
 import java.util.List;
 import org.springframework.data.domain.Page;
@@ -29,7 +30,7 @@ public interface IssueRepository
   @Query(
       "SELECT i FROM Issue i WHERE i.projectId = :projectId AND i.status = :status AND i.deletedAt IS NULL ORDER BY i.createdAt DESC")
   List<Issue> findByProjectIdAndStatus(
-      @Param("projectId") Long projectId, @Param("status") Issue.IssueStatus status);
+      @Param("projectId") Long projectId, @Param("status") TaskStatus status);
 
   /** 统计项目下的问题数量 */
   @Query("SELECT COUNT(i) FROM Issue i WHERE i.projectId = :projectId AND i.deletedAt IS NULL")
@@ -39,5 +40,5 @@ public interface IssueRepository
   @Query(
       "SELECT COUNT(i) FROM Issue i WHERE i.projectId = :projectId AND i.status = :status AND i.deletedAt IS NULL")
   Long countByProjectIdAndStatus(
-      @Param("projectId") Long projectId, @Param("status") Issue.IssueStatus status);
+      @Param("projectId") Long projectId, @Param("status") TaskStatus status);
 }

@@ -1,6 +1,7 @@
 package com.projecthub.module.task.service;
 
 import com.projecthub.common.constant.ErrorCode;
+import com.projecthub.common.constant.TaskStatus;
 import com.projecthub.common.exception.BusinessException;
 import com.projecthub.common.response.PageResult;
 import com.projecthub.common.util.BeanCopyUtil;
@@ -57,9 +58,7 @@ public class TaskService {
     task.setTitle(request.getTitle());
     task.setDescription(request.getDescription());
     task.setStatus(
-        request.getStatus() != null
-            ? Task.TaskStatus.valueOf(request.getStatus())
-            : Task.TaskStatus.TODO);
+        request.getStatus() != null ? TaskStatus.valueOf(request.getStatus()) : TaskStatus.TODO);
     task.setPriority(
         request.getPriority() != null
             ? Task.Priority.valueOf(request.getPriority())
@@ -120,7 +119,7 @@ public class TaskService {
       task.setDescription(request.getDescription());
     }
     if (request.getStatus() != null) {
-      task.setStatus(Task.TaskStatus.valueOf(request.getStatus()));
+      task.setStatus(TaskStatus.valueOf(request.getStatus()));
     }
     if (request.getPriority() != null) {
       task.setPriority(Task.Priority.valueOf(request.getPriority()));
@@ -179,7 +178,7 @@ public class TaskService {
 
     // 更新状态
     if (request.getStatus() != null) {
-      task.setStatus(Task.TaskStatus.valueOf(request.getStatus()));
+      task.setStatus(TaskStatus.valueOf(request.getStatus()));
     }
 
     // 更新位置
@@ -213,8 +212,7 @@ public class TaskService {
 
           // 状态筛选
           if (filter != null && filter.getStatus() != null) {
-            predicates.add(
-                cb.equal(root.get("status"), Task.TaskStatus.valueOf(filter.getStatus())));
+            predicates.add(cb.equal(root.get("status"), TaskStatus.valueOf(filter.getStatus())));
           }
 
           // 优先级筛选
@@ -368,7 +366,7 @@ public class TaskService {
       jakarta.persistence.criteria.Root<Task> root) {
     // 状态筛选
     if (filter != null && filter.getStatus() != null) {
-      predicates.add(cb.equal(root.get("status"), Task.TaskStatus.valueOf(filter.getStatus())));
+      predicates.add(cb.equal(root.get("status"), TaskStatus.valueOf(filter.getStatus())));
     }
 
     // 优先级筛选
@@ -429,10 +427,10 @@ public class TaskService {
     checkTaskPermission(task.getProjectId(), "TASK_EDIT");
 
     // 切换状态：如果当前是 DONE，则改为 TODO，否则改为 DONE
-    if (task.getStatus() == Task.TaskStatus.DONE) {
-      task.setStatus(Task.TaskStatus.TODO);
+    if (task.getStatus() == TaskStatus.DONE) {
+      task.setStatus(TaskStatus.TODO);
     } else {
-      task.setStatus(Task.TaskStatus.DONE);
+      task.setStatus(TaskStatus.DONE);
     }
 
     taskRepository.save(task);

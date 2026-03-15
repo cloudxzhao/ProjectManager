@@ -1,5 +1,6 @@
 package com.projecthub.module.report.service;
 
+import com.projecthub.common.constant.TaskStatus;
 import com.projecthub.common.exception.BusinessException;
 import com.projecthub.module.project.entity.Project;
 import com.projecthub.module.project.repository.ProjectRepository;
@@ -107,7 +108,7 @@ public class ReportService {
   /** 计算指定日期结束后的剩余故事点 */
   private Integer calculateRemainingPoints(Long projectId, LocalDate date) {
     List<Task> tasks =
-        taskRepository.findByProjectIdAndStatus(projectId, Task.TaskStatus.DONE).stream()
+        taskRepository.findByProjectIdAndStatus(projectId, TaskStatus.DONE).stream()
             .filter(task -> task.getStoryPoints() != null)
             .filter(task -> !task.getUpdatedAt().toLocalDate().isAfter(date))
             .toList();
@@ -118,7 +119,7 @@ public class ReportService {
   /** 计算当天完成的故事点 */
   private Integer calculateCompletedPoints(Long projectId, LocalDate date) {
     List<Task> tasks =
-        taskRepository.findByProjectIdAndStatus(projectId, Task.TaskStatus.DONE).stream()
+        taskRepository.findByProjectIdAndStatus(projectId, TaskStatus.DONE).stream()
             .filter(task -> task.getStoryPoints() != null)
             .filter(task -> task.getUpdatedAt().toLocalDate().equals(date))
             .toList();

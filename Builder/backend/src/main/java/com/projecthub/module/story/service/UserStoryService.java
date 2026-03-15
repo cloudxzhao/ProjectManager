@@ -1,5 +1,6 @@
 package com.projecthub.module.story.service;
 
+import com.projecthub.common.constant.TaskStatus;
 import com.projecthub.common.exception.BusinessException;
 import com.projecthub.common.response.PageResult;
 import com.projecthub.common.util.BeanCopyUtil;
@@ -62,7 +63,7 @@ public class UserStoryService {
             .epicId(request.getEpicId())
             .title(request.getTitle())
             .description(request.getDescription())
-            .status(UserStory.TaskStatus.TODO)
+            .status(TaskStatus.TODO)
             .acceptanceCriteria(request.getAcceptanceCriteria())
             .priority(getPriorityFromString(request.getPriority()))
             .storyPoints(request.getStoryPoints())
@@ -89,12 +90,12 @@ public class UserStoryService {
   }
 
   /** 从字符串获取任务状态，处理 null 和空字符串情况 */
-  private UserStory.TaskStatus getTaskStatusFromString(String status) {
+  private TaskStatus getTaskStatusFromString(String status) {
     if (status == null || status.trim().isEmpty()) {
-      return UserStory.TaskStatus.TODO;
+      return TaskStatus.TODO;
     }
     try {
-      return UserStory.TaskStatus.valueOf(status);
+      return TaskStatus.valueOf(status);
     } catch (IllegalArgumentException e) {
       throw new BusinessException(400, "无效的状态：" + status);
     }
@@ -204,8 +205,7 @@ public class UserStoryService {
 
     // 状态筛选
     if (filter != null && filter.getStatus() != null) {
-      predicates.add(
-          cb.equal(root.get("status"), UserStory.TaskStatus.valueOf(filter.getStatus())));
+      predicates.add(cb.equal(root.get("status"), TaskStatus.valueOf(filter.getStatus())));
     }
 
     // 优先级筛选

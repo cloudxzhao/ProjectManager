@@ -1,6 +1,7 @@
 package com.projecthub.module.issue.service;
 
 import com.projecthub.common.constant.ErrorCode;
+import com.projecthub.common.constant.TaskStatus;
 import com.projecthub.common.exception.BusinessException;
 import com.projecthub.common.response.PageResult;
 import com.projecthub.common.util.BeanCopyUtil;
@@ -55,7 +56,7 @@ public class IssueService {
             .description(request.getDescription())
             .type(parseIssueType(request.getType()))
             .severity(parseSeverity(request.getSeverity()))
-            .status(Issue.IssueStatus.NEW)
+            .status(TaskStatus.TODO)
             .assigneeId(request.getAssigneeId())
             .reporterId(userId)
             .foundDate(request.getFoundDate() != null ? request.getFoundDate() : LocalDate.now())
@@ -128,8 +129,7 @@ public class IssueService {
 
           // 状态筛选
           if (filter != null && filter.getStatus() != null) {
-            predicates.add(
-                cb.equal(root.get("status"), Issue.IssueStatus.valueOf(filter.getStatus())));
+            predicates.add(cb.equal(root.get("status"), TaskStatus.valueOf(filter.getStatus())));
           }
 
           // 负责人筛选
@@ -182,7 +182,7 @@ public class IssueService {
       issue.setSeverity(Issue.Severity.valueOf(request.getSeverity()));
     }
     if (request.getStatus() != null) {
-      issue.setStatus(Issue.IssueStatus.valueOf(request.getStatus()));
+      issue.setStatus(TaskStatus.valueOf(request.getStatus()));
     }
     if (request.getAssigneeId() != null) {
       issue.setAssigneeId(request.getAssigneeId());
