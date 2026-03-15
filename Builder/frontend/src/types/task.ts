@@ -54,6 +54,7 @@ export interface UpdateTaskDto {
   tags?: string[];
   order?: number;
   userStoryId?: number;
+  parentId?: number;  // 关联父任务 ID
 }
 
 export interface SubTask {
