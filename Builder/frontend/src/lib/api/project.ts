@@ -242,6 +242,20 @@ export const addProjectMember = async (
 };
 
 /**
+ * 更新项目成员角色
+ * @param projectId 项目 ID
+ * @param userId 用户 ID
+ * @param role 新角色
+ */
+export const updateProjectMemberRole = async (
+  projectId: number,
+  userId: number,
+  role: MemberRole
+) => {
+  return api.put<void>(endpoints.project.updateMemberRole(projectId, userId), { role });
+};
+
+/**
  * 移除项目成员
  * @param projectId 项目 ID
  * @param userId 用户 ID

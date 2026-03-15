@@ -99,7 +99,7 @@ export default function SettingsPage() {
       if (userProfile) {
         const updatedProfile = { ...userProfile, ...values };
         setUserProfile(updatedProfile);
-        updateUser(updatedProfile);
+        updateUser(updatedProfile as any); // 类型断言，因为后端返回的 role 是字符串
       }
 
       message.success('个人资料更新成功');
@@ -189,7 +189,7 @@ export default function SettingsPage() {
                         // 更新用户信息 - result.data 是 Result<{ avatar: string }>，所以 avatar 数据在 result.data.data.avatar
                         const updatedProfile = { ...userProfile, avatar: result.data.data.avatar } as User;
                         setUserProfile(updatedProfile);
-                        updateUser(updatedProfile);
+                        updateUser(updatedProfile as any);
                       }
                     } catch (error) {
                       console.error('头像上传失败:', error);

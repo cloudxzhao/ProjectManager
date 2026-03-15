@@ -79,7 +79,7 @@ export interface ProjectMember {
   user: User;  // 后端返回的完整用户信息
 }
 
-export type MemberRole = 'owner' | 'admin' | 'manager' | 'member';
+export type MemberRole = 'OWNER' | 'ADMIN' | 'MANAGER' | 'MEMBER';
 
 /** 项目统计信息 */
 export interface ProjectStats {

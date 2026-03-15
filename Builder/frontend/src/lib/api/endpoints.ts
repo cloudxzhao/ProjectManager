@@ -16,6 +16,8 @@ export const endpoints = {
     profile: '/user/profile',
     update: '/user/profile',
     avatar: '/user/avatar',
+    password: '/user/password',
+    search: '/user/search',  // 搜索用户
   },
 
   // 项目相关
@@ -29,6 +31,7 @@ export const endpoints = {
     delete: (id: number) => `/projects/${id}`,
     members: (id: number) => `/projects/${id}/members`,
     addMember: (id: number) => `/projects/${id}/members`,
+    updateMemberRole: (projectId: number, userId: number) => `/projects/${projectId}/members/${userId}/role`,
     // 注意：removeMember 的 projectId 参数对应后端路径参数 {id}
     removeMember: (projectId: number, userId: number) => `/projects/${projectId}/members/${userId}`,
     stats: '/projects/stats',

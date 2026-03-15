@@ -7,12 +7,15 @@ import { endpoints } from './endpoints';
 export interface User {
   id: number;
   username: string;
+  nickname?: string;
   email: string;
   phone?: string;
   avatar?: string;
   bio?: string;
   company?: string;
   location?: string;
+  role?: string;
+  status?: string;
   createdAt: string;
   updatedAt?: string;
 }
@@ -20,16 +23,32 @@ export interface User {
 /** 更新用户资料 DTO */
 export interface UpdateProfileDto {
   username?: string;
+  nickname?: string;
   bio?: string;
   company?: string;
   location?: string;
+  avatar?: string;
 }
 
 /** 修改密码 DTO */
 export interface ChangePasswordDto {
-  currentPassword: string;
+  currentPassword?: string;
+  oldPassword?: string;
   newPassword: string;
 }
+
+/**
+ * 搜索用户（根据用户名、昵称或邮箱）
+ * @param keyword 搜索关键词
+ */
+export const searchUsers = async (keyword?: string) => {
+  const params = new URLSearchParams();
+  if (keyword) {
+    params.append('keyword', keyword);
+  }
+  const result = await api.get<User[]>(endpoints.user.search, { params });
+  return result.data.data;
+};
 
 /**
  * 获取用户 profile
@@ -53,7 +72,7 @@ export const updateProfile = async (data: UpdateProfileDto) => {
  * @param formData 包含头像文件的 FormData
  */
 export const uploadAvatar = async (formData: FormData) => {
-  const result = await api.put<{ avatar: string }>(endpoints.user.avatar, formData, {
+  const result = await api.post<{ avatar: string }>(endpoints.user.avatar, formData, {
     headers: {
       'Content-Type': 'multipart/form-data',
     },
@@ -66,5 +85,5 @@ export const uploadAvatar = async (formData: FormData) => {
  * @param data 密码数据
  */
 export const changePassword = async (data: ChangePasswordDto) => {
-  return api.put<void>('/user/password', data);
+  return api.put<void>(endpoints.user.password, data);
 };
