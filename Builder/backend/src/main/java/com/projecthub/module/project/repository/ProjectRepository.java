@@ -44,7 +44,7 @@ public interface ProjectRepository
   /** 统计项目已完成任务数量 */
   @Query(
       "SELECT COUNT(t) FROM Task t WHERE t.projectId = :projectId "
-          + "AND t.status = com.projecthub.module.task.entity.Task$TaskStatus.DONE "
+          + "AND t.status = 'DONE' "
           + "AND t.deletedAt IS NULL")
   Long countCompletedTasksByProjectId(@Param("projectId") Long projectId);
 
