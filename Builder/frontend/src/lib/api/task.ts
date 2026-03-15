@@ -26,6 +26,8 @@ interface TaskResponse {
   commentCount: number;
   userStoryId?: number | string;
   userStoryTitle?: string;
+  epicId?: number | string;
+  epicTitle?: string;
   createdAt: string;
   updatedAt?: string;
 }
@@ -90,6 +92,8 @@ const mapTaskResponse = (response: TaskResponse, columnId?: string): Task => {
     commentCount: response.commentCount || 0,
     userStoryId: response.userStoryId ? (typeof response.userStoryId === 'string' ? parseInt(response.userStoryId, 10) : response.userStoryId) : undefined,
     userStoryTitle: response.userStoryTitle,
+    epicId: response.epicId ? (typeof response.epicId === 'string' ? parseInt(response.epicId, 10) : response.epicId) : undefined,
+    epicTitle: response.epicTitle,
     createdAt: response.createdAt || '',
     updatedAt: response.updatedAt,
   };

@@ -419,28 +419,17 @@ export default function ProjectDetailPage() {
 
   // 按服务筛选任务
   const filteredTasks = selectedEpicId
-    ? tasks.filter((task) => {
-        // 如果任务有关联的 userStoryId，检查该故事是否属于选中的 Epic
-        // 注意：当前后端任务数据中没有 epicId 字段，暂时显示所有任务
-        // 待后端添加 epicId 字段后实现真正的筛选
-        return true;
-      })
+    ? tasks.filter((task) => task.epicId === selectedEpicId)
     : tasks;
 
   // 按服务筛选用户故事（如果后端支持故事与 Epic 关联）
   const filteredStories = selectedEpicId
-    ? stories.filter((story) => {
-        // 当前后端故事数据中没有 epicId 字段，暂时显示所有故事
-        return true;
-      })
+    ? stories.filter((story) => (story as any).epicId === selectedEpicId)
     : stories;
 
   // 按服务筛选问题（如果后端支持问题与 Epic 关联）
   const filteredIssues = selectedEpicId
-    ? issues.filter((issue) => {
-        // 当前后端问题数据中没有 epicId 字段，暂时显示所有问题
-        return true;
-      })
+    ? issues.filter((issue) => (issue as any).epicId === selectedEpicId)
     : issues;
 
   // 计算进度百分比

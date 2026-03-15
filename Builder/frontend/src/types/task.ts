@@ -20,6 +20,8 @@ export interface Task {
   commentCount: number;
   userStoryId?: number;
   userStoryTitle?: string;
+  epicId?: number;
+  epicTitle?: string;
   createdAt: string;
   updatedAt?: string;
 }
