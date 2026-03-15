@@ -1,5 +1,6 @@
 package com.projecthub.module.project.controller;
 
+import com.projecthub.common.aspect.RequirePermission;
 import com.projecthub.common.response.PageResult;
 import com.projecthub.common.response.Result;
 import com.projecthub.module.project.dto.CreateProjectRequest;
@@ -27,6 +28,7 @@ public class ProjectController {
 
   /** 创建项目 */
   @PostMapping
+  @RequirePermission(value = "PROJECT_CREATE", projectIdParam = "")
   @Operation(summary = "创建项目", description = "创建一个新的项目")
   public Result<ProjectVO> createProject(@Valid @RequestBody CreateProjectRequest request) {
     ProjectVO project = projectService.createProject(request);

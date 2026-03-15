@@ -46,7 +46,18 @@ public class PermissionAspect {
     // 获取项目 ID (从参数中)
     Long projectId = extractProjectId(joinPoint, requirePermission.projectIdParam());
 
-    // 校验权限
+    // 如果 projectIdParam 为空字符串，表示只需要全局权限校验
+    if (projectId == null && "".equals(requirePermission.projectIdParam())) {
+      // 只校验全局权限
+      if (!permissionService.hasGlobalPermission(userId, permissionCode)) {
+        log.warn("全局权限不足：userId={}, permission={}", userId, permissionCode);
+        throw new BusinessException(403, "权限不足");
+      }
+      log.debug("全局权限校验通过：userId={}, permission={}", userId, permissionCode);
+      return joinPoint.proceed();
+    }
+
+    // 项目级权限校验
     if (projectId != null && !permissionService.hasPermission(userId, projectId, permissionCode)) {
       log.warn("权限不足：userId={}, projectId={}, permission={}", userId, projectId, permissionCode);
       throw new BusinessException(403, "权限不足");
