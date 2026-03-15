@@ -27,6 +27,8 @@ import {
   EyeOutlined,
   RightOutlined,
   DownOutlined,
+  FilterOutlined,
+  ClearOutlined,
 } from '@ant-design/icons';
 import Link from 'next/link';
 import dayjs from 'dayjs';
@@ -36,6 +38,7 @@ import { getStories, getStory, updateStory, deleteStory, createStory, CreateUser
 import { getIssues, getIssue, updateIssue, deleteIssue, createIssue, CreateIssueDto } from '@/lib/api/issue';
 import { getWikiTree, createWiki, CreateWikiDto } from '@/lib/api/wiki';
 import { getBurndown } from '@/lib/api/report';
+import { getEpics, Epic } from '@/lib/api/epic';
 import type { Project, ProjectStatus, ProjectMemberResponse } from '@/lib/api/project';
 import type { Task } from '@/lib/api/task';
 import type { UserStory } from '@/lib/api/story';
@@ -216,6 +219,11 @@ export default function ProjectDetailPage() {
   const [storyTasks, setStoryTasks] = useState<Map<number, Task[]>>(new Map());
   const [expandedRowKeys, setExpandedRowKeys] = useState<React.Key[]>([]);
 
+  // 服务（Epic）筛选相关状态
+  const [epics, setEpics] = useState<Epic[]>([]);
+  const [selectedEpicId, setSelectedEpicId] = useState<number | undefined>(undefined);
+  const [epicsLoading, setEpicsLoading] = useState(false);
+
   // 获取项目详情
   const fetchProject = async () => {
     setFetchLoading(true);
@@ -223,6 +231,9 @@ export default function ProjectDetailPage() {
       const projectData = await getProject(Number(projectId));
       setProject(projectData);
       setSelectedIcon(projectData.icon || '🛒');
+
+      // 获取服务（Epic）列表用于筛选
+      await fetchEpics(Number(projectId));
 
       // 获取任务列表
       const tasksResult = await getTasks(Number(projectId));
@@ -257,6 +268,20 @@ export default function ProjectDetailPage() {
       fetchProject();
     }
   }, [projectId]);
+
+  // 获取服务（Epic）列表
+  const fetchEpics = async (projectIdNum: number) => {
+    setEpicsLoading(true);
+    try {
+      const data = await getEpics(projectIdNum);
+      setEpics(data);
+    } catch (error: unknown) {
+      const errorMessage = error instanceof Error ? error.message : '获取服务列表失败';
+      message.error(errorMessage);
+    } finally {
+      setEpicsLoading(false);
+    }
+  };
 
   // 获取 Wiki 树
   const fetchWikiTree = async (projectIdNum: number) => {
@@ -386,6 +411,37 @@ export default function ProjectDetailPage() {
     setStoriesPage(page);
     fetchStories(Number(projectId), page);
   };
+
+  // 清除服务筛选
+  const clearEpicFilter = () => {
+    setSelectedEpicId(undefined);
+  };
+
+  // 按服务筛选任务
+  const filteredTasks = selectedEpicId
+    ? tasks.filter((task) => {
+        // 如果任务有关联的 userStoryId，检查该故事是否属于选中的 Epic
+        // 注意：当前后端任务数据中没有 epicId 字段，暂时显示所有任务
+        // 待后端添加 epicId 字段后实现真正的筛选
+        return true;
+      })
+    : tasks;
+
+  // 按服务筛选用户故事（如果后端支持故事与 Epic 关联）
+  const filteredStories = selectedEpicId
+    ? stories.filter((story) => {
+        // 当前后端故事数据中没有 epicId 字段，暂时显示所有故事
+        return true;
+      })
+    : stories;
+
+  // 按服务筛选问题（如果后端支持问题与 Epic 关联）
+  const filteredIssues = selectedEpicId
+    ? issues.filter((issue) => {
+        // 当前后端问题数据中没有 epicId 字段，暂时显示所有问题
+        return true;
+      })
+    : issues;
 
   // 计算进度百分比
   const calculateProgress = () => {
@@ -931,7 +987,7 @@ export default function ProjectDetailPage() {
           ) : stories.length > 0 ? (
             <>
               <Table<UserStory>
-                dataSource={stories}
+                dataSource={filteredStories}
                 rowKey="id"
                 pagination={{
                   current: storiesPage,
@@ -1152,7 +1208,7 @@ export default function ProjectDetailPage() {
       children: (
         <div className="space-y-4">
           <Table<Task>
-            dataSource={tasks}
+            dataSource={filteredTasks}
             rowKey="id"
             pagination={false}
             className="tasks-table"
@@ -1275,7 +1331,7 @@ export default function ProjectDetailPage() {
       children: (
         <div className="space-y-4">
           <Table<Issue>
-            dataSource={issues}
+            dataSource={filteredIssues}
             rowKey="id"
             pagination={false}
             className="issues-table"
@@ -1558,7 +1614,44 @@ export default function ProjectDetailPage() {
             </div>
           </div>
         </div>
-        <div className="project-actions" style={{ display: 'flex', gap: '0.75rem' }}>
+        <div className="project-actions" style={{ display: 'flex', gap: '0.75rem', flexDirection: 'column', alignItems: 'flex-end' }}>
+          {/* 服务筛选框 */}
+          <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.5rem' }}>
+            <FilterOutlined className="text-gray-400" />
+            <span className="text-gray-300 text-sm font-medium">服务筛选：</span>
+            <Select
+              placeholder="全部服务"
+              value={selectedEpicId}
+              onChange={setSelectedEpicId}
+              allowClear
+              className="w-48"
+              size="small"
+              loading={epicsLoading}
+              options={epics.map((epic) => ({
+                value: epic.id,
+                label: (
+                  <div className="flex items-center gap-2">
+                    <div
+                      className="w-2 h-2 rounded-full"
+                      style={{ backgroundColor: epic.color || '#1890ff' }}
+                    />
+                    <span>{epic.title}</span>
+                  </div>
+                ),
+              }))}
+            />
+            {selectedEpicId && (
+              <Button
+                type="text"
+                size="small"
+                icon={<ClearOutlined />}
+                onClick={clearEpicFilter}
+                className="text-gray-400 hover:text-white"
+              >
+                清除
+              </Button>
+            )}
+          </div>
           <Dropdown menu={{ items: projectMenuItems }} trigger={['click']}>
             <Button
               size="large"

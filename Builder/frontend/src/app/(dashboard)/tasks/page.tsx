@@ -170,7 +170,7 @@ const SortableColumn: React.FC<SortableColumnProps> = ({ column, tasks, onTaskCl
   });
 
   return (
-    <div className="flex-shrink-0 w-80">
+    <div className="flex-1 min-w-[280px]">
       <div className="flex items-center justify-between mb-3 px-1">
         <div className="flex items-center gap-2">
           <div className="w-3 h-3 rounded-full" style={{ backgroundColor: column.color }} />
@@ -180,7 +180,7 @@ const SortableColumn: React.FC<SortableColumnProps> = ({ column, tasks, onTaskCl
       </div>
       <div
         ref={setNodeRef}
-        className="min-h-[500px] bg-gray-800/30 rounded-lg p-3"
+        className="min-h-[600px] bg-gray-800/30 rounded-lg p-3"
       >
         <SortableContext items={tasks.map((t) => t.id)} strategy={verticalListSortingStrategy}>
           {tasks.map((task) => (
@@ -440,8 +440,8 @@ export default function TaskBoardPage() {
           </div>
         </div>
 
-        {/* 筛选工具栏 */}
-        <div className="flex items-center gap-3 flex-wrap">
+        {/* 筛选工具栏 - 所有控件放在一行 */}
+        <div className="flex items-center gap-2">
           {/* 关键词搜索 */}
           <Input
             placeholder="搜索任务标题或描述..."
@@ -449,7 +449,7 @@ export default function TaskBoardPage() {
             value={searchKeyword}
             onChange={(e) => setSearchKeyword(e.target.value)}
             allowClear
-            className="w-64 bg-gray-800/50 border-gray-700 text-white placeholder-gray-500"
+            className="flex-1 min-w-[200px] bg-gray-800/50 border-gray-700 text-white placeholder-gray-500"
           />
 
           {/* 项目筛选（支持多选） */}
@@ -460,8 +460,8 @@ export default function TaskBoardPage() {
               setSelectedProjectIds(value);
               setSelectedAssigneeId(undefined);  // 清空责任人筛选
             }}
-            className="w-56"
-            placeholder="选择项目（可多选）"
+            className="w-48"
+            placeholder="选择项目"
             allowClear
             maxTagCount="responsive"
             dropdownClassName="bg-gray-800 border-gray-700"
@@ -475,12 +475,12 @@ export default function TaskBoardPage() {
 
           {/* 责任人筛选 */}
           <Select
-            placeholder="选择责任人"
+            placeholder="责任人"
             value={selectedAssigneeId}
             onChange={(value) => {
               setSelectedAssigneeId(value);
             }}
-            className="w-40 bg-gray-800/50 border-gray-700"
+            className="w-32 bg-gray-800/50 border-gray-700"
             allowClear
             showSearch
             filterOption={(input, option) =>
@@ -495,10 +495,10 @@ export default function TaskBoardPage() {
 
           {/* 状态筛选 */}
           <Select
-            placeholder="选择状态"
+            placeholder="状态"
             value={selectedStatus}
             onChange={setSelectedStatus}
-            className="w-32"
+            className="w-28"
             allowClear
             dropdownClassName="bg-gray-800 border-gray-700"
           >
@@ -510,10 +510,10 @@ export default function TaskBoardPage() {
 
           {/* 优先级筛选 */}
           <Select
-            placeholder="选择优先级"
+            placeholder="优先级"
             value={selectedPriority}
             onChange={setSelectedPriority}
-            className="w-32"
+            className="w-28"
             allowClear
             dropdownClassName="bg-gray-800 border-gray-700"
           >
@@ -535,7 +535,7 @@ export default function TaskBoardPage() {
           )}
 
           {/* 筛选结果统计 */}
-          <span className="text-gray-400 text-sm ml-auto">
+          <span className="text-gray-400 text-sm whitespace-nowrap">
             显示 <span className="text-orange-400 font-medium">{filteredTasks.length}</span> 个任务
           </span>
         </div>
