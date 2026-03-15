@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react';
 import { Card, Input, Select, Button, Avatar, Tag, Empty, Spin, Pagination, Modal, Form, Drawer, message, FormProps } from 'antd';
 import { FileTextOutlined, PlusOutlined, SearchOutlined, EditOutlined, DeleteOutlined, EyeOutlined } from '@ant-design/icons';
-import { searchStories, deleteStory, createStory, updateStory, type UserStory, type StoryStatus, type Priority, type CreateUserStoryDto, type UpdateUserStoryDto, statusTextMap, priorityTextMap, statusMap } from '@/lib/api/story';
+import { searchStories, deleteStory, createStory, updateStory, type UserStory, type StoryStatus, type Priority, type CreateUserStoryDto, type UpdateUserStoryDto, statusTextMap, priorityTextMap } from '@/lib/api/story';
 import { getAuthorizedProjects, getProjectMembers } from '@/lib/api/project';
 import { getEpics, type Epic } from '@/lib/api/epic';
 import type { Project } from '@/lib/api/project';
@@ -450,7 +450,7 @@ export default function StoriesPage() {
           title: values.title,
           description: values.description,
           acceptanceCriteria: values.acceptanceCriteria,
-          status: values.status ? statusMap[String(values.status)] || String(values.status) as StoryStatus : undefined,
+          status: values.status ? String(values.status).toUpperCase() as StoryStatus : undefined,
           priority: values.priority as Priority | undefined,
           assigneeId: values.assigneeId,
           storyPoints: values.storyPoints,

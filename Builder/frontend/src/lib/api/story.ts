@@ -37,15 +37,7 @@ export type StoryStatus = 'TODO' | 'IN_PROGRESS' | 'IN_REVIEW' | 'DONE';
 // 优先级枚举（与后端保持一致，使用大写）
 export type Priority = 'LOW' | 'MEDIUM' | 'HIGH' | 'URGENT';
 
-// 前端映射：小写转大写
-export const statusMap: Record<string, StoryStatus> = {
-  todo: 'TODO',
-  in_progress: 'IN_PROGRESS',
-  in_review: 'IN_REVIEW',
-  done: 'DONE',
-};
-
-// 前端映射：大写转小写（用于展示）
+// 状态文本映射（用于展示）
 export const statusTextMap: Record<StoryStatus, string> = {
   TODO: '待办',
   IN_PROGRESS: '开发中',
@@ -53,13 +45,7 @@ export const statusTextMap: Record<StoryStatus, string> = {
   DONE: '已完成',
 };
 
-export const priorityMap: Record<string, Priority> = {
-  low: 'LOW',
-  medium: 'MEDIUM',
-  high: 'HIGH',
-  urgent: 'URGENT',
-};
-
+// 优先级文本映射（用于展示）
 export const priorityTextMap: Record<Priority, string> = {
   LOW: '低',
   MEDIUM: '中',

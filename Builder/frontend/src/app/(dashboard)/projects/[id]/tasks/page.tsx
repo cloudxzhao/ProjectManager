@@ -37,15 +37,17 @@ interface TaskItem {
 }
 
 const priorityColors: Record<string, string> = {
-  high: 'red',
-  medium: 'orange',
-  low: 'green',
+  LOW: 'green',
+  MEDIUM: 'orange',
+  HIGH: 'red',
+  URGENT: 'red',
 };
 
 const priorityText: Record<string, string> = {
-  high: '高',
-  medium: '中',
-  low: '低',
+  LOW: '低',
+  MEDIUM: '中',
+  HIGH: '高',
+  URGENT: '紧急',
 };
 
 // 可排序的任务卡片组件

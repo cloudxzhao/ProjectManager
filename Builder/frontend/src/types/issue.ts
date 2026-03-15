@@ -19,9 +19,9 @@ export interface Issue {
   updatedAt?: string;
 }
 
-export type IssueType = 'bug' | 'feature' | 'improvement' | 'task';
+export type IssueType = 'BUG' | 'FEATURE' | 'IMPROVEMENT' | 'TASK';
 
-export type Severity = 'critical' | 'high' | 'medium' | 'low';
+export type Severity = 'LOW' | 'NORMAL' | 'HIGH' | 'CRITICAL';
 
 export type IssueStatus = 'TODO' | 'IN_PROGRESS' | 'IN_REVIEW' | 'DONE';
 

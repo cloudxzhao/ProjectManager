@@ -121,7 +121,7 @@ const TaskCard = ({ task }: { task: { id: string; title: string; priority: strin
 const IssueItem = ({ issue }: { issue: { id: string; title: string; type: string; severity: string; status: string; assignee?: string } }) => (
   <div className="issue-item">
     <div className={`issue-type-icon ${issue.type}`}>
-      {issue.type === 'bug' ? <BugOutlined /> : issue.type === 'feature' ? <CheckSquareOutlined /> : <CodeOutlined />}
+      {issue.type === 'BUG' ? <BugOutlined /> : issue.type === 'FEATURE' ? <CheckSquareOutlined /> : <CodeOutlined />}
     </div>
     <div className="issue-content">
       <div className="issue-header">
@@ -444,13 +444,9 @@ export default function ProjectDetailPage() {
     return dayjs(dateStr).format('YYYY-MM-DD');
   };
 
-  // 格式化故事状态（支持大写和小写）
+  // 格式化故事状态
   const getStoryStatusText = (status: string) => {
     const map: Record<string, string> = {
-      todo: '待办',
-      in_progress: '进行中',
-      in_review: '测试中',
-      done: '已完成',
       TODO: '待办',
       IN_PROGRESS: '进行中',
       IN_REVIEW: '测试中',
@@ -459,13 +455,9 @@ export default function ProjectDetailPage() {
     return map[status] || status;
   };
 
-  // 获取故事状态颜色（支持大写和小写）
+  // 获取故事状态颜色
   const getStoryStatusColor = (status: string) => {
     const map: Record<string, string> = {
-      todo: 'default',
-      in_progress: 'processing',
-      in_review: 'warning',
-      done: 'success',
       TODO: 'default',
       IN_PROGRESS: 'processing',
       IN_REVIEW: 'warning',
@@ -499,10 +491,10 @@ export default function ProjectDetailPage() {
   // 获取问题类型文本
   const getIssueTypeText = (type: string) => {
     const map: Record<string, string> = {
-      bug: '缺陷',
-      feature: '功能',
-      improvement: '改进',
-      task: '任务',
+      BUG: '缺陷',
+      FEATURE: '功能',
+      IMPROVEMENT: '改进',
+      TASK: '任务',
     };
     return map[type] || type;
   };
@@ -510,10 +502,10 @@ export default function ProjectDetailPage() {
   // 获取问题严重程度颜色
   const getIssueSeverityColor = (severity: string) => {
     const map: Record<string, string> = {
-      critical: 'red',
-      high: 'orange',
-      medium: 'blue',
-      low: 'gray',
+      CRITICAL: 'red',
+      HIGH: 'orange',
+      NORMAL: 'blue',
+      LOW: 'gray',
     };
     return map[severity] || 'gray';
   };
@@ -521,10 +513,10 @@ export default function ProjectDetailPage() {
   // 获取问题状态文本
   const getIssueStatusText = (status: string) => {
     const map: Record<string, string> = {
-      open: '打开',
-      in_progress: '进行中',
-      resolved: '已解决',
-      closed: '已关闭',
+      TODO: '打开',
+      IN_PROGRESS: '进行中',
+      IN_REVIEW: '测试中',
+      DONE: '已关闭',
     };
     return map[status] || status;
   };
@@ -2185,9 +2177,9 @@ export default function ProjectDetailPage() {
               </h3>
               <div className="flex items-center gap-2 mb-3">
                 <Tag color={
-                  selectedIssue.severity === 'critical' ? 'red' :
-                  selectedIssue.severity === 'high' ? 'orange' :
-                  selectedIssue.severity === 'medium' ? 'blue' : 'gray'
+                  selectedIssue.severity === 'CRITICAL' ? 'red' :
+                  selectedIssue.severity === 'HIGH' ? 'orange' :
+                  selectedIssue.severity === 'NORMAL' ? 'blue' : 'gray'
                 }>
                   {selectedIssue.severity}
                 </Tag>
@@ -2198,10 +2190,10 @@ export default function ProjectDetailPage() {
                   {selectedIssue.status === 'DONE' && '已关闭'}
                 </Tag>
                 <Tag color="default">
-                  {selectedIssue.type === 'bug' && '缺陷'}
-                  {selectedIssue.type === 'feature' && '功能'}
-                  {selectedIssue.type === 'improvement' && '改进'}
-                  {selectedIssue.type === 'task' && '任务'}
+                  {selectedIssue.type === 'BUG' && '缺陷'}
+                  {selectedIssue.type === 'FEATURE' && '功能'}
+                  {selectedIssue.type === 'IMPROVEMENT' && '改进'}
+                  {selectedIssue.type === 'TASK' && '任务'}
                 </Tag>
               </div>
             </div>
