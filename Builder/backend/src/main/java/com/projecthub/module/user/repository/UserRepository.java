@@ -40,4 +40,11 @@ public interface UserRepository extends JpaRepository<User, Long> {
   /** 根据用户 ID 列表查询用户 */
   @Query("SELECT u FROM User u WHERE u.id IN :userIds AND u.deletedAt IS NULL")
   List<com.projecthub.module.user.entity.User> findByIds(@Param("userIds") List<Long> userIds);
+
+  /** 查询用户的角色列表 */
+  @Query(
+      "SELECT r FROM SysRole r "
+          + "JOIN SysUserRole ur ON r.id = ur.roleId "
+          + "WHERE ur.userId = :userId")
+  List<com.projecthub.module.user.entity.SysRole> findRolesByUserId(@Param("userId") Long userId);
 }

@@ -64,7 +64,14 @@ public enum ErrorCode {
   WIKI_PERMISSION_DENIED(8002, "无 Wiki 访问权限", 403),
 
   // ========== 报表模块 9000-9999 ==========
-  REPORT_NOT_FOUND(9001, "报表不存在", 404);
+  REPORT_NOT_FOUND(9001, "报表不存在", 404),
+
+  // ========== 权限申请模块 6000-6999 ==========
+  PERMISSION_REQUEST_NOT_FOUND(6001, "权限申请记录不存在", 404),
+  PERMISSION_REQUEST_ALREADY_PROCESSED(6002, "该申请已被处理", 400),
+  PERMISSION_NOT_FOUND(6003, "权限不存在", 404),
+  PERMISSION_DENIED(6004, "无权限执行此操作", 403),
+  PERMISSION_REQUEST_INVALID_STATUS(6005, "申请状态无效", 400);
 
   private final Integer code;
   private final String message;
