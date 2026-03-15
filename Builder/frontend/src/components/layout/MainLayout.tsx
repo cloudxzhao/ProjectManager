@@ -37,9 +37,9 @@ const menuItems = [
     path: '/projects',
     children: [
       { key: '/projects', icon: null, label: '项目列表', path: '/projects' },
-      { key: '/projects/services', icon: null, label: '服务', path: '/projects/services' },
     ]
   },
+  { key: '/projects/services', icon: <AppstoreOutlined />, label: '服务', path: '/projects/services' },
   { key: '/stories', icon: <FileTextOutlined />, label: '用户故事', path: '/stories' },
   { key: '/tasks', icon: <CheckCircleOutlined />, label: '任务看板', path: '/tasks' },
   { key: '/messages', icon: <BellOutlined />, label: '消息', path: '/messages' },
