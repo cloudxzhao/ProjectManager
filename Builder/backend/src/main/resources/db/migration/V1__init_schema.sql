@@ -58,6 +58,18 @@ CREATE TABLE sys_user (
     CONSTRAINT chk_email_format CHECK (email ~* '^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}$')
 );
 
+-- 用户表注释
+COMMENT ON TABLE sys_user IS '系统用户表';
+COMMENT ON COLUMN sys_user.id IS '主键 ID';
+COMMENT ON COLUMN sys_user.username IS '用户名（2-20 字符）';
+COMMENT ON COLUMN sys_user.email IS '邮箱地址';
+COMMENT ON COLUMN sys_user.password IS '密码（BCrypt 加密）';
+COMMENT ON COLUMN sys_user.avatar IS '头像 URL';
+COMMENT ON COLUMN sys_user.status IS '用户状态：ACTIVE/INACTIVE/BANNED';
+COMMENT ON COLUMN sys_user.created_at IS '创建时间';
+COMMENT ON COLUMN sys_user.updated_at IS '更新时间';
+COMMENT ON COLUMN sys_user.deleted_at IS '删除时间（软删除）';
+
 -- 用户表索引
 CREATE INDEX idx_user_email ON sys_user(email);
 CREATE INDEX idx_user_username ON sys_user(username);
@@ -73,6 +85,14 @@ CREATE TABLE sys_role (
     created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
 );
 
+-- 角色表注释
+COMMENT ON TABLE sys_role IS '系统角色表';
+COMMENT ON COLUMN sys_role.id IS '主键 ID';
+COMMENT ON COLUMN sys_role.name IS '角色名称';
+COMMENT ON COLUMN sys_role.code IS '角色代码';
+COMMENT ON COLUMN sys_role.description IS '角色描述';
+COMMENT ON COLUMN sys_role.created_at IS '创建时间';
+
 -- 用户角色关联表
 CREATE TABLE sys_user_role (
     user_id BIGINT NOT NULL,
@@ -84,6 +104,12 @@ CREATE TABLE sys_user_role (
     CONSTRAINT fk_user_role_role FOREIGN KEY (role_id) REFERENCES sys_role(id) ON DELETE CASCADE
 );
 
+-- 用户角色关联表注释
+COMMENT ON TABLE sys_user_role IS '用户角色关联表';
+COMMENT ON COLUMN sys_user_role.user_id IS '用户 ID';
+COMMENT ON COLUMN sys_user_role.role_id IS '角色 ID';
+COMMENT ON COLUMN sys_user_role.created_at IS '创建时间';
+
 -- 权限表
 CREATE TABLE sys_permission (
     id BIGSERIAL PRIMARY KEY,
@@ -92,6 +118,14 @@ CREATE TABLE sys_permission (
     description VARCHAR(255),
     created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
 );
+
+-- 权限表注释
+COMMENT ON TABLE sys_permission IS '系统权限表';
+COMMENT ON COLUMN sys_permission.id IS '主键 ID';
+COMMENT ON COLUMN sys_permission.name IS '权限名称';
+COMMENT ON COLUMN sys_permission.code IS '权限代码';
+COMMENT ON COLUMN sys_permission.description IS '权限描述';
+COMMENT ON COLUMN sys_permission.created_at IS '创建时间';
 
 -- 角色权限关联表
 CREATE TABLE sys_role_permission (
@@ -102,6 +136,11 @@ CREATE TABLE sys_role_permission (
     CONSTRAINT fk_role_permission_role FOREIGN KEY (role_id) REFERENCES sys_role(id) ON DELETE CASCADE,
     CONSTRAINT fk_role_permission_permission FOREIGN KEY (permission_id) REFERENCES sys_permission(id) ON DELETE CASCADE
 );
+
+-- 角色权限关联表注释
+COMMENT ON TABLE sys_role_permission IS '角色权限关联表';
+COMMENT ON COLUMN sys_role_permission.role_id IS '角色 ID';
+COMMENT ON COLUMN sys_role_permission.permission_id IS '权限 ID';
 
 -- ============================================
 -- 项目模块
@@ -126,6 +165,21 @@ CREATE TABLE project (
     CONSTRAINT chk_project_dates CHECK (end_date >= start_date)
 );
 
+-- 项目表注释
+COMMENT ON TABLE project IS '项目表';
+COMMENT ON COLUMN project.id IS '主键 ID';
+COMMENT ON COLUMN project.name IS '项目名称';
+COMMENT ON COLUMN project.description IS '项目描述';
+COMMENT ON COLUMN project.start_date IS '开始日期';
+COMMENT ON COLUMN project.end_date IS '结束日期';
+COMMENT ON COLUMN project.owner_id IS '项目负责人 ID';
+COMMENT ON COLUMN project.status IS '项目状态：ACTIVE/COMPLETED/ARCHIVED';
+COMMENT ON COLUMN project.icon IS '项目图标';
+COMMENT ON COLUMN project.theme_color IS '主题颜色';
+COMMENT ON COLUMN project.created_at IS '创建时间';
+COMMENT ON COLUMN project.updated_at IS '更新时间';
+COMMENT ON COLUMN project.deleted_at IS '删除时间（软删除）';
+
 -- 项目表索引
 CREATE INDEX idx_project_owner ON project(owner_id);
 CREATE INDEX idx_project_status ON project(status);
@@ -144,6 +198,14 @@ CREATE TABLE project_member (
     CONSTRAINT fk_project_member_project FOREIGN KEY (project_id) REFERENCES project(id) ON DELETE CASCADE,
     CONSTRAINT fk_project_member_user FOREIGN KEY (user_id) REFERENCES sys_user(id) ON DELETE CASCADE
 );
+
+-- 项目成员表注释
+COMMENT ON TABLE project_member IS '项目成员表';
+COMMENT ON COLUMN project_member.id IS '主键 ID';
+COMMENT ON COLUMN project_member.project_id IS '项目 ID';
+COMMENT ON COLUMN project_member.user_id IS '用户 ID';
+COMMENT ON COLUMN project_member.role IS '角色：OWNER/MANAGER/MEMBER';
+COMMENT ON COLUMN project_member.joined_at IS '加入时间';
 
 -- 项目成员表索引
 CREATE INDEX idx_project_member_project ON project_member(project_id);
@@ -178,6 +240,24 @@ CREATE TABLE task (
     CONSTRAINT chk_story_points CHECK (story_points IS NULL OR story_points >= 0)
 );
 
+-- 任务表注释
+COMMENT ON TABLE task IS '任务表';
+COMMENT ON COLUMN task.id IS '主键 ID';
+COMMENT ON COLUMN task.project_id IS '所属项目 ID';
+COMMENT ON COLUMN task.title IS '任务标题';
+COMMENT ON COLUMN task.description IS '任务描述';
+COMMENT ON COLUMN task.status IS '任务状态：TODO/IN_PROGRESS/IN_REVIEW/DONE';
+COMMENT ON COLUMN task.priority IS '优先级：LOW/MEDIUM/HIGH/URGENT';
+COMMENT ON COLUMN task.assignee_id IS '接收入 ID';
+COMMENT ON COLUMN task.creator_id IS '创建人 ID';
+COMMENT ON COLUMN task.parent_id IS '父任务 ID';
+COMMENT ON COLUMN task.due_date IS '截止日期';
+COMMENT ON COLUMN task.story_points IS '故事点';
+COMMENT ON COLUMN task.position IS '排序位置';
+COMMENT ON COLUMN task.created_at IS '创建时间';
+COMMENT ON COLUMN task.updated_at IS '更新时间';
+COMMENT ON COLUMN task.deleted_at IS '删除时间（软删除）';
+
 -- 任务表索引
 CREATE INDEX idx_task_project ON task(project_id);
 CREATE INDEX idx_task_assignee ON task(assignee_id);
@@ -203,8 +283,16 @@ CREATE TABLE sub_task (
     CONSTRAINT fk_sub_task_task FOREIGN KEY (task_id) REFERENCES task(id) ON DELETE CASCADE
 );
 
--- 子任务表索引
-CREATE INDEX idx_sub_task_task ON sub_task(task_id);
+-- 子任务表注释
+COMMENT ON TABLE sub_task IS '子任务表';
+COMMENT ON COLUMN sub_task.id IS '主键 ID';
+COMMENT ON COLUMN sub_task.task_id IS '所属任务 ID';
+COMMENT ON COLUMN sub_task.title IS '子任务标题';
+COMMENT ON COLUMN sub_task.completed IS '是否完成';
+COMMENT ON COLUMN sub_task.completed_at IS '完成时间';
+COMMENT ON COLUMN sub_task.position IS '排序位置';
+COMMENT ON COLUMN sub_task.created_at IS '创建时间';
+COMMENT ON COLUMN sub_task.updated_at IS '更新时间';
 
 -- ============================================
 -- 用户故事模块
@@ -224,6 +312,18 @@ CREATE TABLE epic (
 
     CONSTRAINT fk_epic_project FOREIGN KEY (project_id) REFERENCES project(id) ON DELETE CASCADE
 );
+
+-- 史诗表注释
+COMMENT ON TABLE epic IS '史诗表（需求集）';
+COMMENT ON COLUMN epic.id IS '主键 ID';
+COMMENT ON COLUMN epic.project_id IS '所属项目 ID';
+COMMENT ON COLUMN epic.title IS '史诗标题';
+COMMENT ON COLUMN epic.description IS '史诗描述';
+COMMENT ON COLUMN epic.color IS '颜色标识';
+COMMENT ON COLUMN epic.position IS '排序位置';
+COMMENT ON COLUMN epic.created_at IS '创建时间';
+COMMENT ON COLUMN epic.updated_at IS '更新时间';
+COMMENT ON COLUMN epic.deleted_at IS '删除时间（软删除）';
 
 -- 史诗表索引
 CREATE INDEX idx_epic_project ON epic(project_id);
@@ -250,6 +350,23 @@ CREATE TABLE user_story (
     CONSTRAINT fk_story_assignee FOREIGN KEY (assignee_id) REFERENCES sys_user(id),
     CONSTRAINT chk_story_points CHECK (story_points IS NULL OR story_points >= 0)
 );
+
+-- 用户故事表注释
+COMMENT ON TABLE user_story IS '用户故事表';
+COMMENT ON COLUMN user_story.id IS '主键 ID';
+COMMENT ON COLUMN user_story.epic_id IS '所属史诗 ID';
+COMMENT ON COLUMN user_story.project_id IS '所属项目 ID';
+COMMENT ON COLUMN user_story.title IS '用户故事标题';
+COMMENT ON COLUMN user_story.description IS '用户故事描述';
+COMMENT ON COLUMN user_story.acceptance_criteria IS '验收标准';
+COMMENT ON COLUMN user_story.priority IS '优先级：LOW/MEDIUM/HIGH/URGENT';
+COMMENT ON COLUMN user_story.story_points IS '故事点';
+COMMENT ON COLUMN user_story.assignee_id IS '接收入 ID';
+COMMENT ON COLUMN user_story.status IS '状态：TODO/IN_PROGRESS/IN_REVIEW/DONE';
+COMMENT ON COLUMN user_story.position IS '排序位置';
+COMMENT ON COLUMN user_story.created_at IS '创建时间';
+COMMENT ON COLUMN user_story.updated_at IS '更新时间';
+COMMENT ON COLUMN user_story.deleted_at IS '删除时间（软删除）';
 
 -- 用户故事表索引
 CREATE INDEX idx_story_epic ON user_story(epic_id);
@@ -285,6 +402,23 @@ CREATE TABLE issue (
     CONSTRAINT chk_resolved_date CHECK (resolved_date IS NULL OR resolved_date >= found_date)
 );
 
+-- 问题表注释
+COMMENT ON TABLE issue IS '问题追踪表';
+COMMENT ON COLUMN issue.id IS '主键 ID';
+COMMENT ON COLUMN issue.project_id IS '所属项目 ID';
+COMMENT ON COLUMN issue.title IS '问题标题';
+COMMENT ON COLUMN issue.description IS '问题描述';
+COMMENT ON COLUMN issue.type IS '问题类型：BUG/ISSUE/IMPROVEMENT/TECH_DEBT';
+COMMENT ON COLUMN issue.severity IS '严重程度：TRIVIAL/MINOR/NORMAL/MAJOR/CRITICAL';
+COMMENT ON COLUMN issue.status IS '状态：NEW/CONFIRMED/IN_PROGRESS/RESOLVED/CLOSED/REOPENED';
+COMMENT ON COLUMN issue.assignee_id IS '接收入 ID';
+COMMENT ON COLUMN issue.reporter_id IS '报告人 ID';
+COMMENT ON COLUMN issue.found_date IS '发现日期';
+COMMENT ON COLUMN issue.resolved_date IS '解决日期';
+COMMENT ON COLUMN issue.created_at IS '创建时间';
+COMMENT ON COLUMN issue.updated_at IS '更新时间';
+COMMENT ON COLUMN issue.deleted_at IS '删除时间（软删除）';
+
 -- 问题表索引
 CREATE INDEX idx_issue_project ON issue(project_id);
 CREATE INDEX idx_issue_assignee ON issue(assignee_id);
@@ -312,6 +446,17 @@ CREATE TABLE task_comment (
     CONSTRAINT fk_task_comment_user FOREIGN KEY (user_id) REFERENCES sys_user(id),
     CONSTRAINT fk_task_comment_parent FOREIGN KEY (parent_id) REFERENCES task_comment(id) ON DELETE CASCADE
 );
+
+-- 任务评论表注释
+COMMENT ON TABLE task_comment IS '任务评论表';
+COMMENT ON COLUMN task_comment.id IS '主键 ID';
+COMMENT ON COLUMN task_comment.task_id IS '任务 ID';
+COMMENT ON COLUMN task_comment.user_id IS '评论人 ID';
+COMMENT ON COLUMN task_comment.content IS '评论内容';
+COMMENT ON COLUMN task_comment.parent_id IS '父评论 ID';
+COMMENT ON COLUMN task_comment.created_at IS '创建时间';
+COMMENT ON COLUMN task_comment.updated_at IS '更新时间';
+COMMENT ON COLUMN task_comment.deleted_at IS '删除时间（软删除）';
 
 -- 评论表索引
 CREATE INDEX idx_task_comment_task ON task_comment(task_id);
@@ -343,6 +488,21 @@ CREATE TABLE wiki_document (
     CONSTRAINT fk_wiki_author FOREIGN KEY (author_id) REFERENCES sys_user(id)
 );
 
+-- Wiki 文档表注释
+COMMENT ON TABLE wiki_document IS 'Wiki 文档表';
+COMMENT ON COLUMN wiki_document.id IS '主键 ID';
+COMMENT ON COLUMN wiki_document.project_id IS '所属项目 ID';
+COMMENT ON COLUMN wiki_document.parent_id IS '父文档 ID';
+COMMENT ON COLUMN wiki_document.title IS '文档标题';
+COMMENT ON COLUMN wiki_document.content IS '文档内容';
+COMMENT ON COLUMN wiki_document.author_id IS '作者 ID';
+COMMENT ON COLUMN wiki_document.version IS '版本号';
+COMMENT ON COLUMN wiki_document.position IS '排序位置';
+COMMENT ON COLUMN wiki_document.is_published IS '是否已发布';
+COMMENT ON COLUMN wiki_document.created_at IS '创建时间';
+COMMENT ON COLUMN wiki_document.updated_at IS '更新时间';
+COMMENT ON COLUMN wiki_document.deleted_at IS '删除时间（软删除）';
+
 -- Wiki 文档表索引
 CREATE INDEX idx_wiki_project ON wiki_document(project_id);
 CREATE INDEX idx_wiki_parent ON wiki_document(parent_id);
@@ -362,6 +522,15 @@ CREATE TABLE wiki_history (
     CONSTRAINT fk_wiki_history_user FOREIGN KEY (user_id) REFERENCES sys_user(id),
     CONSTRAINT uk_wiki_history UNIQUE (document_id, version)
 );
+
+-- Wiki 版本历史表注释
+COMMENT ON TABLE wiki_history IS 'Wiki 版本历史表';
+COMMENT ON COLUMN wiki_history.id IS '主键 ID';
+COMMENT ON COLUMN wiki_history.document_id IS '文档 ID';
+COMMENT ON COLUMN wiki_history.user_id IS '编辑人 ID';
+COMMENT ON COLUMN wiki_history.version IS '版本号';
+COMMENT ON COLUMN wiki_history.content IS '版本内容';
+COMMENT ON COLUMN wiki_history.created_at IS '创建时间';
 
 -- Wiki 历史表索引
 CREATE INDEX idx_wiki_history_document ON wiki_history(document_id);
@@ -386,6 +555,19 @@ CREATE TABLE notification (
     CONSTRAINT fk_notification_user FOREIGN KEY (user_id) REFERENCES sys_user(id) ON DELETE CASCADE
 );
 
+-- 通知表注释
+COMMENT ON TABLE notification IS '通知表';
+COMMENT ON COLUMN notification.id IS '主键 ID';
+COMMENT ON COLUMN notification.user_id IS '用户 ID';
+COMMENT ON COLUMN notification.title IS '通知标题';
+COMMENT ON COLUMN notification.content IS '通知内容';
+COMMENT ON COLUMN notification.type IS '通知类型：INFO/WARNING/ERROR/TASK/PROJECT';
+COMMENT ON COLUMN notification.is_read IS '是否已读';
+COMMENT ON COLUMN notification.related_id IS '关联资源 ID';
+COMMENT ON COLUMN notification.related_type IS '关联资源类型';
+COMMENT ON COLUMN notification.created_at IS '创建时间';
+COMMENT ON COLUMN notification.deleted_at IS '删除时间（软删除）';
+
 -- 通知表索引
 CREATE INDEX idx_notification_user ON notification(user_id);
 CREATE INDEX idx_notification_is_read ON notification(is_read);
@@ -405,6 +587,15 @@ CREATE TABLE sys_config (
     created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP
 );
+
+-- 系统配置表注释
+COMMENT ON TABLE sys_config IS '系统配置表';
+COMMENT ON COLUMN sys_config.id IS '主键 ID';
+COMMENT ON COLUMN sys_config.config_key IS '配置键';
+COMMENT ON COLUMN sys_config.config_value IS '配置值';
+COMMENT ON COLUMN sys_config.description IS '配置描述';
+COMMENT ON COLUMN sys_config.created_at IS '创建时间';
+COMMENT ON COLUMN sys_config.updated_at IS '更新时间';
 
 -- 配置表索引
 CREATE INDEX idx_sys_config_key ON sys_config(config_key);
@@ -429,6 +620,20 @@ CREATE TABLE operation_log (
 
     CONSTRAINT fk_operation_log_user FOREIGN KEY (user_id) REFERENCES sys_user(id)
 );
+
+-- 操作日志表注释
+COMMENT ON TABLE operation_log IS '操作日志表';
+COMMENT ON COLUMN operation_log.id IS '主键 ID';
+COMMENT ON COLUMN operation_log.user_id IS '用户 ID';
+COMMENT ON COLUMN operation_log.username IS '用户名';
+COMMENT ON COLUMN operation_log.module IS '操作模块';
+COMMENT ON COLUMN operation_log.operation IS '操作类型';
+COMMENT ON COLUMN operation_log.method IS '请求方法';
+COMMENT ON COLUMN operation_log.params IS '请求参数';
+COMMENT ON COLUMN operation_log.result IS '操作结果';
+COMMENT ON COLUMN operation_log.ip_address IS 'IP 地址';
+COMMENT ON COLUMN operation_log.duration IS '耗时（毫秒）';
+COMMENT ON COLUMN operation_log.created_at IS '创建时间';
 
 -- 操作日志表索引
 CREATE INDEX idx_operation_log_user ON operation_log(user_id);

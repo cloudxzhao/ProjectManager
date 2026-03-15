@@ -15,6 +15,9 @@ ADD CONSTRAINT fk_task_user_story
     REFERENCES user_story(id)
     ON DELETE SET NULL;
 
+-- 添加字段注释
+COMMENT ON COLUMN task.user_story_id IS '关联用户故事 ID';
+
 -- 添加索引以提高查询性能
 CREATE INDEX idx_task_user_story ON task(user_story_id);
 

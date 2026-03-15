@@ -3,5 +3,8 @@
 
 ALTER TABLE sys_user ADD COLUMN nickname VARCHAR(50);
 
+-- 添加字段注释
+COMMENT ON COLUMN sys_user.nickname IS '用户昵称';
+
 -- 创建索引
 CREATE INDEX idx_user_nickname ON sys_user(nickname);
