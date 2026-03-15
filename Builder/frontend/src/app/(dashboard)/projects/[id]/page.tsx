@@ -743,6 +743,7 @@ export default function ProjectDetailPage() {
           dueDate: taskDetail.dueDate ? dayjs(taskDetail.dueDate) : undefined,
           tags: taskDetail.tags?.join(', '),
           userStoryId: taskDetail.userStoryId,
+          parentId: taskDetail.parentId,
         });
         setTaskEditDrawerOpen(true);
       }
@@ -2646,13 +2647,20 @@ export default function ProjectDetailPage() {
             <div className="grid grid-cols-2 gap-4">
               <Form.Item
                 name="assigneeId"
-                label="负责人 ID"
+                label="负责人"
               >
-                <Input
-                  type="number"
-                  placeholder="输入负责人 ID"
+                <Select
+                  placeholder="请选择负责人"
+                  allowClear
+                  loading={membersLoading}
                   className="bg-gray-700/50 border-gray-600 text-white"
-                />
+                >
+                  {projectMembers.map((member) => (
+                    <Select.Option key={member.userId} value={member.userId}>
+                      {member.nickname || member.username || member.email}
+                    </Select.Option>
+                  ))}
+                </Select>
               </Form.Item>
 
               <Form.Item

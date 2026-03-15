@@ -38,6 +38,9 @@ public class IssueVO {
   /** 状态 */
   private String status;
 
+  /** 优先级 */
+  private String priority;
+
   /** 负责人 ID */
   private Long assigneeId;
 
@@ -53,6 +56,10 @@ public class IssueVO {
   /** 发现日期 */
   @JsonFormat(pattern = "yyyy-MM-dd")
   private LocalDate foundDate;
+
+  /** 截止日期 */
+  @JsonFormat(pattern = "yyyy-MM-dd")
+  private LocalDate dueDate;
 
   /** 解决日期 */
   @JsonFormat(pattern = "yyyy-MM-dd")
@@ -83,12 +90,19 @@ public class IssueVO {
     /** 严重程度 */
     private String severity;
 
+    /** 优先级 */
+    private String priority;
+
     /** 负责人 ID */
     private Long assigneeId;
 
     /** 发现日期 */
     @JsonFormat(pattern = "yyyy-MM-dd")
     private LocalDate foundDate;
+
+    /** 截止日期 */
+    @JsonFormat(pattern = "yyyy-MM-dd")
+    private LocalDate dueDate;
   }
 
   /** 更新问题请求 */
@@ -112,12 +126,19 @@ public class IssueVO {
     /** 状态 */
     private String status;
 
+    /** 优先级 */
+    private String priority;
+
     /** 负责人 ID */
     private Long assigneeId;
 
     /** 发现日期 */
     @JsonFormat(pattern = "yyyy-MM-dd")
     private LocalDate foundDate;
+
+    /** 截止日期 */
+    @JsonFormat(pattern = "yyyy-MM-dd")
+    private LocalDate dueDate;
 
     /** 解决日期 */
     @JsonFormat(pattern = "yyyy-MM-dd")

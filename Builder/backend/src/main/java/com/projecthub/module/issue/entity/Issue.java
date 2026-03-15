@@ -53,6 +53,11 @@ public class Issue {
   @Column(nullable = false, length = 20)
   private TaskStatus status = TaskStatus.TODO;
 
+  @Enumerated(EnumType.STRING)
+  @JdbcTypeCode(SqlTypes.VARCHAR)
+  @Column(name = "priority", length = 20)
+  private String priority;
+
   @Column(name = "assignee_id")
   private Long assigneeId;
 
@@ -61,6 +66,9 @@ public class Issue {
 
   @Column(name = "found_date", nullable = false)
   private LocalDate foundDate;
+
+  @Column(name = "due_date")
+  private LocalDate dueDate;
 
   @Column(name = "resolved_date")
   private LocalDate resolvedDate;

@@ -57,9 +57,11 @@ public class IssueService {
             .type(parseIssueType(request.getType()))
             .severity(parseSeverity(request.getSeverity()))
             .status(TaskStatus.TODO)
+            .priority(request.getPriority())
             .assigneeId(request.getAssigneeId())
             .reporterId(userId)
             .foundDate(request.getFoundDate() != null ? request.getFoundDate() : LocalDate.now())
+            .dueDate(request.getDueDate())
             .build();
 
     issueRepository.save(issue);
@@ -184,11 +186,17 @@ public class IssueService {
     if (request.getStatus() != null) {
       issue.setStatus(TaskStatus.valueOf(request.getStatus()));
     }
+    if (request.getPriority() != null) {
+      issue.setPriority(request.getPriority());
+    }
     if (request.getAssigneeId() != null) {
       issue.setAssigneeId(request.getAssigneeId());
     }
     if (request.getFoundDate() != null) {
       issue.setFoundDate(request.getFoundDate());
+    }
+    if (request.getDueDate() != null) {
+      issue.setDueDate(request.getDueDate());
     }
     if (request.getResolvedDate() != null) {
       issue.setResolvedDate(request.getResolvedDate());
