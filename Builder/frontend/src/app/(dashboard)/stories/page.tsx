@@ -902,10 +902,10 @@ export default function StoriesPage() {
               <h3 className="text-lg font-semibold text-white mb-2">{selectedStory.title}</h3>
               <div className="flex items-center gap-2 flex-wrap">
                 <Tag color={statusColorMap[selectedStory.status]}>
-                  {statusTextMap[selectedStory.status]}
+                  {statusTextLabelMap[selectedStory.status]}
                 </Tag>
                 <Tag color={priorityColorMap[selectedStory.priority]}>
-                  {priorityTextMap[selectedStory.priority]}
+                  {priorityTextLabelMap[selectedStory.priority]}
                 </Tag>
                 {selectedStory.storyPoints && (
                   <Tag color="orange">{selectedStory.storyPoints} 故事点</Tag>
