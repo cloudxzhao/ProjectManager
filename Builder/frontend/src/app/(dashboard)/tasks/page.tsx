@@ -583,7 +583,7 @@ export default function TaskBoardPage() {
               }}
               showSizeChanger
               showTotal={(total) => `共 ${total} 条`}
-              pageSizeOptions={['10', '30', '50', '100']}
+              pageSizeOptions={[10, 30, 50, 100]}
             />
           </div>
         </>
