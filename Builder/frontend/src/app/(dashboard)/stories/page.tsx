@@ -418,8 +418,8 @@ export default function StoriesPage() {
       title: story.title,
       description: story.description,
       acceptanceCriteria: story.acceptanceCriteria,
-      status: story.status?.toLowerCase(),  // 转小写用于表单
-      priority: story.priority?.toLowerCase(),  // 转小写用于表单
+      status: story.status,  // 直接使用后端返回的状态值
+      priority: story.priority?.toLowerCase(),  // 转小写用于表单（优先级 Option 是小写）
       assigneeId: story.assigneeId,
       storyPoints: story.storyPoints,
     });
