@@ -264,7 +264,7 @@ export default function TaskBoardPage() {
     try {
       const searchParams: Record<string, any> = {
         page,
-        size: pageSize,
+        pageSize,
       };
 
       // 项目筛选（支持多选）
