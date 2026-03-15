@@ -6,6 +6,7 @@ import com.projecthub.common.exception.BusinessException;
 import com.projecthub.common.response.PageResult;
 import com.projecthub.common.util.BeanCopyUtil;
 import com.projecthub.module.project.service.PermissionService;
+import com.projecthub.module.story.repository.EpicRepository;
 import com.projecthub.module.story.repository.UserStoryRepository;
 import com.projecthub.module.task.dto.TaskVO;
 import com.projecthub.module.task.entity.Task;
@@ -38,6 +39,7 @@ public class TaskService {
   private final PermissionService permissionService;
   private final CommentRepository commentRepository;
   private final UserStoryRepository userStoryRepository;
+  private final EpicRepository epicRepository;
 
   /** 创建任务 */
   @Transactional
@@ -67,6 +69,7 @@ public class TaskService {
     task.setCreatorId(userId);
     task.setParentId(request.getParentId());
     task.setUserStoryId(request.getUserStoryId());
+    task.setEpicId(request.getEpicId());
     task.setDueDate(request.getDueDate());
     task.setStoryPoints(request.getStoryPoints());
     task.setPosition(maxPosition + 1);
@@ -81,6 +84,8 @@ public class TaskService {
     populateTaskStats(taskVO);
     // 填充用户故事信息
     populateUserStoryInfo(taskVO);
+    // 填充史诗信息
+    populateEpicInfo(taskVO);
     return taskVO;
   }
 
@@ -97,6 +102,8 @@ public class TaskService {
     taskVO.setStatus(task.getStatus().name());
     taskVO.setPriority(task.getPriority().name());
     populateTaskStats(taskVO);
+    // 填充史诗信息
+    populateEpicInfo(taskVO);
     return taskVO;
   }
 
@@ -130,6 +137,9 @@ public class TaskService {
     if (request.getUserStoryId() != null) {
       task.setUserStoryId(request.getUserStoryId());
     }
+    if (request.getEpicId() != null) {
+      task.setEpicId(request.getEpicId());
+    }
     if (request.getDueDate() != null) {
       task.setDueDate(request.getDueDate());
     }
@@ -147,6 +157,8 @@ public class TaskService {
     populateTaskStats(taskVO);
     // 填充用户故事信息
     populateUserStoryInfo(taskVO);
+    // 填充史诗信息
+    populateEpicInfo(taskVO);
     return taskVO;
   }
 
@@ -194,6 +206,8 @@ public class TaskService {
     taskVO.setStatus(task.getStatus().name());
     taskVO.setPriority(task.getPriority().name());
     populateTaskStats(taskVO);
+    // 填充史诗信息
+    populateEpicInfo(taskVO);
     return taskVO;
   }
 
@@ -246,6 +260,7 @@ public class TaskService {
                   taskVO.setPriority(task.getPriority().name());
                   populateTaskStats(taskVO);
                   populateUserStoryInfo(taskVO);
+                  populateEpicInfo(taskVO);
                   return taskVO;
                 })
             .collect(Collectors.toList());
@@ -283,6 +298,20 @@ public class TaskService {
         .ifPresent(
             userStory -> {
               taskVO.setUserStoryTitle(userStory.getTitle());
+            });
+  }
+
+  /** 填充史诗信息 */
+  private void populateEpicInfo(TaskVO taskVO) {
+    if (taskVO.getEpicId() == null) {
+      return;
+    }
+
+    epicRepository
+        .findById(taskVO.getEpicId())
+        .ifPresent(
+            epic -> {
+              taskVO.setEpicTitle(epic.getTitle());
             });
   }
 
@@ -351,6 +380,7 @@ public class TaskService {
                   taskVO.setPriority(task.getPriority().name());
                   populateTaskStats(taskVO);
                   populateUserStoryInfo(taskVO);
+                  populateEpicInfo(taskVO);
                   return taskVO;
                 })
             .collect(Collectors.toList());
@@ -413,6 +443,7 @@ public class TaskService {
               taskVO.setPriority(task.getPriority().name());
               populateTaskStats(taskVO);
               populateUserStoryInfo(taskVO);
+              populateEpicInfo(taskVO);
               return taskVO;
             })
         .collect(Collectors.toList());
@@ -442,6 +473,7 @@ public class TaskService {
     taskVO.setPriority(task.getPriority().name());
     populateTaskStats(taskVO);
     populateUserStoryInfo(taskVO);
+    populateEpicInfo(taskVO);
     return taskVO;
   }
 }
