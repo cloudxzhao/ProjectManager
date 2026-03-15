@@ -53,8 +53,6 @@ public class Issue {
   @Column(nullable = false, length = 20)
   private TaskStatus status = TaskStatus.TODO;
 
-  @Enumerated(EnumType.STRING)
-  @JdbcTypeCode(SqlTypes.VARCHAR)
   @Column(name = "priority", length = 20)
   private String priority;
 
