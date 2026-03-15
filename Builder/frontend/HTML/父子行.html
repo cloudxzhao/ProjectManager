@@ -1,0 +1,219 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <title>ProjectHub - 树形任务列表</title>
+    <style>
+        :root {
+            --bg-color: #0b0e14;
+            --table-header-bg: rgba(255, 255, 255, 0.05);
+            --row-hover: rgba(255, 255, 255, 0.03);
+            --accent-orange: #ff8c42;
+            --accent-blue: #4dabf7;
+            --text-main: #f8f9fa;
+            --text-dim: #adb5bd;
+            --border-color: rgba(255, 255, 255, 0.08);
+        }
+
+        body {
+            background-color: var(--bg-color);
+            color: var(--text-main);
+            font-family: 'Inter', 'PingFang SC', sans-serif;
+            padding: 40px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            background: rgba(255, 255, 255, 0.02);
+            border-radius: 12px;
+            overflow: hidden;
+        }
+
+        th {
+            background: var(--table-header-bg);
+            text-align: left;
+            padding: 16px;
+            font-size: 14px;
+            color: var(--text-dim);
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        td {
+            padding: 16px;
+            border-bottom: 1px solid var(--border-color);
+            font-size: 14px;
+        }
+
+        tr:hover {
+            background-color: var(--row-hover);
+        }
+
+        /* 折叠切换按钮样式 */
+        .toggle-btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 20px;
+            height: 20px;
+            border: 1px solid var(--text-dim);
+            border-radius: 4px;
+            margin-right: 12px;
+            cursor: pointer;
+            font-family: monospace;
+            font-weight: bold;
+            color: var(--accent-orange);
+            transition: all 0.2s;
+            user-select: none;
+        }
+
+        .toggle-btn:hover {
+            background: var(--accent-orange);
+            color: white;
+            border-color: var(--accent-orange);
+        }
+
+        /* 任务行样式（初始隐藏） */
+        .task-row {
+            display: none;
+            background: rgba(77, 171, 247, 0.02); /* 淡淡的蓝色背景区分任务 */
+        }
+
+        .task-row td {
+            padding-left: 48px; /* 缩进 */
+            color: var(--text-dim);
+            font-size: 13px;
+        }
+
+        .task-row.is-visible {
+            display: table-row;
+        }
+
+        /* 标签和状态样式 */
+        .pts-tag {
+            background: rgba(255, 140, 66, 0.1);
+            color: var(--accent-orange);
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-size: 11px;
+            margin-left: 8px;
+        }
+
+        .status-badge {
+            background: rgba(255, 255, 255, 0.1);
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 12px;
+        }
+
+        .action-icon {
+            cursor: pointer;
+            margin-left: 10px;
+            opacity: 0.6;
+        }
+        .action-icon:hover { opacity: 1; }
+
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <div style="display: flex; justify-content: space-between; margin-bottom: 20px;">
+        <h2>用户故事列表</h2>
+        <button style="background: var(--accent-orange); border: none; color: white; padding: 8px 16px; border-radius: 6px; cursor: pointer;">+ 创建用户故事</button>
+    </div>
+
+    <table>
+        <thead>
+            <tr>
+                <th style="width: 30%;">故事标题</th>
+                <th>描述</th>
+                <th>状态</th>
+                <th>负责人</th>
+                <th>验收标准</th>
+                <th>操作</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr class="story-row" data-id="1">
+                <td>
+                    <span class="toggle-btn" onclick="toggleTasks(1, this)">+</span>
+                    <strong>重构登录页面 UI</strong>
+                    <span class="pts-tag">2 pts</span>
+                </td>
+                <td>优化首屏视觉冲击力</td>
+                <td><span class="status-badge">待办</span></td>
+                <td>admin</td>
+                <td style="color: var(--accent-blue)">已定义</td>
+                <td><span class="action-icon">👁️</span> <span class="action-icon">✏️</span></td>
+            </tr>
+            <tr class="task-row child-of-1">
+                <td>└─ 设计毛玻璃背景组件</td>
+                <td>设计稿确认</td>
+                <td>进行中</td>
+                <td>designer</td>
+                <td>-</td>
+                <td></td>
+            </tr>
+            <tr class="task-row child-of-1">
+                <td>└─ 编写 CSS 变量库</td>
+                <td>定义全局色彩和圆角</td>
+                <td>待办</td>
+                <td>dev_user</td>
+                <td>-</td>
+                <td></td>
+            </tr>
+
+            <tr class="story-row" data-id="2">
+                <td>
+                    <span class="toggle-btn" onclick="toggleTasks(2, this)">+</span>
+                    <strong>API 性能优化</strong>
+                    <span class="pts-tag">5 pts</span>
+                </td>
+                <td>降低接口响应时长</td>
+                <td><span class="status-badge">进行中</span></td>
+                <td>admin</td>
+                <td style="color: var(--accent-blue)">已定义</td>
+                <td><span class="action-icon">👁️</span> <span class="action-icon">✏️</span></td>
+            </tr>
+            <tr class="task-row child-of-2">
+                <td>└─ 数据库索引优化</td>
+                <td>针对故事表增加复合索引</td>
+                <td>进行中</td>
+                <td>db_admin</td>
+                <td>-</td>
+                <td></td>
+            </tr>
+        </tbody>
+    </table>
+</div>
+
+<script>
+    function toggleTasks(storyId, btn) {
+        // 找到所有属于该故事的子任务行
+        const tasks = document.querySelectorAll('.child-of-' + storyId);
+        
+        tasks.forEach(task => {
+            task.classList.toggle('is-visible');
+        });
+
+        // 切换按钮文字
+        if (btn.innerText === '+') {
+            btn.innerText = '-';
+            btn.style.borderColor = 'var(--accent-blue)';
+            btn.style.color = 'var(--accent-blue)';
+        } else {
+            btn.innerText = '+';
+            btn.style.borderColor = 'var(--text-dim)';
+            btn.style.color = 'var(--accent-orange)';
+        }
+    }
+</script>
+
+</body>
+</html>

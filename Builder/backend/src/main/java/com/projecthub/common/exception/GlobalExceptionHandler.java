@@ -4,6 +4,7 @@ import com.projecthub.common.constant.ErrorCode;
 import com.projecthub.common.response.Result;
 import java.util.stream.Collectors;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.catalina.connector.ClientAbortException;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.core.AuthenticationException;
@@ -101,6 +102,16 @@ public class GlobalExceptionHandler {
   public Result<Void> handleIllegalArgumentException(IllegalArgumentException e) {
     log.warn("非法参数：{}", e.getMessage());
     return Result.error(ErrorCode.BAD_REQUEST.getCode(), e.getMessage());
+  }
+
+  /** 处理客户端断开连接异常
+   *
+   * 当客户端在服务器完成响应之前断开连接时发生
+   * 这是正常现象，不需要记录错误日志，只需记录 debug 级别日志
+   */
+  @ExceptionHandler(ClientAbortException.class)
+  public void handleClientAbortException(ClientAbortException e) {
+    log.debug("客户端断开连接：{}", e.getMessage());
   }
 
   /** 处理其他未知异常 */

@@ -1,0 +1,224 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <title>ProjectHub Modern Refactor</title>
+    <style>
+        :root {
+            --bg-color: #0b0e14;
+            --sidebar-bg: rgba(18, 22, 30, 0.8);
+            --card-bg: rgba(255, 255, 255, 0.03);
+            --card-border: rgba(255, 255, 255, 0.08);
+            --accent-orange: #ff8c42;
+            --accent-blue: #4dabf7;
+            --text-main: #f8f9fa;
+            --text-dim: #adb5bd;
+            --radius-lg: 16px;
+            --radius-md: 10px;
+        }
+
+        body {
+            margin: 0;
+            font-family: 'Inter', 'PingFang SC', 'Microsoft YaHei', sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-main);
+            display: flex;
+            height: 100vh;
+            overflow: hidden;
+        }
+
+        /* 弥散背景装饰 */
+        body::before {
+            content: '';
+            position: absolute;
+            width: 400px;
+            height: 400px;
+            background: radial-gradient(circle, rgba(77, 171, 247, 0.1) 0%, transparent 70%);
+            top: -100px;
+            right: -100px;
+            z-index: -1;
+        }
+
+        /* 侧边栏 */
+        aside {
+            width: 240px;
+            background: var(--sidebar-bg);
+            backdrop-filter: blur(10px);
+            border-right: 1px solid var(--card-border);
+            padding: 24px;
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+
+        .logo {
+            font-size: 20px;
+            font-weight: 800;
+            color: var(--accent-orange);
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        nav ul { list-style: none; padding: 0; }
+        nav li {
+            padding: 12px 16px;
+            border-radius: var(--radius-md);
+            color: var(--text-dim);
+            cursor: pointer;
+            transition: 0.3s;
+            margin-bottom: 4px;
+        }
+        nav li.active {
+            background: rgba(255, 255, 255, 0.05);
+            color: var(--text-main);
+        }
+        nav li:hover { background: rgba(255, 255, 255, 0.08); }
+
+        /* 主内容区 */
+        main {
+            flex: 1;
+            padding: 32px;
+            overflow-y: auto;
+        }
+
+        .top-bar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 32px;
+        }
+
+        .search-box {
+            background: var(--card-bg);
+            border: 1px solid var(--card-border);
+            padding: 10px 20px;
+            border-radius: 30px;
+            width: 400px;
+            color: var(--text-main);
+        }
+
+        .btn-primary {
+            background: var(--accent-orange);
+            border: none;
+            padding: 10px 24px;
+            border-radius: var(--radius-md);
+            color: white;
+            font-weight: 600;
+            cursor: pointer;
+            transition: 0.3s;
+        }
+        .btn-primary:hover { transform: translateY(-2px); box-shadow: 0 4px 15px rgba(255, 140, 66, 0.4); }
+
+        /* 卡片网格 */
+        .card-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+            gap: 24px;
+        }
+
+        .story-card {
+            background: var(--card-bg);
+            border: 1px solid var(--card-border);
+            border-radius: var(--radius-lg);
+            padding: 24px;
+            position: relative;
+            transition: all 0.4s cubic-bezier(0.165, 0.84, 0.44, 1);
+            backdrop-filter: blur(5px);
+        }
+
+        .story-card:hover {
+            background: rgba(255, 255, 255, 0.06);
+            border-color: rgba(77, 171, 247, 0.4);
+            transform: translateY(-5px);
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+        }
+
+        /* 状态指示器替代旧的蓝色顶条 */
+        .status-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: var(--accent-blue);
+            display: inline-block;
+            margin-right: 8px;
+            box-shadow: 0 0 8px var(--accent-blue);
+        }
+
+        .card-title {
+            font-size: 18px;
+            font-weight: 600;
+            margin: 12px 0;
+        }
+
+        .card-desc {
+            color: var(--text-dim);
+            font-size: 14px;
+            line-height: 1.6;
+            margin-bottom: 20px;
+        }
+
+        .card-footer {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-top: 1px solid var(--card-border);
+            padding-top: 16px;
+            font-size: 13px;
+        }
+
+        .pts-tag {
+            color: var(--accent-orange);
+            font-weight: 700;
+        }
+    </style>
+</head>
+<body>
+
+<aside>
+    <div class="logo">🟧 ProjectHub</div>
+    <nav>
+        <ul>
+            <li>工作台</li>
+            <li>项目</li>
+            <li class="active">用户故事</li>
+            <li>任务看板</li>
+        </ul>
+    </nav>
+</aside>
+
+<main>
+    <div class="top-bar">
+        <input type="text" class="search-box" placeholder="搜索项目、任务、文档 (Ctrl+K)">
+        <button class="btn-primary">+ 新建故事</button>
+    </div>
+
+    <h2>用户故事</h2>
+    
+    <div class="card-grid">
+        <div class="story-card">
+            <div><span class="status-dot"></span><small style="color:var(--text-dim)">待办</small></div>
+            <div class="card-title">重构登录页面 UI</div>
+            <div class="card-desc">使用最新的玻璃拟态风格重构登录组件，提升首屏视觉冲击力。</div>
+            <div class="card-footer">
+                <span class="pts-tag">3 pts</span>
+                <span style="color:var(--text-dim)">👤 Admin</span>
+            </div>
+        </div>
+
+        <div class="story-card">
+            <div><span class="status-dot"></span><small style="color:var(--text-dim)">待办</small></div>
+            <div class="card-title">API 性能优化</div>
+            <div class="card-desc">优化用户故事列表的查询效率，减少响应时间到 200ms 以内。</div>
+            <div class="card-footer">
+                <span class="pts-tag">5 pts</span>
+                <span style="color:var(--text-dim)">👤 Admin</span>
+            </div>
+        </div>
+
+        </div>
+</main>
+
+</body>
+</html>

@@ -1,0 +1,202 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>美化任务卡片</title>
+    <style>
+        /* 基础样式重置 */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+        }
+
+        body {
+            background-color: #0f111a; /* 深色背景 */
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+        }
+
+        /* 卡片主体 */
+        .card {
+            width: 380px;
+            background: linear-gradient(145deg, #1e2230, #161922);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            border-radius: 16px;
+            padding: 20px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+
+        .card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 15px 40px rgba(0, 0, 0, 0.6);
+            border-color: rgba(255, 255, 255, 0.15);
+        }
+
+        /* 顶部栏 */
+        .card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+
+        .header-left {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .icon-rocket {
+            width: 36px;
+            height: 36px;
+            background: linear-gradient(135deg, #3a8dff, #0052d4);
+            border-radius: 10px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 18px;
+            box-shadow: 0 4px 12px rgba(58, 141, 255, 0.3);
+        }
+
+        .tag-todo {
+            background: rgba(255, 255, 255, 0.1);
+            color: #a0a6b5;
+            padding: 4px 10px;
+            border-radius: 6px;
+            font-size: 12px;
+            font-weight: 500;
+        }
+
+        .tag-priority {
+            background: rgba(58, 141, 255, 0.1);
+            color: #3a8dff;
+            padding: 4px 8px;
+            border-radius: 6px;
+            border: 1px solid rgba(58, 141, 255, 0.3);
+            font-size: 12px;
+        }
+
+        /* 内容区 */
+        .card-body {
+            margin-bottom: 20px;
+        }
+
+        .title {
+            color: #ffffff;
+            font-size: 22px;
+            font-weight: 700;
+            margin-bottom: 6px;
+            letter-spacing: 0.5px;
+        }
+
+        .description {
+            color: #808695;
+            font-size: 14px;
+            line-height: 1.5;
+            margin-bottom: 16px;
+        }
+
+        .story-points {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            color: #ff9f43;
+            background: rgba(255, 159, 67, 0.1);
+            padding: 6px 12px;
+            border-radius: 20px;
+            font-size: 13px;
+            font-weight: 600;
+        }
+
+        /* 分割线 */
+        .divider {
+            height: 1px;
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.1), transparent);
+            margin: 15px 0;
+        }
+
+        /* 底部操作栏 */
+        .card-footer {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .avatar {
+            width: 32px;
+            height: 32px;
+            background: #4b5563;
+            color: white;
+            border-radius: 50%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-weight: bold;
+            font-size: 14px;
+            border: 2px solid #1e2230;
+        }
+
+        .actions {
+            display: flex;
+            gap: 15px;
+            color: #636e72;
+        }
+
+        .action-icon {
+            cursor: pointer;
+            transition: color 0.2s;
+            font-size: 18px;
+            display: flex;
+            align-items: center;
+        }
+
+        .action-icon:hover {
+            color: #ffffff;
+        }
+
+        .action-icon.delete:hover {
+            color: #ff4d4f;
+        }
+
+    </style>
+</head>
+<body>
+
+    <div class="card">
+        <div class="card-header">
+            <div class="header-left">
+                <div class="icon-rocket">🚀</div>
+                <span class="tag-todo">待办</span>
+            </div>
+            <span class="tag-priority">中</span>
+        </div>
+
+        <div class="card-body">
+            <h2 class="title">需求标题：111</h2>
+            <p class="description">这里是任务的简短描述信息，通过调整颜色和字号提升了阅读的舒适度...</p>
+            <div class="story-points">
+                <span>⚡ 故事点:</span>
+                <span>2 pts</span>
+            </div>
+        </div>
+
+        <div class="divider"></div>
+
+        <div class="card-footer">
+            <div class="avatar">A</div>
+            <div class="actions">
+                <span class="action-icon" title="查看">👁️</span>
+                <span class="action-icon" title="编辑">✏️</span>
+                <span class="action-icon delete" title="删除">🗑️</span>
+            </div>
+        </div>
+    </div>
+
+</body>
+</html>
