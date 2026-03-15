@@ -13,6 +13,7 @@ import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import java.util.List;
+import java.util.Map;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
 
@@ -75,10 +76,20 @@ public class ProjectController {
 
   /** 添加项目成员 */
   @PostMapping("/{id}/members")
-  @Operation(summary = "添加项目成员", description = "添加用户到项目中")
+  @Operation(summary = "添加项目成员", description = "添加用户到项目中，如果用户已在项目中则更新其角色")
   public Result<Void> addProjectMember(
       @PathVariable Long id, @Valid @RequestBody ProjectMemberDTO request) {
     projectService.addProjectMember(id, request);
+    return Result.success();
+  }
+
+  /** 更新项目成员角色 */
+  @PutMapping("/{id}/members/{userId}/role")
+  @Operation(summary = "更新项目成员角色", description = "更新项目中指定用户的角色")
+  public Result<Void> updateProjectMemberRole(
+      @PathVariable Long id, @PathVariable Long userId, @RequestBody Map<String, String> request) {
+    String role = request.get("role");
+    projectService.updateProjectMemberRole(id, userId, role);
     return Result.success();
   }
 
