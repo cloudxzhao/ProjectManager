@@ -29,10 +29,6 @@ const statusTextLabelMap: Record<string, string> = {
   IN_PROGRESS: '开发中',
   IN_REVIEW: '测试中',
   DONE: '已完成',
-  todo: '待办',
-  in_progress: '开发中',
-  in_review: '测试中',
-  done: '已完成',
 };
 
 // 优先级颜色映射（支持大写和小写）

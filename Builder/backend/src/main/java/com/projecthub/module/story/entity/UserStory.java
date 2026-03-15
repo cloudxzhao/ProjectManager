@@ -1,7 +1,6 @@
 package com.projecthub.module.story.entity;
 
 import com.projecthub.common.constant.TaskStatus;
-import com.projecthub.module.service.entity.BusinessService;
 import jakarta.persistence.*;
 import java.time.LocalDateTime;
 import lombok.*;
@@ -34,9 +33,6 @@ public class UserStory {
 
   @Column(name = "project_id", nullable = false)
   private Long projectId;
-
-  @Column(name = "service_id")
-  private Long serviceId;
 
   @Column(nullable = false, length = 200)
   private String title;
@@ -76,11 +72,6 @@ public class UserStory {
 
   @Column(name = "deleted_at")
   private LocalDateTime deletedAt;
-
-  /** 关联的服务 */
-  @ManyToOne(fetch = FetchType.LAZY)
-  @JoinColumn(name = "service_id", insertable = false, updatable = false)
-  private BusinessService businessService;
 
   /** 优先级枚举 */
   public enum Priority {

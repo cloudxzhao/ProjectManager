@@ -104,10 +104,10 @@ public class GlobalExceptionHandler {
     return Result.error(ErrorCode.BAD_REQUEST.getCode(), e.getMessage());
   }
 
-  /** 处理客户端断开连接异常
+  /**
+   * 处理客户端断开连接异常
    *
-   * 当客户端在服务器完成响应之前断开连接时发生
-   * 这是正常现象，不需要记录错误日志，只需记录 debug 级别日志
+   * <p>当客户端在服务器完成响应之前断开连接时发生 这是正常现象，不需要记录错误日志，只需记录 debug 级别日志
    */
   @ExceptionHandler(ClientAbortException.class)
   public void handleClientAbortException(ClientAbortException e) {
