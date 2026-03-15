@@ -404,11 +404,11 @@ export default function ProjectDetailPage() {
     const map: Record<string, string> = {
       todo: '待办',
       in_progress: '进行中',
-      testing: '测试中',
+      in_review: '测试中',
       done: '已完成',
       TODO: '待办',
       IN_PROGRESS: '进行中',
-      TESTING: '测试中',
+      IN_REVIEW: '测试中',
       DONE: '已完成',
     };
     return map[status] || status;
@@ -419,11 +419,11 @@ export default function ProjectDetailPage() {
     const map: Record<string, string> = {
       todo: 'default',
       in_progress: 'processing',
-      testing: 'warning',
+      in_review: 'warning',
       done: 'success',
       TODO: 'default',
       IN_PROGRESS: 'processing',
-      TESTING: 'warning',
+      IN_REVIEW: 'warning',
       DONE: 'success',
     };
     return map[status] || 'default';
@@ -1197,7 +1197,7 @@ export default function ProjectDetailPage() {
                   const statusConfig: Record<string, { color: string; text: string }> = {
                     TODO: { color: 'default', text: '待办' },
                     IN_PROGRESS: { color: 'processing', text: '进行中' },
-                    TESTING: { color: 'warning', text: '测试中' },
+                    IN_REVIEW: { color: 'warning', text: '测试中' },
                     DONE: { color: 'success', text: '已完成' },
                   };
                   const config = statusConfig[status] || { color: 'default', text: status };
@@ -2209,10 +2209,10 @@ export default function ProjectDetailPage() {
                 label="状态"
               >
                 <Select className="bg-gray-700/50 border-gray-600">
-                  <Select.Option value="todo">待办</Select.Option>
-                  <Select.Option value="in_progress">进行中</Select.Option>
-                  <Select.Option value="testing">测试中</Select.Option>
-                  <Select.Option value="done">已完成</Select.Option>
+                  <Select.Option value="TODO">待办</Select.Option>
+                  <Select.Option value="IN_PROGRESS">进行中</Select.Option>
+                  <Select.Option value="IN_REVIEW">测试中</Select.Option>
+                  <Select.Option value="DONE">已完成</Select.Option>
                 </Select>
               </Form.Item>
 
@@ -2559,10 +2559,10 @@ export default function ProjectDetailPage() {
                 label="状态"
               >
                 <Select className="bg-gray-700/50 border-gray-600">
-                  <Select.Option value="todo">待办</Select.Option>
-                  <Select.Option value="in_progress">进行中</Select.Option>
-                  <Select.Option value="testing">测试中</Select.Option>
-                  <Select.Option value="done">已完成</Select.Option>
+                  <Select.Option value="TODO">待办</Select.Option>
+                  <Select.Option value="IN_PROGRESS">进行中</Select.Option>
+                  <Select.Option value="IN_REVIEW">测试中</Select.Option>
+                  <Select.Option value="DONE">已完成</Select.Option>
                 </Select>
               </Form.Item>
 
