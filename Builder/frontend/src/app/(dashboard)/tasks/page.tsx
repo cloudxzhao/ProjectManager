@@ -20,8 +20,8 @@ const { Option } = Select;
 // 状态文本映射
 const statusTextMap: Record<string, string> = {
   TODO: '待办',
-  IN_PROGRESS: '进行中',
-  IN_REVIEW: '审核中',
+  IN_PROGRESS: '开发中',
+  IN_REVIEW: '测试中',
   DONE: '已完成',
 };
 
@@ -36,8 +36,8 @@ const priorityTextMap: Record<string, string> = {
 // 看板列定义
 const columns = [
   { id: 'TODO', title: '待办', color: '#6b7280' },
-  { id: 'IN_PROGRESS', title: '进行中', color: '#3b82f6' },
-  { id: 'IN_REVIEW', title: '审核中', color: '#f59e0b' },
+  { id: 'IN_PROGRESS', title: '开发中', color: '#3b82f6' },
+  { id: 'IN_REVIEW', title: '测试中', color: '#f59e0b' },
   { id: 'DONE', title: '已完成', color: '#10b981' },
 ];
 
@@ -503,8 +503,8 @@ export default function TaskBoardPage() {
             dropdownClassName="bg-gray-800 border-gray-700"
           >
             <Option value="TODO">待办</Option>
-            <Option value="IN_PROGRESS">进行中</Option>
-            <Option value="IN_REVIEW">审核中</Option>
+            <Option value="IN_PROGRESS">开发中</Option>
+            <Option value="IN_REVIEW">测试中</Option>
             <Option value="DONE">已完成</Option>
           </Select>
 

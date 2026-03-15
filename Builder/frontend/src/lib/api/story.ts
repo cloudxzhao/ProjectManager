@@ -48,8 +48,8 @@ export const statusMap: Record<string, StoryStatus> = {
 // 前端映射：大写转小写（用于展示）
 export const statusTextMap: Record<StoryStatus, string> = {
   TODO: '待办',
-  IN_PROGRESS: '进行中',
-  IN_REVIEW: '审核中',
+  IN_PROGRESS: '开发中',
+  IN_REVIEW: '测试中',
   DONE: '已完成',
 };
 

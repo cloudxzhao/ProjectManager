@@ -26,12 +26,12 @@ const statusColorMap: Record<string, string> = {
 // 状态文本映射（支持大写和小写）
 const statusTextLabelMap: Record<string, string> = {
   TODO: '待办',
-  IN_PROGRESS: '进行中',
-  IN_REVIEW: '审核中',
+  IN_PROGRESS: '开发中',
+  IN_REVIEW: '测试中',
   DONE: '已完成',
   todo: '待办',
-  in_progress: '进行中',
-  in_review: '审核中',
+  in_progress: '开发中',
+  in_review: '测试中',
   done: '已完成',
 };
 
@@ -589,8 +589,8 @@ export default function StoriesPage() {
             allowClear
           >
             <Option value="TODO">待办</Option>
-            <Option value="IN_PROGRESS">进行中</Option>
-            <Option value="IN_REVIEW">审核中</Option>
+            <Option value="IN_PROGRESS">开发中</Option>
+            <Option value="IN_REVIEW">测试中</Option>
             <Option value="DONE">已完成</Option>
           </Select>
           <Select
@@ -777,8 +777,8 @@ export default function StoriesPage() {
               >
                 <Select className="bg-gray-700/50 border-gray-600">
                   <Option value="TODO">待办</Option>
-                  <Option value="IN_PROGRESS">进行中</Option>
-                  <Option value="IN_REVIEW">审核中</Option>
+                  <Option value="IN_PROGRESS">开发中</Option>
+                  <Option value="IN_REVIEW">测试中</Option>
                   <Option value="DONE">已完成</Option>
                 </Select>
               </Form.Item>

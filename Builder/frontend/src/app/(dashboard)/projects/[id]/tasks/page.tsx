@@ -18,8 +18,8 @@ const { TextArea } = Input;
 // 看板列定义
 const initialColumns = [
   { id: 'TODO', title: '待办', color: '#6b7280' },
-  { id: 'IN_PROGRESS', title: '进行中', color: '#3b82f6' },
-  { id: 'IN_REVIEW', title: '审核中', color: '#f59e0b' },
+  { id: 'IN_PROGRESS', title: '开发中', color: '#3b82f6' },
+  { id: 'IN_REVIEW', title: '测试中', color: '#f59e0b' },
   { id: 'DONE', title: '已完成', color: '#10b981' },
 ];
 
