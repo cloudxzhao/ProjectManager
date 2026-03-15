@@ -1302,10 +1302,10 @@ export default function ProjectDetailPage() {
                 width: 100,
                 render: (status: string) => {
                   const statusConfig: Record<string, { color: string; text: string }> = {
-                    open: { color: 'processing', text: '打开' },
-                    in_progress: { color: 'warning', text: '进行中' },
-                    resolved: { color: 'success', text: '已解决' },
-                    closed: { color: 'default', text: '已关闭' },
+                    TODO: { color: 'default', text: '待办' },
+                    IN_PROGRESS: { color: 'warning', text: '进行中' },
+                    IN_REVIEW: { color: 'success', text: '已解决' },
+                    DONE: { color: 'default', text: '已关闭' },
                   };
                   const config = statusConfig[status] || { color: 'default', text: status };
                   return <Tag color={config.color}>{config.text}</Tag>;
@@ -2109,10 +2109,10 @@ export default function ProjectDetailPage() {
                   {selectedIssue.severity}
                 </Tag>
                 <Tag color="processing">
-                  {selectedIssue.status === 'open' && '打开'}
-                  {selectedIssue.status === 'in_progress' && '进行中'}
-                  {selectedIssue.status === 'resolved' && '已解决'}
-                  {selectedIssue.status === 'closed' && '已关闭'}
+                  {selectedIssue.status === 'TODO' && '待办'}
+                  {selectedIssue.status === 'IN_PROGRESS' && '进行中'}
+                  {selectedIssue.status === 'IN_REVIEW' && '已解决'}
+                  {selectedIssue.status === 'DONE' && '已关闭'}
                 </Tag>
                 <Tag color="default">
                   {selectedIssue.type === 'bug' && '缺陷'}
@@ -2358,10 +2358,10 @@ export default function ProjectDetailPage() {
                 label="状态"
               >
                 <Select className="bg-gray-700/50 border-gray-600">
-                  <Select.Option value="open">打开</Select.Option>
-                  <Select.Option value="in_progress">进行中</Select.Option>
-                  <Select.Option value="resolved">已解决</Select.Option>
-                  <Select.Option value="closed">已关闭</Select.Option>
+                  <Select.Option value="TODO">待办</Select.Option>
+                  <Select.Option value="IN_PROGRESS">进行中</Select.Option>
+                  <Select.Option value="IN_REVIEW">已解决</Select.Option>
+                  <Select.Option value="DONE">已关闭</Select.Option>
                 </Select>
               </Form.Item>
 
@@ -2724,10 +2724,10 @@ export default function ProjectDetailPage() {
                 label="状态"
               >
                 <Select className="bg-gray-700/50 border-gray-600">
-                  <Select.Option value="open">打开</Select.Option>
-                  <Select.Option value="in_progress">进行中</Select.Option>
-                  <Select.Option value="resolved">已解决</Select.Option>
-                  <Select.Option value="closed">已关闭</Select.Option>
+                  <Select.Option value="TODO">待办</Select.Option>
+                  <Select.Option value="IN_PROGRESS">进行中</Select.Option>
+                  <Select.Option value="IN_REVIEW">已解决</Select.Option>
+                  <Select.Option value="DONE">已关闭</Select.Option>
                 </Select>
               </Form.Item>
 

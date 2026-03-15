@@ -23,7 +23,7 @@ export type IssueType = 'bug' | 'feature' | 'improvement' | 'task';
 
 export type Severity = 'critical' | 'high' | 'medium' | 'low';
 
-export type IssueStatus = 'open' | 'in_progress' | 'resolved' | 'closed';
+export type IssueStatus = 'TODO' | 'IN_PROGRESS' | 'IN_REVIEW' | 'DONE';
 
 export type Priority = 'low' | 'medium' | 'high' | 'urgent';
 
