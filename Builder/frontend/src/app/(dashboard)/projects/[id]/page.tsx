@@ -938,17 +938,29 @@ export default function ProjectDetailPage() {
                     ),
                   },
                   {
-                    title: '验收标准',
-                    dataIndex: 'acceptanceCriteria',
-                    key: 'acceptanceCriteria',
-                    width: 120,
-                    render: (acceptanceCriteria?: string) => (
-                      acceptanceCriteria ? (
-                        <Tag color="blue">已定义</Tag>
-                      ) : (
-                        <span className="text-gray-500">-</span>
-                      )
-                    ),
+                    title: '优先级',
+                    dataIndex: 'priority',
+                    key: 'priority',
+                    width: 100,
+                    render: (priority: string) => {
+                      const colorMap: Record<string, string> = {
+                        LOW: 'green',
+                        MEDIUM: 'orange',
+                        HIGH: 'red',
+                        URGENT: 'purple',
+                      };
+                      const textMap: Record<string, string> = {
+                        LOW: '低',
+                        MEDIUM: '中',
+                        HIGH: '高',
+                        URGENT: '紧急',
+                      };
+                      return (
+                        <Tag color={colorMap[priority] || 'default'}>
+                          {textMap[priority] || priority}
+                        </Tag>
+                      );
+                    },
                   },
                   {
                     title: '操作',
