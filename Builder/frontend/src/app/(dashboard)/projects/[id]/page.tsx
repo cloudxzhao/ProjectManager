@@ -2296,10 +2296,10 @@ export default function ProjectDetailPage() {
                 label="优先级"
               >
                 <Select className="bg-gray-700/50 border-gray-600">
-                  <Select.Option value="low">低</Select.Option>
-                  <Select.Option value="medium">中</Select.Option>
-                  <Select.Option value="high">高</Select.Option>
-                  <Select.Option value="urgent">紧急</Select.Option>
+                  <Select.Option value="LOW">低</Select.Option>
+                  <Select.Option value="MEDIUM">中</Select.Option>
+                  <Select.Option value="HIGH">高</Select.Option>
+                  <Select.Option value="URGENT">紧急</Select.Option>
                 </Select>
               </Form.Item>
             </div>
@@ -2407,10 +2407,10 @@ export default function ProjectDetailPage() {
                 label="类型"
               >
                 <Select className="bg-gray-700/50 border-gray-600">
-                  <Select.Option value="bug">缺陷</Select.Option>
-                  <Select.Option value="feature">功能</Select.Option>
-                  <Select.Option value="improvement">改进</Select.Option>
-                  <Select.Option value="task">任务</Select.Option>
+                  <Select.Option value="BUG">缺陷</Select.Option>
+                  <Select.Option value="FEATURE">功能</Select.Option>
+                  <Select.Option value="IMPROVEMENT">改进</Select.Option>
+                  <Select.Option value="TASK">任务</Select.Option>
                 </Select>
               </Form.Item>
 
@@ -2419,10 +2419,10 @@ export default function ProjectDetailPage() {
                 label="严重程度"
               >
                 <Select className="bg-gray-700/50 border-gray-600">
-                  <Select.Option value="critical">严重</Select.Option>
-                  <Select.Option value="high">高</Select.Option>
-                  <Select.Option value="medium">中</Select.Option>
-                  <Select.Option value="low">低</Select.Option>
+                  <Select.Option value="CRITICAL">严重</Select.Option>
+                  <Select.Option value="HIGH">高</Select.Option>
+                  <Select.Option value="NORMAL">中</Select.Option>
+                  <Select.Option value="LOW">低</Select.Option>
                 </Select>
               </Form.Item>
             </div>
@@ -2445,10 +2445,10 @@ export default function ProjectDetailPage() {
                 label="优先级"
               >
                 <Select className="bg-gray-700/50 border-gray-600">
-                  <Select.Option value="low">低</Select.Option>
-                  <Select.Option value="medium">中</Select.Option>
-                  <Select.Option value="high">高</Select.Option>
-                  <Select.Option value="urgent">紧急</Select.Option>
+                  <Select.Option value="LOW">低</Select.Option>
+                  <Select.Option value="MEDIUM">中</Select.Option>
+                  <Select.Option value="HIGH">高</Select.Option>
+                  <Select.Option value="URGENT">紧急</Select.Option>
                 </Select>
               </Form.Item>
             </div>
@@ -2852,10 +2852,10 @@ export default function ProjectDetailPage() {
                     color: '#f0f6fc',
                   }}
                 >
-                  <Select.Option value="low">低</Select.Option>
-                  <Select.Option value="medium">中</Select.Option>
-                  <Select.Option value="high">高</Select.Option>
-                  <Select.Option value="urgent">紧急</Select.Option>
+                  <Select.Option value="LOW">低</Select.Option>
+                  <Select.Option value="MEDIUM">中</Select.Option>
+                  <Select.Option value="HIGH">高</Select.Option>
+                  <Select.Option value="URGENT">紧急</Select.Option>
                 </Select>
               </Form.Item>
             </div>
@@ -3085,10 +3085,10 @@ export default function ProjectDetailPage() {
                     color: '#f0f6fc',
                   }}
                 >
-                  <Select.Option value="bug">缺陷</Select.Option>
-                  <Select.Option value="feature">功能</Select.Option>
-                  <Select.Option value="improvement">改进</Select.Option>
-                  <Select.Option value="task">任务</Select.Option>
+                  <Select.Option value="BUG">缺陷</Select.Option>
+                  <Select.Option value="FEATURE">功能</Select.Option>
+                  <Select.Option value="IMPROVEMENT">改进</Select.Option>
+                  <Select.Option value="TASK">任务</Select.Option>
                 </Select>
               </Form.Item>
 
@@ -3109,10 +3109,10 @@ export default function ProjectDetailPage() {
                     color: '#f0f6fc',
                   }}
                 >
-                  <Select.Option value="critical">严重</Select.Option>
-                  <Select.Option value="high">高</Select.Option>
-                  <Select.Option value="medium">中</Select.Option>
-                  <Select.Option value="low">低</Select.Option>
+                  <Select.Option value="CRITICAL">严重</Select.Option>
+                  <Select.Option value="HIGH">高</Select.Option>
+                  <Select.Option value="NORMAL">中</Select.Option>
+                  <Select.Option value="LOW">低</Select.Option>
                 </Select>
               </Form.Item>
             </div>
@@ -3159,10 +3159,10 @@ export default function ProjectDetailPage() {
                     color: '#f0f6fc',
                   }}
                 >
-                  <Select.Option value="low">低</Select.Option>
-                  <Select.Option value="medium">中</Select.Option>
-                  <Select.Option value="high">高</Select.Option>
-                  <Select.Option value="urgent">紧急</Select.Option>
+                  <Select.Option value="LOW">低</Select.Option>
+                  <Select.Option value="MEDIUM">中</Select.Option>
+                  <Select.Option value="HIGH">高</Select.Option>
+                  <Select.Option value="URGENT">紧急</Select.Option>
                 </Select>
               </Form.Item>
             </div>
