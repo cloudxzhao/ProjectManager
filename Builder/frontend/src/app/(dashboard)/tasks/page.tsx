@@ -10,7 +10,7 @@ import { DndContext, DragEndEvent, closestCenter } from '@dnd-kit/core';
 import { SortableContext, verticalListSortingStrategy, useSortable } from '@dnd-kit/sortable';
 import { useDroppable } from '@dnd-kit/core';
 import { CSS } from '@dnd-kit/utilities';
-import { searchTasks as searchTasksApi, moveTask as moveTaskApi, createTask as createTaskApi, type Task, type TaskStatus, type Priority } from '@/lib/api/task';
+import { searchTasks as searchTasksApi, moveTask as moveTaskApi, createTask as createTaskApi, getTasks as getTasksApi, type Task, type TaskStatus, type Priority } from '@/lib/api/task';
 import { getAuthorizedProjects, getProjectMembers } from '@/lib/api/project';
 import type { Project } from '@/lib/api/project';
 import type { ProjectMemberResponse } from '@/lib/api/project';
@@ -205,6 +205,8 @@ export default function TaskBoardPage() {
   const [createDrawerVisible, setCreateDrawerVisible] = useState(false);
   const [createForm] = Form.useForm();
   const [currentProjectMembers, setCurrentProjectMembers] = useState<ProjectMemberResponse[]>([]);
+  const [parentTasks, setParentTasks] = useState<Task[]>([]);  // 父任务列表（用于关联父任务下拉）
+  const [parentTasksLoading, setParentTasksLoading] = useState(false);  // 父任务列表加载状态
 
   // 分页状态
   const [page, setPage] = useState(1);
@@ -468,6 +470,7 @@ export default function TaskBoardPage() {
         storyPoints: values.storyPoints,
         dueDate: values.dueDate ? values.dueDate.format('YYYY-MM-DD') : '',
         tags: values.tags || [],
+        parentId: values.parentId,  // 关联父任务 ID
         userStoryId: values.userStoryId,
       };
 
@@ -481,11 +484,27 @@ export default function TaskBoardPage() {
     }
   };
 
-  // 当项目选择变化时，加载项目成员
+  // 当项目选择变化时，加载项目成员和父任务列表
   const handleProjectChange = (projectId: number) => {
     const members = allProjectMembers.get(projectId) || [];
     setCurrentProjectMembers(members);
     createForm.setFieldsValue({ assigneeId: undefined });
+    // 加载该项目的任务列表用于父任务选择
+    fetchParentTasks(projectId);
+  };
+
+  // 加载父任务列表（用于关联父任务下拉）
+  const fetchParentTasks = async (projectId: number) => {
+    setParentTasksLoading(true);
+    try {
+      const result = await getTasksApi(projectId);
+      // 过滤掉子任务（有 parentId 的任务），只显示可以作为父任务的任务
+      setParentTasks(result.list || []);
+    } catch (error) {
+      console.error('加载父任务列表失败:', error);
+    } finally {
+      setParentTasksLoading(false);
+    }
   };
 
   return (
@@ -877,6 +896,31 @@ export default function TaskBoardPage() {
               dropdownClassName="bg-gray-800 border-gray-700"
               placeholder="选择截止日期"
             />
+          </Form.Item>
+
+          {/* 关联父任务 */}
+          <Form.Item
+            name="parentId"
+            label={<span style={{ color: '#8b949e', fontSize: '13px' }}>关联父任务（可选）</span>}
+          >
+            <Select
+              placeholder="选择父任务（可选）"
+              allowClear
+              loading={parentTasksLoading}
+              style={{ width: '100%' }}
+              dropdownClassName="bg-gray-800 border-gray-700"
+              showSearch
+              filterOption={(input, option) =>
+                String(option?.children ?? '').toLowerCase().includes(input.toLowerCase())
+              }
+              notFoundContent={parentTasksLoading ? <Spin size="small" /> : '暂无可关联的任务'}
+            >
+              {parentTasks.map((task) => (
+                <Option key={task.id} value={task.id}>
+                  TASK-{task.id} - {task.title}
+                </Option>
+              ))}
+            </Select>
           </Form.Item>
 
           {/* 关联用户故事 */}

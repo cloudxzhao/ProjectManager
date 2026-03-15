@@ -7,7 +7,7 @@ import { PlusOutlined, MoreOutlined, ClockCircleOutlined, FlagOutlined } from '@
 import { DndContext, DragEndEvent, closestCenter } from '@dnd-kit/core';
 import { SortableContext, horizontalListSortingStrategy, useSortable, verticalListSortingStrategy } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
-import { getTasksForBoard, createTask as createTaskApi, moveTask, deleteTask } from '@/lib/api/task';
+import { getTasksForBoard, getTasks, createTask as createTaskApi, moveTask, deleteTask, type Task } from '@/lib/api/task';
 import { getProjectMembers, type ProjectMemberResponse } from '@/lib/api/project';
 import { useAuth } from '@/lib/hooks/useAuth';
 import type { TaskBoardItem, TaskStatus, Priority } from '@/lib/api/task';
@@ -151,14 +151,36 @@ const SortableColumn: React.FC<SortableColumnProps> = ({ column, tasks, onTaskCl
 interface TaskFormModalProps {
   open: boolean;
   onClose: () => void;
-  onSubmit: (values: { title: string; description?: string; priority?: Priority; storyPoints?: number; assignee?: string; dueDate?: string }) => void;
+  onSubmit: (values: { title: string; description?: string; priority?: Priority; storyPoints?: number; assignee?: string; dueDate?: string; parentId?: number }) => void;
   initialColumnId?: string;
   projectMembers: ProjectMemberResponse[];
   currentUserId?: number;
+  projectId: number;  // 添加项目 ID 用于加载父任务列表
 }
 
-const TaskFormModal: React.FC<TaskFormModalProps> = ({ open, onClose, onSubmit, initialColumnId, projectMembers, currentUserId }) => {
+const TaskFormModal: React.FC<TaskFormModalProps> = ({ open, onClose, onSubmit, initialColumnId, projectMembers, currentUserId, projectId }) => {
   const [form] = Form.useForm();
+  const [parentTasks, setParentTasks] = useState<Task[]>([]);  // 父任务列表
+  const [parentTasksLoading, setParentTasksLoading] = useState(false);  // 加载状态
+
+  // 加载父任务列表
+  useEffect(() => {
+    if (open && projectId) {
+      const loadParentTasks = async () => {
+        setParentTasksLoading(true);
+        try {
+          const result = await getTasks(projectId);
+          // 只显示可以作为父任务的任务（所有任务都可以作为父任务）
+          setParentTasks(result.list || []);
+        } catch (error) {
+          console.error('加载父任务列表失败:', error);
+        } finally {
+          setParentTasksLoading(false);
+        }
+      };
+      loadParentTasks();
+    }
+  }, [open, projectId]);
 
   // 当对话框打开且项目成员加载完成后，自动设置当前用户为默认负责人
   useEffect(() => {
@@ -170,7 +192,7 @@ const TaskFormModal: React.FC<TaskFormModalProps> = ({ open, onClose, onSubmit, 
     }
   }, [open, currentUserId, projectMembers, form]);
 
-  const handleFinish = (values: { title: string; description?: string; priority?: Priority; storyPoints?: number; assignee?: string; dueDate?: string }) => {
+  const handleFinish = (values: { title: string; description?: string; priority?: Priority; storyPoints?: number; assignee?: string; dueDate?: string; parentId?: number }) => {
     onSubmit(values);
     form.resetFields();
     onClose();
@@ -278,6 +300,29 @@ const TaskFormModal: React.FC<TaskFormModalProps> = ({ open, onClose, onSubmit, 
             <DatePicker className="w-full bg-gray-700/50 border-gray-600 text-white" format="YYYY-MM-DD" />
           </Form.Item>
         </div>
+
+        <Form.Item
+          name="parentId"
+          label="关联父任务（可选）"
+        >
+          <Select
+            placeholder="选择父任务（可选）"
+            className="bg-gray-700/50 border-gray-600"
+            showSearch
+            allowClear
+            loading={parentTasksLoading}
+            filterOption={(input, option) =>
+              String(option?.children ?? '').toLowerCase().includes(input.toLowerCase())
+            }
+            notFoundContent={parentTasksLoading ? <Spin size="small" /> : '暂无可关联的任务'}
+          >
+            {parentTasks.map((task) => (
+              <Option key={task.id} value={task.id}>
+                TASK-{task.id} - {task.title}
+              </Option>
+            ))}
+          </Select>
+        </Form.Item>
 
         <Form.Item>
           <div className="flex gap-4 pt-4">
@@ -414,7 +459,7 @@ export default function TaskBoardPage() {
     router.push(`/tasks/${task.taskId}`);
   };
 
-  const handleCreateTask = async (values: { title: string; description?: string; priority?: Priority; storyPoints?: number; assignee?: string; dueDate?: string }) => {
+  const handleCreateTask = async (values: { title: string; description?: string; priority?: Priority; storyPoints?: number; assignee?: string; dueDate?: string; parentId?: number }) => {
     try {
       // 将列ID转换为状态
       const columnId = initialColumnId || 'TODO';
@@ -427,6 +472,7 @@ export default function TaskBoardPage() {
         storyPoints: values.storyPoints,
         dueDate: values.dueDate,
         status: status as TaskStatus,
+        parentId: values.parentId,
       });
 
       message.success('任务创建成功');
@@ -493,6 +539,7 @@ export default function TaskBoardPage() {
         initialColumnId={initialColumnId}
         projectMembers={projectMembers}
         currentUserId={user?.id}
+        projectId={projectIdNum}
       />
     </div>
   );

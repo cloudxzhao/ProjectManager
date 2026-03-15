@@ -39,7 +39,7 @@ export interface CreateTaskDto {
   storyPoints?: number;
   dueDate?: string;
   tags?: string[];
-  parentId?: number;
+  parentId?: number;  // 关联父任务 ID
   userStoryId?: number;
 }
 

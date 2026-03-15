@@ -219,6 +219,10 @@ export default function ProjectDetailPage() {
   const [storyTasks, setStoryTasks] = useState<Map<number, Task[]>>(new Map());
   const [expandedRowKeys, setExpandedRowKeys] = useState<React.Key[]>([]);
 
+  // 任务关联的子任务和展开状态（用于级联显示）
+  const [taskSubTasks, setTaskSubTasks] = useState<Map<number, Task[]>>(new Map());
+  const [taskExpandedRowKeys, setTaskExpandedRowKeys] = useState<React.Key[]>([]);
+
   // 服务（Epic）筛选相关状态
   const [epics, setEpics] = useState<Epic[]>([]);
   const [selectedEpicId, setSelectedEpicId] = useState<number | undefined>(undefined);
@@ -390,6 +394,32 @@ export default function ProjectDetailPage() {
       fetchStoryTasks(projectIdNum, record.id);
     }
     setExpandedRowKeys(expanded ? [...expandedRowKeys, record.id] : expandedRowKeys.filter((key) => key !== record.id));
+  };
+
+  // 获取任务关联的子任务
+  const fetchTaskSubTasks = async (taskId: number) => {
+    // 如果已经加载过该任务的子任务，则不再重复加载
+    if (taskSubTasks.has(taskId)) {
+      return;
+    }
+
+    try {
+      // 过滤出 parentId 等于当前 taskId 的子任务
+      const subTasksList = tasks.filter((task) => task.parentId === taskId);
+      setTaskSubTasks((prev) => new Map(prev).set(taskId, subTasksList));
+    } catch (error: unknown) {
+      const errorMessage = error instanceof Error ? error.message : '获取子任务失败';
+      message.error(errorMessage);
+    }
+  };
+
+  // 处理任务展开/折叠
+  const handleTaskExpand = (expanded: boolean, record: Task) => {
+    const projectIdNum = Number(projectId);
+    if (expanded && projectIdNum) {
+      fetchTaskSubTasks(record.id);
+    }
+    setTaskExpandedRowKeys(expanded ? [...taskExpandedRowKeys, record.id] : taskExpandedRowKeys.filter((key) => key !== record.id));
   };
 
   // 获取项目成员列表
@@ -795,6 +825,7 @@ export default function ProjectDetailPage() {
         dueDate: values.dueDate ? dayjs(values.dueDate).format('YYYY-MM-DD') : undefined,
         tags: values.tags ? values.tags.split(',').map((t: string) => t.trim()) : [],
         userStoryId: values.userStoryId,
+        parentId: values.parentId,  // 关联父任务 ID
       });
 
       message.success('任务更新成功');
@@ -879,6 +910,7 @@ export default function ProjectDetailPage() {
         storyPoints: values.storyPoints,
         dueDate: values.dueDate ? dayjs(values.dueDate).format('YYYY-MM-DD') : undefined,
         tags: values.tags ? values.tags.split(',').map((t: string) => t.trim()) : [],
+        parentId: values.parentId,  // 关联父任务 ID
         userStoryId: values.userStoryId,
       });
 
@@ -1198,6 +1230,90 @@ export default function ProjectDetailPage() {
             rowKey="id"
             pagination={false}
             className="tasks-table"
+            expandable={{
+              expandedRowKeys: taskExpandedRowKeys,
+              onExpand: handleTaskExpand,
+              expandIcon: ({ expanded, onExpand, record }) => (
+                <Button
+                  type="text"
+                  size="small"
+                  className="task-expand-btn"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    onExpand(record, e);
+                  }}
+                >
+                  {expanded ? <DownOutlined /> : <RightOutlined />}
+                </Button>
+              ),
+              expandedRowRender: (record) => {
+                const subTasks = taskSubTasks.get(record.id) || [];
+                return (
+                  <div className="task-subtasks-container">
+                    {subTasks.length === 0 ? (
+                      <div className="text-center py-8 text-gray-500">
+                        <Empty description="暂无子任务" image={Empty.PRESENTED_IMAGE_SIMPLE} />
+                      </div>
+                    ) : (
+                      <div className="space-y-2">
+                        {subTasks.map((task) => (
+                          <div key={task.id} className="task-sub-row">
+                            <div className="task-sub-row-cell">
+                              <span className="task-title">{task.title}</span>
+                              {task.storyPoints && (
+                                <span className="pts-tag">{task.storyPoints} pts</span>
+                              )}
+                            </div>
+                            <div className="task-sub-row-cell">
+                              <span className="text-gray-400 text-sm" title={task.description}>
+                                {task.description?.length > 30 ? `${task.description.slice(0, 30)}...` : task.description || '-'}
+                              </span>
+                            </div>
+                            <div className="task-sub-row-cell">
+                              <Tag color={getTaskStatusColor(task.status)}>{getTaskStatusText(task.status)}</Tag>
+                            </div>
+                            <div className="task-sub-row-cell">
+                              <span className="text-gray-300">
+                                {task.assigneeName || <span className="text-gray-500">未分配</span>}
+                              </span>
+                            </div>
+                            <div className="task-sub-row-cell">
+                              <Tag color={task.priority === 'HIGH' ? 'red' : task.priority === 'MEDIUM' ? 'orange' : task.priority === 'URGENT' ? 'purple' : 'green'}>
+                                {task.priority === 'HIGH' ? '高' : task.priority === 'MEDIUM' ? '中' : task.priority === 'URGENT' ? '紧急' : '低'}
+                              </Tag>
+                            </div>
+                            <div className="task-sub-row-cell">
+                              <div className="flex items-center gap-2">
+                                <Button
+                                  type="text"
+                                  size="small"
+                                  icon={<EyeOutlined />}
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    handleViewTask(task);
+                                  }}
+                                  title="查看详情"
+                                />
+                                <Button
+                                  type="text"
+                                  size="small"
+                                  icon={<EditOutlined />}
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    handleEditTask(task);
+                                  }}
+                                  title="编辑"
+                                />
+                              </div>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                );
+              },
+            }}
             columns={[
               {
                 title: '任务标题',
@@ -2572,6 +2688,28 @@ export default function ProjectDetailPage() {
             </Form.Item>
 
             <Form.Item
+              name="parentId"
+              label="关联父任务（可选）"
+            >
+              <Select
+                placeholder="请选择父任务（可选）"
+                allowClear
+                showSearch
+                loading={loading}
+                className="bg-gray-700/50 border-gray-600 text-white"
+                filterOption={(input, option) =>
+                  String(option?.children ?? '').toLowerCase().includes(input.toLowerCase())
+                }
+              >
+                {tasks.map((task) => (
+                  <Select.Option key={task.id} value={task.id}>
+                    TASK-{task.id} - {task.title}
+                  </Select.Option>
+                ))}
+              </Select>
+            </Form.Item>
+
+            <Form.Item
               name="userStoryId"
               label="关联用户故事 ID"
             >
@@ -3221,6 +3359,38 @@ export default function ProjectDetailPage() {
                   padding: '10px',
                 }}
               />
+            </Form.Item>
+
+            <Form.Item
+              name="parentId"
+              label="关联父任务（可选）"
+              labelCol={{ style: { color: '#8b949e', fontSize: '13px' } }}
+            >
+              <Select
+                placeholder="请选择父任务（可选）"
+                allowClear
+                showSearch
+                loading={loading}
+                style={{
+                  background: 'rgba(255,255,255,0.05)',
+                  border: '1px solid rgba(255,255,255,0.1)',
+                  color: '#f0f6fc',
+                  borderRadius: '6px',
+                }}
+                dropdownStyle={{
+                  background: '#161b22',
+                  color: '#f0f6fc',
+                }}
+                filterOption={(input, option) =>
+                  String(option?.children ?? '').toLowerCase().includes(input.toLowerCase())
+                }
+              >
+                {tasks.map((task) => (
+                  <Select.Option key={task.id} value={task.id}>
+                    TASK-{task.id} - {task.title}
+                  </Select.Option>
+                ))}
+              </Select>
             </Form.Item>
 
             <Form.Item
