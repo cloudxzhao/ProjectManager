@@ -1,5 +1,6 @@
 package com.projecthub.module.story.service;
 
+import com.projecthub.common.constant.EpicStatus;
 import com.projecthub.common.exception.BusinessException;
 import com.projecthub.common.util.BeanCopyUtil;
 import com.projecthub.module.project.repository.ProjectRepository;
@@ -55,6 +56,7 @@ public class EpicService {
             .description(request.getDescription())
             .color(request.getColor())
             .position(maxPosition + 1)
+            .status(EpicStatus.ACTIVE)
             .build();
 
     epicRepository.save(epic);
@@ -105,6 +107,9 @@ public class EpicService {
     if (request.getColor() != null) {
       epic.setColor(request.getColor());
     }
+    if (request.getStatus() != null) {
+      epic.setStatus(request.getStatus());
+    }
 
     epicRepository.save(epic);
     log.info("更新史诗成功：epicId={}", epicId);
@@ -127,6 +132,26 @@ public class EpicService {
 
     epicRepository.delete(epic);
     log.info("删除史诗成功：epicId={}", epicId);
+  }
+
+  /** 切换史诗状态 */
+  @Transactional
+  public EpicVO toggleStatus(Long epicId, EpicStatus status) {
+    Long userId = getCurrentUserId();
+
+    Epic epic =
+        epicRepository.findById(epicId).orElseThrow(() -> new BusinessException(404, 404, "史诗不存在"));
+
+    // 权限校验
+    if (!permissionService.hasPermission(userId, epic.getProjectId(), "EPIC_EDIT")) {
+      throw new BusinessException(403, "无编辑史诗权限");
+    }
+
+    epic.setStatus(status);
+    epicRepository.save(epic);
+    log.info("切换史诗状态成功：epicId={}, status={}", epicId, status);
+
+    return BeanCopyUtil.copyProperties(epic, EpicVO.class);
   }
 
   /** 获取当前用户 ID */

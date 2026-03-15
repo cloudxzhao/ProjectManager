@@ -1,5 +1,6 @@
 package com.projecthub.module.story.entity;
 
+import com.projecthub.common.constant.EpicStatus;
 import jakarta.persistence.*;
 import java.time.LocalDateTime;
 import lombok.*;
@@ -39,6 +40,10 @@ public class Epic {
 
   @Column(nullable = false)
   private Integer position = 0;
+
+  @Column(nullable = false, length = 20)
+  @Enumerated(EnumType.STRING)
+  private EpicStatus status = EpicStatus.ACTIVE;
 
   @CreatedDate
   @Column(name = "created_at", nullable = false, updatable = false)

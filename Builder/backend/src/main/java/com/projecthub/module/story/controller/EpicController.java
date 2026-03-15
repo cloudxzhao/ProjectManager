@@ -60,4 +60,13 @@ public class EpicController {
     epicService.deleteEpic(id);
     return Result.success();
   }
+
+  /** 切换史诗状态 */
+  @PatchMapping("/{id}/status")
+  @Operation(summary = "切换史诗状态", description = "切换史诗的活跃状态")
+  public Result<EpicVO> toggleEpicStatus(
+      @PathVariable Long id, @RequestBody EpicVO.ToggleStatusRequest request) {
+    EpicVO epic = epicService.toggleStatus(id, request.getStatus());
+    return Result.success(epic);
+  }
 }

@@ -1,6 +1,8 @@
 package com.projecthub.module.story.dto;
 
+import com.projecthub.common.constant.EpicStatus;
 import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
 import java.time.LocalDateTime;
 import lombok.AllArgsConstructor;
@@ -32,6 +34,9 @@ public class EpicVO {
 
   /** 位置 */
   private Integer position;
+
+  /** 状态：活跃/非活跃 */
+  private EpicStatus status;
 
   /** 创建时间 */
   private LocalDateTime createdAt;
@@ -70,5 +75,18 @@ public class EpicVO {
 
     /** 颜色 */
     private String color;
+
+    /** 状态：活跃/非活跃 */
+    private EpicStatus status;
+  }
+
+  /** 切换史诗状态请求 */
+  @Data
+  @Builder
+  @NoArgsConstructor
+  @AllArgsConstructor
+  public static class ToggleStatusRequest {
+    @NotNull(message = "状态不能为空")
+    private EpicStatus status;
   }
 }
