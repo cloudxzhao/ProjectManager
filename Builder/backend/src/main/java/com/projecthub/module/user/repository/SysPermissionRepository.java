@@ -18,4 +18,7 @@ public interface SysPermissionRepository extends JpaRepository<SysPermission, Lo
   /** 根据权限 ID 列表查询权限 */
   @Query("SELECT p FROM SysPermission p WHERE p.id IN :ids")
   List<SysPermission> findAllByIds(@Param("ids") List<Long> ids);
+
+  /** 根据权限编码列表查询权限 */
+  List<SysPermission> findAllByCodeIn(List<String> codes);
 }
