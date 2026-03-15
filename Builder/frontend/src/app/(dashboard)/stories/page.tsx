@@ -258,6 +258,7 @@ export default function StoriesPage() {
   const [formModalOpen, setFormModalOpen] = useState(false);
   const [detailDrawerOpen, setDetailDrawerOpen] = useState(false);
   const [createDrawerOpen, setCreateDrawerOpen] = useState(false);  // 创建故事抽屉
+  const [editDrawerOpen, setEditDrawerOpen] = useState(false);  // 编辑故事抽屉
 
   // 当前操作的故事
   const [deletingStory, setDeletingStory] = useState<UserStory | null>(null);
@@ -429,7 +430,7 @@ export default function StoriesPage() {
       storyPoints: story.storyPoints,
       epicId: story.epicId,  // 设置所属服务
     });
-    setFormModalOpen(true);
+    setEditDrawerOpen(true);
   };
 
   // 查看详情
@@ -523,7 +524,7 @@ export default function StoriesPage() {
   };
 
   // 获取项目
-  const getProject = (projectId: number) => {
+  const getProject = (projectId?: number) => {
     return projects.find((p) => p.id === projectId);
   };
 
@@ -729,9 +730,9 @@ export default function StoriesPage() {
         </p>
       </Modal>
 
-      {/* 创建/编辑表单对话框 */}
+      {/* 创建用户故事对话框 */}
       <Modal
-        title={editingStory ? '编辑用户故事' : '创建用户故事'}
+        title="创建用户故事"
         open={formModalOpen}
         onCancel={() => {
           setFormModalOpen(false);
@@ -750,47 +751,39 @@ export default function StoriesPage() {
             priority: 'MEDIUM',
           }}
         >
-          {/* 创建模式显示项目选择，编辑模式隐藏 */}
-          {!editingStory && (
-            <Form.Item
-              name="projectId"
-              label="所属项目"
-              rules={[{ required: true, message: '请选择所属项目' }]}
+          {/* 创建模式显示项目选择 */}
+          <Form.Item
+            name="projectId"
+            label="所属项目"
+            rules={[{ required: true, message: '请选择所属项目' }]}
+          >
+            <Select
+              className="bg-gray-700/50 border-gray-600"
+              placeholder="选择项目"
+              onChange={(value) => {
+                // 项目改变时，重新加载项目成员
+                const members = allProjectMembers.get(value) || [];
+                if (members.length > 0) {
+                  setCurrentProjectMembers(members);
+                } else {
+                  fetchProjectMembers(value).then(() => {
+                    const updatedMembers = allProjectMembers.get(value) || [];
+                    setCurrentProjectMembers(updatedMembers);
+                  });
+                }
+                // 项目改变时，重新加载项目史诗（服务）列表
+                fetchEpics(value);
+                // 清空所属服务选择
+                form.setFieldsValue({ epicId: undefined });
+              }}
             >
-              <Select
-                className="bg-gray-700/50 border-gray-600"
-                placeholder="选择项目"
-                onChange={(value) => {
-                  // 项目改变时，重新加载项目成员
-                  const members = allProjectMembers.get(value) || [];
-                  if (members.length > 0) {
-                    setCurrentProjectMembers(members);
-                  } else {
-                    fetchProjectMembers(value).then(() => {
-                      const updatedMembers = allProjectMembers.get(value) || [];
-                      setCurrentProjectMembers(updatedMembers);
-                    });
-                  }
-                  // 项目改变时，重新加载项目史诗（服务）列表
-                  fetchEpics(value);
-                  // 清空所属服务选择
-                  form.setFieldsValue({ epicId: undefined });
-                }}
-              >
-                {projects.map((project) => (
-                  <Option key={project.id} value={project.id}>
-                    {project.icon || '📁'} {project.name}
-                  </Option>
-                ))}
-              </Select>
-            </Form.Item>
-          )}
-
-          {editingStory && (
-            <Form.Item label="所属项目">
-              <div className="text-gray-400">{getProject(editingStory.projectId)?.icon} {getProject(editingStory.projectId)?.name}</div>
-            </Form.Item>
-          )}
+              {projects.map((project) => (
+                <Option key={project.id} value={project.id}>
+                  {project.icon || '📁'} {project.name}
+                </Option>
+              ))}
+            </Select>
+          </Form.Item>
 
           {/* 所属服务（史诗）选择 - 放在所属项目下面 */}
           <Form.Item
@@ -802,7 +795,7 @@ export default function StoriesPage() {
               className="bg-gray-700/50 border-gray-600"
               placeholder={currentEpics.length > 0 ? "选择所属服务（可选）" : "请先选择项目或当前项目无服务"}
               allowClear
-              disabled={currentEpics.length === 0 && !editingStory?.epicId}
+              disabled={currentEpics.length === 0}
             >
               {currentEpics.map((epic) => (
                 <Option key={epic.id} value={epic.id}>
@@ -843,20 +836,6 @@ export default function StoriesPage() {
           </Form.Item>
 
           <div className="grid grid-cols-2 gap-4">
-            {editingStory && (
-              <Form.Item
-                name="status"
-                label="状态"
-              >
-                <Select className="bg-gray-700/50 border-gray-600">
-                  <Option value="TODO">待办</Option>
-                  <Option value="IN_PROGRESS">开发中</Option>
-                  <Option value="IN_REVIEW">测试中</Option>
-                  <Option value="DONE">已完成</Option>
-                </Select>
-              </Form.Item>
-            )}
-
             <Form.Item
               name="priority"
               label="优先级"
@@ -869,10 +848,6 @@ export default function StoriesPage() {
               </Select>
             </Form.Item>
 
-            {editingStory && <div className="hidden" />}
-          </div>
-
-          <div className="grid grid-cols-2 gap-4">
             <Form.Item
               name="storyPoints"
               label="故事点"
@@ -887,7 +862,9 @@ export default function StoriesPage() {
                 <Option value={21}>21</Option>
               </Select>
             </Form.Item>
+          </div>
 
+          <div className="grid grid-cols-2 gap-4">
             <Form.Item
               name="assigneeId"
               label="负责人"
@@ -896,7 +873,7 @@ export default function StoriesPage() {
                 className="bg-gray-700/50 border-gray-600"
                 placeholder={currentProjectMembers.length > 0 ? "选择负责人" : "当前项目暂无成员"}
                 allowClear
-                disabled={currentProjectMembers.length === 0 && !editingStory?.assigneeId}
+                disabled={currentProjectMembers.length === 0}
                 showSearch
                 filterOption={(input, option) =>
                   String(option?.label ?? '').toLowerCase().includes(input.toLowerCase())
@@ -908,14 +885,7 @@ export default function StoriesPage() {
                       {member.username}
                     </Option>
                   ))
-                ) : (
-                  // 编辑时如果成员列表为空，添加一个临时 Option 显示当前负责人
-                  editingStory?.assigneeId && (
-                    <Option key={editingStory.assigneeId} value={editingStory.assigneeId} label={editingStory.assigneeName || `用户 ${editingStory.assigneeId}`}>
-                      {editingStory.assigneeName || `用户 ${editingStory.assigneeId}`}
-                    </Option>
-                  )
-                )}
+                ) : null}
               </Select>
             </Form.Item>
           </div>
@@ -941,7 +911,7 @@ export default function StoriesPage() {
                 loading={loading}
                 className="flex-1 bg-gradient-to-r from-orange-500 to-orange-600 border-none"
               >
-                {editingStory ? '更新' : '创建'}
+                创建
               </Button>
               <Button
                 onClick={() => {
@@ -956,6 +926,219 @@ export default function StoriesPage() {
           </Form.Item>
         </Form>
       </Modal>
+
+      {/* 编辑用户故事抽屉 - 左侧边栏式 */}
+      <Drawer
+        title="编辑用户故事"
+        placement="left"
+        open={editDrawerOpen}
+        onClose={() => {
+          setEditDrawerOpen(false);
+          form.resetFields();
+        }}
+        width={600}
+        styles={{
+          body: { padding: 0, background: '#161b22', color: '#f0f6fc' },
+          header: {
+            background: '#161b22',
+            borderBottom: '1px solid rgba(255,255,255,0.05)',
+            padding: '20px 24px',
+          },
+          footer: {
+            background: '#161b22',
+            borderTop: '1px solid rgba(255,255,255,0.05)',
+            padding: '16px 24px',
+            display: 'flex',
+            gap: '12px',
+            justifyContent: 'flex-end',
+          },
+        }}
+        footer={
+          <div style={{ display: 'flex', gap: '12px', justifyContent: 'flex-end' }}>
+            <Button
+              onClick={() => {
+                setEditDrawerOpen(false);
+                form.resetFields();
+              }}
+              style={{
+                background: 'transparent',
+                border: '1px solid #30363d',
+                color: '#c9d1d9',
+                borderRadius: '6px',
+                padding: '8px 16px',
+              }}
+            >
+              取消
+            </Button>
+            <Button
+              type="primary"
+              htmlType="submit"
+              loading={loading}
+              onClick={() => form.submit()}
+              style={{
+                background: '#ff8c42',
+                border: 'none',
+                borderRadius: '6px',
+                padding: '8px 16px',
+                fontWeight: 500,
+              }}
+            >
+              保存修改
+            </Button>
+          </div>
+        }
+      >
+        <div className="max-h-[70vh] overflow-y-auto pr-4">
+          <Form
+            form={form}
+            layout="vertical"
+            onFinish={handleFormSubmit}
+            size="large"
+          >
+            {/* 编辑模式隐藏项目选择，显示只读信息 */}
+            <Form.Item label="所属项目">
+              <div className="text-gray-400">{getProject(editingStory?.projectId)?.icon} {getProject(editingStory?.projectId)?.name}</div>
+            </Form.Item>
+
+            {/* 所属服务（史诗）选择 */}
+            <Form.Item
+              name="epicId"
+              label="所属服务"
+              extra="将故事关联到具体服务模块，便于分类管理"
+            >
+              <Select
+                className="bg-gray-700/50 border-gray-600"
+                placeholder={currentEpics.length > 0 ? "选择所属服务（可选）" : "请先选择项目或当前项目无服务"}
+                allowClear
+                disabled={currentEpics.length === 0 && !editingStory?.epicId}
+              >
+                {currentEpics.map((epic) => (
+                  <Option key={epic.id} value={epic.id}>
+                    <div className="flex items-center gap-2">
+                      <div
+                        className="w-2.5 h-2.5 rounded-full"
+                        style={{ backgroundColor: epic.color || '#1890ff' }}
+                      />
+                      <span>{epic.title}</span>
+                    </div>
+                  </Option>
+                ))}
+              </Select>
+            </Form.Item>
+
+            <Form.Item
+              name="title"
+              label="故事标题"
+              rules={[{ required: true, message: '请输入故事标题' }]}
+            >
+              <Input
+                placeholder="请输入故事标题"
+                className="bg-gray-700/50 border-gray-600 text-white"
+              />
+            </Form.Item>
+
+            <Form.Item
+              name="description"
+              label="故事描述"
+            >
+              <TextArea
+                rows={4}
+                placeholder="描述用户故事的内容..."
+                className="bg-gray-700/50 border-gray-600 text-white"
+                showCount
+                maxLength={2000}
+              />
+            </Form.Item>
+
+            <div className="grid grid-cols-2 gap-4">
+              <Form.Item
+                name="status"
+                label="状态"
+              >
+                <Select className="bg-gray-700/50 border-gray-600">
+                  <Option value="TODO">待办</Option>
+                  <Option value="IN_PROGRESS">开发中</Option>
+                  <Option value="IN_REVIEW">测试中</Option>
+                  <Option value="DONE">已完成</Option>
+                </Select>
+              </Form.Item>
+
+              <Form.Item
+                name="priority"
+                label="优先级"
+              >
+                <Select className="bg-gray-700/50 border-gray-600">
+                  <Option value="LOW">低</Option>
+                  <Option value="MEDIUM">中</Option>
+                  <Option value="HIGH">高</Option>
+                  <Option value="URGENT">紧急</Option>
+                </Select>
+              </Form.Item>
+            </div>
+
+            <div className="grid grid-cols-2 gap-4">
+              <Form.Item
+                name="storyPoints"
+                label="故事点"
+              >
+                <Select className="bg-gray-700/50 border-gray-600" allowClear>
+                  <Option value={1}>1</Option>
+                  <Option value={2}>2</Option>
+                  <Option value={3}>3</Option>
+                  <Option value={5}>5</Option>
+                  <Option value={8}>8</Option>
+                  <Option value={13}>13</Option>
+                  <Option value={21}>21</Option>
+                </Select>
+              </Form.Item>
+
+              <Form.Item
+                name="assigneeId"
+                label="负责人"
+              >
+                <Select
+                  className="bg-gray-700/50 border-gray-600"
+                  placeholder={currentProjectMembers.length > 0 ? "选择负责人" : "当前项目暂无成员"}
+                  allowClear
+                  disabled={currentProjectMembers.length === 0 && !editingStory?.assigneeId}
+                  showSearch
+                  filterOption={(input, option) =>
+                    String(option?.label ?? '').toLowerCase().includes(input.toLowerCase())
+                  }
+                >
+                  {currentProjectMembers.length > 0 ? (
+                    currentProjectMembers.map((member) => (
+                      <Option key={member.userId} value={member.userId} label={member.username}>
+                        {member.username}
+                      </Option>
+                    ))
+                  ) : (
+                    // 编辑时如果成员列表为空，添加一个临时 Option 显示当前负责人
+                    editingStory?.assigneeId && (
+                      <Option key={editingStory.assigneeId} value={editingStory.assigneeId} label={editingStory.assigneeName || `用户 ${editingStory.assigneeId}`}>
+                        {editingStory.assigneeName || `用户 ${editingStory.assigneeId}`}
+                      </Option>
+                    )
+                  )}
+                </Select>
+              </Form.Item>
+            </div>
+
+            <Form.Item
+              name="acceptanceCriteria"
+              label="验收标准"
+            >
+              <TextArea
+                rows={3}
+                placeholder="描述用户故事的验收标准..."
+                className="bg-gray-700/50 border-gray-600 text-white"
+                showCount
+                maxLength={2000}
+              />
+            </Form.Item>
+          </Form>
+        </div>
+      </Drawer>
 
       {/* 创建用户故事抽屉 - 左侧边栏式 */}
       <Drawer

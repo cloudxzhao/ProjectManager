@@ -352,9 +352,11 @@ export default function ProjectsPage() {
   const [total, setTotal] = useState(0);
 
   // 编辑项目状态
-  const [editModalVisible, setEditModalVisible] = useState(false);
+  const [editDrawerVisible, setEditDrawerVisible] = useState(false);
   const [editingProject, setEditingProject] = useState<Project | null>(null);
   const [editForm] = Form.useForm();
+  const [selectedEditIcon, setSelectedEditIcon] = useState('📁');
+  const [selectedEditColor, setSelectedEditColor] = useState('#f97316');
 
   // 删除确认状态
   const [deleteModalVisible, setDeleteModalVisible] = useState(false);
@@ -414,35 +416,41 @@ export default function ProjectsPage() {
   // 编辑项目
   const handleEditProject = (project: Project) => {
     setEditingProject(project);
+    setSelectedEditIcon(project.icon || '📁');
+    setSelectedEditColor(project.color || '#f97316');
     editForm.setFieldsValue({
       name: project.name,
       description: project.description,
       status: project.status,
+      startDate: project.startDate ? dayjs(project.startDate) : undefined,
+      endDate: project.endDate ? dayjs(project.endDate) : undefined,
       color: project.color,
       icon: project.icon,
     });
-    setEditModalVisible(true);
+    setEditDrawerVisible(true);
   };
 
   // 保存编辑
-  const handleEditSave = async () => {
+  const handleEditSave = async (values: any) => {
     try {
-      const values = await editForm.validateFields();
       if (editingProject) {
         await updateProject(editingProject.id, {
           name: values.name,
           description: values.description,
           status: values.status,
-          color: values.color,
-          icon: values.icon,
+          startDate: values.startDate?.format('YYYY-MM-DD') || '',
+          endDate: values.endDate?.format('YYYY-MM-DD') || '',
+          color: values.color || selectedEditColor,
+          icon: values.icon || selectedEditIcon,
         });
         message.success('项目更新成功');
-        setEditModalVisible(false);
+        setEditDrawerVisible(false);
         fetchProjects();
         fetchStats();
       }
     } catch (error) {
       console.error('保存失败:', error);
+      message.error('保存失败');
     }
   };
 
@@ -731,109 +739,218 @@ export default function ProjectsPage() {
         </Card>
       )}
 
-      {/* 编辑项目弹窗 */}
-      <Modal
+      {/* 编辑项目抽屉 - 左侧边栏式 */}
+      <Drawer
         title="编辑项目"
-        open={editModalVisible}
-        onOk={handleEditSave}
-        onCancel={() => setEditModalVisible(false)}
+        placement="left"
+        open={editDrawerVisible}
+        onClose={() => setEditDrawerVisible(false)}
         width={600}
-        style={{ top: 100 }}
-        bodyStyle={{
-          background: 'linear-gradient(145deg, #1e2230, #161922)',
-          borderRadius: '16px',
-          border: '1px solid rgba(255, 255, 255, 0.08)',
+        styles={{
+          body: { padding: 0, background: '#161b22', color: '#f0f6fc' },
+          header: {
+            background: '#161b22',
+            borderBottom: '1px solid rgba(255,255,255,0.05)',
+            padding: '20px 24px',
+          },
+          footer: {
+            background: '#161b22',
+            borderTop: '1px solid rgba(255,255,255,0.05)',
+          },
         }}
-        okText="保存"
-        cancelText="取消"
-        okButtonProps={{ className: 'bg-orange-500' }}
-      >
-        <Form
-          form={editForm}
-          layout="vertical"
-          style={{ maxWidth: '100%' }}
-        >
-          <Form.Item
-            name="name"
-            label="项目名称"
-            rules={[{ required: true, message: '请输入项目名称' }]}
-          >
-            <Input
-              placeholder="请输入项目名称"
+        footer={
+          <div style={{ display: 'flex', gap: '12px', justifyContent: 'flex-end' }}>
+            <Button
+              onClick={() => setEditDrawerVisible(false)}
               style={{
-                backgroundColor: 'rgba(255,255,255,0.03)',
-                border: '1px solid rgba(255,255,255,0.08)',
-                color: '#fff',
+                background: 'transparent',
+                border: '1px solid #30363d',
+                color: '#c9d1d9',
+                borderRadius: '6px',
+                padding: '8px 16px',
               }}
-            />
-          </Form.Item>
-
-          <Form.Item
-            name="description"
-            label="项目描述"
-          >
-            <Input.TextArea
-              rows={4}
-              placeholder="请输入项目描述"
-              style={{
-                backgroundColor: 'rgba(255,255,255,0.03)',
-                border: '1px solid rgba(255,255,255,0.08)',
-                color: '#fff',
-              }}
-            />
-          </Form.Item>
-
-          <div className="grid grid-cols-2 gap-4">
-            <Form.Item
-              name="status"
-              label="项目状态"
             >
-              <Select
-                style={{
-                  backgroundColor: 'rgba(255,255,255,0.03)',
-                  color: '#fff',
-                }}
-                options={[
-                  { value: 'ACTIVE', label: '进行中' },
-                  { value: 'COMPLETED', label: '已完成' },
-                  { value: 'ARCHIVED', label: '已归档' },
-                  { value: 'PLANNING', label: '规划中' },
-                ]}
-              />
-            </Form.Item>
-
+              取消
+            </Button>
+            <Button
+              type="primary"
+              onClick={() => editForm.submit()}
+              style={{
+                background: '#ff8c42',
+                border: 'none',
+                borderRadius: '6px',
+                padding: '8px 24px',
+                fontWeight: 'bold',
+              }}
+            >
+              保存修改
+            </Button>
+          </div>
+        }
+      >
+        <div style={{ padding: '24px', height: '100%', overflowY: 'auto' }}>
+          <Form
+            form={editForm}
+            layout="vertical"
+            onFinish={handleEditSave}
+            size="large"
+          >
             <Form.Item
-              name="color"
-              label="主题色"
+              name="name"
+              label="项目名称"
+              labelCol={{ style: { color: '#8b949e', fontSize: '13px' } }}
+              rules={[
+                { required: true, message: '请输入项目名称' },
+                { min: 2, message: '项目名称至少 2 个字符' },
+                { max: 50, message: '项目名称不能超过 50 个字符' },
+              ]}
             >
               <Input
-                type="color"
-                placeholder="选择主题色"
+                placeholder="例如：电商平台重构"
                 style={{
-                  width: '100%',
-                  height: '32px',
-                  border: 'none',
-                  cursor: 'pointer',
+                  background: 'rgba(255,255,255,0.05)',
+                  border: '1px solid rgba(255,255,255,0.1)',
+                  color: '#f0f6fc',
+                  borderRadius: '6px',
+                  padding: '10px',
                 }}
               />
             </Form.Item>
-          </div>
 
-          <Form.Item
-            name="icon"
-            label="项目图标"
-          >
-            <Input
-              placeholder="输入 emoji 图标，如 📁"
-              style={{
-                backgroundColor: 'rgba(255,255,255,0.03)',
-                border: '1px solid rgba(255,255,255,0.08)',
-                color: '#fff',
-              }}
-            />
-          </Form.Item>
-        </Form>
-      </Modal>
+            <Form.Item
+              name="description"
+              label="项目描述"
+              labelCol={{ style: { color: '#8b949e', fontSize: '13px' } }}
+              rules={[{ required: true, message: '请输入项目描述' }]}
+            >
+              <TextArea
+                rows={10}
+                placeholder="描述项目目标、范围等..."
+                style={{
+                  background: 'rgba(255,255,255,0.05)',
+                  border: '1px solid rgba(255,255,255,0.1)',
+                  color: '#f0f6fc',
+                  borderRadius: '6px',
+                  padding: '10px',
+                  minHeight: '200px',
+                }}
+                showCount
+                maxLength={500}
+              />
+            </Form.Item>
+
+            <div className="grid grid-cols-2 gap-4">
+              <Form.Item
+                name="startDate"
+                label="开始日期"
+                labelCol={{ style: { color: '#8b949e', fontSize: '13px' } }}
+              >
+                <DatePicker
+                  style={{
+                    width: '100%',
+                    background: 'rgba(255,255,255,0.05)',
+                    border: '1px solid rgba(255,255,255,0.1)',
+                    color: '#f0f6fc',
+                    borderRadius: '6px',
+                  }}
+                  format="YYYY-MM-DD"
+                  placeholder="选择开始日期"
+                />
+              </Form.Item>
+
+              <Form.Item
+                name="endDate"
+                label="结束日期"
+                labelCol={{ style: { color: '#8b949e', fontSize: '13px' } }}
+              >
+                <DatePicker
+                  style={{
+                    width: '100%',
+                    background: 'rgba(255,255,255,0.05)',
+                    border: '1px solid rgba(255,255,255,0.1)',
+                    color: '#f0f6fc',
+                    borderRadius: '6px',
+                  }}
+                  format="YYYY-MM-DD"
+                  placeholder="选择结束日期"
+                />
+              </Form.Item>
+            </div>
+
+            <div className="grid grid-cols-2 gap-4">
+              <Form.Item
+                name="status"
+                label="项目状态"
+                labelCol={{ style: { color: '#8b949e', fontSize: '13px' } }}
+              >
+                <Select
+                  style={{
+                    background: 'rgba(255,255,255,0.05)',
+                    border: '1px solid rgba(255,255,255,0.1)',
+                    color: '#f0f6fc',
+                    borderRadius: '6px',
+                  }}
+                  options={[
+                    { value: 'ACTIVE', label: '进行中' },
+                    { value: 'COMPLETED', label: '已完成' },
+                    { value: 'ARCHIVED', label: '已归档' },
+                    { value: 'PLANNING', label: '规划中' },
+                  ]}
+                />
+              </Form.Item>
+
+              <Form.Item
+                name="color"
+                label="项目颜色"
+                labelCol={{ style: { color: '#8b949e', fontSize: '13px' } }}
+              >
+                <ColorPicker
+                  format="hex"
+                  showText
+                  className="w-full"
+                  value={selectedEditColor}
+                  onChange={(color) => {
+                    const hexColor = color.toHexString();
+                    setSelectedEditColor(hexColor);
+                  }}
+                  style={{
+                    background: 'rgba(255,255,255,0.05)',
+                    border: '1px solid rgba(255,255,255,0.1)',
+                    borderRadius: '6px',
+                  }}
+                />
+              </Form.Item>
+            </div>
+
+            <Form.Item
+              name="icon"
+              label="项目图标"
+              labelCol={{ style: { color: '#8b949e', fontSize: '13px' } }}
+            >
+              <div className="flex gap-2 flex-wrap">
+                {projectIcons.map((icon) => (
+                  <button
+                    key={icon}
+                    type="button"
+                    onClick={() => setSelectedEditIcon(icon)}
+                    className={`w-12 h-12 text-2xl rounded-lg flex items-center justify-center transition-all ${
+                      selectedEditIcon === icon
+                        ? 'bg-orange-500 ring-2 ring-orange-400'
+                        : 'bg-gray-700/50 hover:bg-gray-600'
+                    }`}
+                    style={{
+                      background: selectedEditIcon === icon ? '#ff8c42' : 'rgba(255,255,255,0.05)',
+                      border: selectedEditIcon === icon ? '2px solid #ff8c42' : '1px solid rgba(255,255,255,0.1)',
+                    }}
+                  >
+                    {icon}
+                  </button>
+                ))}
+              </div>
+            </Form.Item>
+          </Form>
+        </div>
+      </Drawer>
 
       {/* 删除确认弹窗 */}
       <Modal
