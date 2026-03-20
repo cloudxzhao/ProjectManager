@@ -2,8 +2,29 @@
 
 import { api } from './axios';
 import { endpoints } from './endpoints';
-import type { Wiki, CreateWikiDto, UpdateWikiDto, WikiQueryParams as QueryParams } from '@/types/wiki';
-export type { Wiki, QueryParams, CreateWikiDto, UpdateWikiDto };
+import type {
+  Wiki,
+  WikiDetail,
+  CreateWikiDto,
+  UpdateWikiDto,
+  MoveWikiDto,
+  WikiVersion,
+  VersionDiff,
+  WikiSearchResult,
+  WikiQueryParams,
+} from '@/types/wiki';
+
+export type {
+  Wiki,
+  WikiDetail,
+  CreateWikiDto,
+  UpdateWikiDto,
+  MoveWikiDto,
+  WikiVersion,
+  VersionDiff,
+  WikiSearchResult,
+  WikiQueryParams,
+};
 
 export interface WikiTreeNode {
   key: string | number;
@@ -20,24 +41,16 @@ export interface WikiTreeNode {
  */
 export const getWikiTree = async (projectId: number) => {
   const res = await api.get<Wiki[]>(endpoints.wiki.list(projectId));
-  console.log('[wiki.api] getWikiTree result:', res);
-  console.log('[wiki.api] getWikiTree response data:', res.data.data);
-
   const data = res.data.data;
 
-  // 如果是数组格式，直接返回
   if (data && Array.isArray(data)) {
-    console.log('[wiki.api] Wiki data is array, length:', data.length);
     return data;
   }
 
-  // 如果是分页格式 { list, total, ... }，返回 list
   if (data && typeof data === 'object' && 'list' in data) {
-    console.log('[wiki.api] Wiki data is paginated, list length:', (data as any).list?.length);
     return (data as any).list || [];
   }
 
-  console.warn('[wiki.api] Unexpected wiki data format:', data);
   return [];
 };
 
@@ -46,15 +59,12 @@ export const getWikiTree = async (projectId: number) => {
  * @param projectId 项目 ID
  * @param params 查询参数
  */
-export const getWikis = async (projectId: number, params?: QueryParams) => {
+export const getWikis = async (projectId: number, params?: WikiQueryParams) => {
   const res = await api.get<Wiki[]>(endpoints.wiki.list(projectId), { params });
-  console.log('[wiki.api] getWikis result:', res);
-  // 后端可能返回分页格式 { list, total, page, size } 或直接数组
   const data = res.data.data;
   if (data && Array.isArray(data)) {
     return data;
   }
-  // 如果是分页格式，返回 list
   if (data && typeof data === 'object' && 'list' in data) {
     return (data as any).list || [];
   }
@@ -67,7 +77,7 @@ export const getWikis = async (projectId: number, params?: QueryParams) => {
  * @param id 文档 ID
  */
 export const getWiki = async (projectId: number, id: number) => {
-  const res = await api.get<Wiki>(endpoints.wiki.detail(projectId, id));
+  const res = await api.get<WikiDetail>(endpoints.wiki.detail(projectId, id));
   return res.data.data;
 };
 
@@ -99,3 +109,102 @@ export const updateWiki = async (projectId: number, id: number, data: UpdateWiki
  */
 export const deleteWiki = (projectId: number, id: number) =>
   api.delete(endpoints.wiki.delete(projectId, id));
+
+/**
+ * 移动 Wiki 文档
+ * @param projectId 项目 ID
+ * @param id 文档 ID
+ * @param data 移动数据
+ */
+export const moveWiki = async (projectId: number, id: number, data: MoveWikiDto) => {
+  const res = await api.put<Wiki>(endpoints.wiki.move(projectId, id), data);
+  return res.data.data;
+};
+
+/**
+ * 搜索 Wiki 文档
+ * @param projectId 项目 ID
+ * @param keyword 关键词
+ * @param limit 限制数量
+ */
+export const searchWiki = async (
+  projectId: number,
+  keyword: string,
+  limit?: number
+): Promise<WikiSearchResult[]> => {
+  const res = await api.post<WikiSearchResult[]>(
+    endpoints.wiki.search(projectId),
+    null,
+    { params: { keyword, limit } }
+  );
+  return res.data.data || [];
+};
+
+/**
+ * 检查是否有子文档
+ * @param projectId 项目 ID
+ * @param id 文档 ID
+ */
+export const hasWikiChildren = async (projectId: number, id: number): Promise<boolean> => {
+  const res = await api.get<boolean>(endpoints.wiki.hasChildren(projectId, id));
+  return res.data.data;
+};
+
+/**
+ * 获取版本列表
+ * @param projectId 项目 ID
+ * @param wikiId 文档 ID
+ */
+export const getWikiVersions = async (projectId: number, wikiId: number) => {
+  const res = await api.get<WikiVersion[]>(endpoints.wiki.versions(projectId, wikiId));
+  return res.data.data || [];
+};
+
+/**
+ * 版本对比
+ * @param projectId 项目 ID
+ * @param wikiId 文档 ID
+ * @param versionId 版本 ID
+ * @param compareVersionId 对比版本 ID
+ */
+export const diffWikiVersions = async (
+  projectId: number,
+  wikiId: number,
+  versionId?: number,
+  compareVersionId?: number
+) => {
+  const res = await api.get<VersionDiff>(endpoints.wiki.diff(projectId, wikiId), {
+    params: { versionId, compareVersionId },
+  });
+  return res.data.data;
+};
+
+/**
+ * 恢复版本
+ * @param projectId 项目 ID
+ * @param wikiId 文档 ID
+ * @param versionId 版本 ID
+ * @param changeLog 变更日志
+ */
+export const restoreWikiVersion = async (
+  projectId: number,
+  wikiId: number,
+  versionId: number,
+  changeLog?: string
+) => {
+  const res = await api.post<WikiVersion>(
+    endpoints.wiki.restore(projectId, wikiId, versionId),
+    { changeLog }
+  );
+  return res.data.data;
+};
+
+/**
+ * 获取文档历史
+ * @param projectId 项目 ID
+ * @param id 文档 ID
+ */
+export const getWikiHistory = async (projectId: number, id: number) => {
+  const res = await api.get<any[]>(endpoints.wiki.history(projectId, id));
+  return res.data.data || [];
+};

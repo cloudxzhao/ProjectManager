@@ -1,5 +1,6 @@
 package com.projecthub.module.wiki.entity;
 
+import com.projecthub.module.wiki.enums.WikiChangeType;
 import jakarta.persistence.*;
 import java.time.LocalDateTime;
 import lombok.*;
@@ -32,6 +33,17 @@ public class WikiHistory {
 
   @Column(nullable = false, columnDefinition = "TEXT")
   private String content;
+
+  @Column(name = "content_html", columnDefinition = "TEXT")
+  private String contentHtml;
+
+  @Column(name = "change_log", length = 500)
+  private String changeLog;
+
+  @Enumerated(EnumType.STRING)
+  @Column(name = "change_type", length = 20)
+  @Builder.Default
+  private WikiChangeType changeType = WikiChangeType.UPDATE;
 
   @CreatedDate
   @Column(name = "created_at", nullable = false, updatable = false)

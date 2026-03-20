@@ -2,8 +2,6 @@ package com.projecthub.module.wiki.dto;
 
 import com.projecthub.module.wiki.enums.WikiStatus;
 import io.swagger.v3.oas.annotations.media.Schema;
-import jakarta.validation.constraints.NotNull;
-import jakarta.validation.constraints.Size;
 import java.time.LocalDateTime;
 import java.util.List;
 import lombok.AllArgsConstructor;
@@ -11,13 +9,13 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-/** Wiki 文档 VO */
+/** Wiki 文档详情响应 VO */
 @Data
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-@Schema(description = "Wiki 文档")
-public class WikiVO {
+@Schema(description = "Wiki 文档详情")
+public class WikiDetailVO {
 
   @Schema(description = "文档 ID")
   private Long id;
@@ -67,64 +65,12 @@ public class WikiVO {
   @Schema(description = "是否有子文档")
   private Boolean hasChildren;
 
+  @Schema(description = "子文档列表")
+  private List<WikiDetailVO> children;
+
   @Schema(description = "创建时间")
   private LocalDateTime createdAt;
 
   @Schema(description = "更新时间")
   private LocalDateTime updatedAt;
-
-  /** 子文档列表 */
-  private List<WikiVO> children;
-
-  /** 创建文档请求 */
-  @Data
-  @Builder
-  @NoArgsConstructor
-  @AllArgsConstructor
-  public static class CreateRequest {
-    @Schema(description = "父文档 ID")
-    private Long parentId;
-
-    @NotNull(message = "文档标题不能为空")
-    @Size(max = 200, message = "文档标题最多 200 字符")
-    private String title;
-
-    @Schema(description = "内容")
-    private String content;
-
-    @Schema(description = "状态")
-    private WikiStatus status;
-  }
-
-  /** 更新文档请求 */
-  @Data
-  @Builder
-  @NoArgsConstructor
-  @AllArgsConstructor
-  public static class UpdateRequest {
-    @Size(max = 200, message = "文档标题最多 200 字符")
-    private String title;
-
-    @Schema(description = "内容")
-    private String content;
-
-    @Schema(description = "状态")
-    private WikiStatus status;
-
-    @Schema(description = "变更日志")
-    private String changeLog;
-  }
-
-  /** 移动文档请求 */
-  @Data
-  @Builder
-  @NoArgsConstructor
-  @AllArgsConstructor
-  public static class MoveRequest {
-    @Schema(description = "新的父文档 ID，null 表示移动到根目录")
-    private Long parentId;
-
-    @Schema(description = "新的排序号")
-    private Integer orderNum;
-  }
 }

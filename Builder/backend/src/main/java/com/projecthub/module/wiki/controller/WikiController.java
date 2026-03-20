@@ -1,6 +1,8 @@
 package com.projecthub.module.wiki.controller;
 
 import com.projecthub.common.response.Result;
+import com.projecthub.module.wiki.dto.WikiDetailVO;
+import com.projecthub.module.wiki.dto.WikiSearchResultVO;
 import com.projecthub.module.wiki.dto.WikiVO;
 import com.projecthub.module.wiki.entity.WikiHistory;
 import com.projecthub.module.wiki.service.WikiService;
@@ -31,8 +33,8 @@ public class WikiController {
   /** 获取文档详情 */
   @GetMapping("/{id}")
   @Operation(summary = "获取文档详情", description = "获取指定文档的详细信息")
-  public Result<WikiVO> getDocument(@PathVariable Long id) {
-    WikiVO document = wikiService.getDocument(id);
+  public Result<WikiDetailVO> getDocument(@PathVariable Long id) {
+    WikiDetailVO document = wikiService.getDocument(id);
     return Result.success(document);
   }
 
@@ -68,5 +70,35 @@ public class WikiController {
   public Result<List<WikiHistory>> getDocumentHistory(@PathVariable Long id) {
     List<WikiHistory> history = wikiService.getDocumentHistory(id);
     return Result.success(history);
+  }
+
+  /** 移动文档 */
+  @PutMapping("/{id}/move")
+  @Operation(summary = "移动文档", description = "移动文档到新的父文档或调整排序")
+  public Result<WikiVO> moveDocument(
+      @PathVariable Long projectId,
+      @PathVariable Long id,
+      @Valid @RequestBody WikiVO.MoveRequest request) {
+    WikiVO document = wikiService.moveDocument(id, request);
+    return Result.success(document);
+  }
+
+  /** 全文搜索 */
+  @PostMapping("/search")
+  @Operation(summary = "全文搜索", description = "搜索项目下的 Wiki 文档")
+  public Result<List<WikiSearchResultVO>> searchDocuments(
+      @PathVariable Long projectId,
+      @RequestParam String keyword,
+      @RequestParam(required = false, defaultValue = "20") Integer limit) {
+    List<WikiSearchResultVO> results = wikiService.searchDocuments(projectId, keyword, limit);
+    return Result.success(results);
+  }
+
+  /** 检查是否有子文档 */
+  @GetMapping("/{id}/has-children")
+  @Operation(summary = "检查是否有子文档", description = "检查指定文档是否有子文档")
+  public Result<Boolean> hasChildren(@PathVariable Long id) {
+    Boolean hasChildren = wikiService.hasChildren(id);
+    return Result.success(hasChildren);
   }
 }

@@ -89,6 +89,17 @@ export const endpoints = {
     detail: (projectId: number, docId: number) => `/projects/${projectId}/wiki/${docId}`,
     update: (projectId: number, docId: number) => `/projects/${projectId}/wiki/${docId}`,
     delete: (projectId: number, docId: number) => `/projects/${projectId}/wiki/${docId}`,
+    move: (projectId: number, docId: number) => `/projects/${projectId}/wiki/${docId}/move`,
+    search: (projectId: number) => `/projects/${projectId}/wiki/search`,
+    hasChildren: (projectId: number, docId: number) =>
+      `/projects/${projectId}/wiki/${docId}/has-children`,
+    history: (projectId: number, docId: number) => `/projects/${projectId}/wiki/${docId}/history`,
+    versions: (projectId: number, docId: number) =>
+      `/projects/${projectId}/wiki/${docId}/versions`,
+    diff: (projectId: number, docId: number) =>
+      `/projects/${projectId}/wiki/${docId}/versions/diff`,
+    restore: (projectId: number, docId: number, versionId: number) =>
+      `/projects/${projectId}/wiki/${docId}/versions/${versionId}/restore`,
   },
 
   // 报表相关

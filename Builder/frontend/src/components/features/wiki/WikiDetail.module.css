@@ -1,0 +1,156 @@
+.container {
+  background: #fff;
+  border-radius: 8px;
+}
+
+.header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+
+.title {
+  margin: 0 !important;
+  flex: 1;
+  min-width: 200px;
+}
+
+.viewCount {
+  color: #8c8c8c;
+  font-size: 14px;
+}
+
+.viewCount :global(.anticon) {
+  margin-right: 4px;
+}
+
+.summary {
+  padding: 12px;
+  background: #fafafa;
+  border-radius: 4px;
+  margin-bottom: 16px;
+}
+
+.content {
+  min-height: 200px;
+  line-height: 1.8;
+  font-size: 15px;
+}
+
+.content h1 {
+  font-size: 28px;
+  margin: 24px 0 16px;
+  font-weight: 600;
+}
+
+.content h2 {
+  font-size: 22px;
+  margin: 20px 0 14px;
+  font-weight: 600;
+}
+
+.content h3 {
+  font-size: 18px;
+  margin: 16px 0 12px;
+  font-weight: 600;
+}
+
+.content h4,
+.content h5,
+.content h6 {
+  font-size: 16px;
+  margin: 14px 0 10px;
+  font-weight: 600;
+}
+
+.content p {
+  margin: 12px 0;
+}
+
+.content ul,
+.content ol {
+  margin: 12px 0;
+  padding-left: 24px;
+}
+
+.content li {
+  margin: 4px 0;
+}
+
+.content pre {
+  background: #f6f8fa;
+  padding: 16px;
+  border-radius: 6px;
+  overflow-x: auto;
+  margin: 16px 0;
+}
+
+.content code {
+  background: #f6f8fa;
+  padding: 2px 6px;
+  border-radius: 3px;
+  font-family: 'SFMono-Regular', Consolas, 'Liberation Mono', Menlo, monospace;
+  font-size: 13px;
+}
+
+.content pre code {
+  background: none;
+  padding: 0;
+}
+
+.content blockquote {
+  border-left: 4px solid #1890ff;
+  margin: 16px 0;
+  padding: 8px 16px;
+  background: #f0f5ff;
+}
+
+.content a {
+  color: #1890ff;
+  text-decoration: none;
+}
+
+.content a:hover {
+  text-decoration: underline;
+}
+
+.content table {
+  width: 100%;
+  border-collapse: collapse;
+  margin: 16px 0;
+}
+
+.content th,
+.content td {
+  border: 1px solid #d9d9d9;
+  padding: 8px 12px;
+  text-align: left;
+}
+
+.content th {
+  background: #fafafa;
+  font-weight: 600;
+}
+
+.content hr {
+  border: none;
+  border-top: 1px solid #d9d9d9;
+  margin: 24px 0;
+}
+
+.content img {
+  max-width: 100%;
+  height: auto;
+}
+
+.footer {
+  margin-top: 24px;
+  padding-top: 16px;
+  border-top: 1px solid #f0f0f0;
+}
+
+.meta {
+  font-size: 13px;
+}

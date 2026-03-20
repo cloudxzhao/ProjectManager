@@ -45,6 +45,7 @@ import type { UserStory } from '@/lib/api/story';
 import type { PageInfo } from '@/types/api';
 import type { Issue } from '@/lib/api/issue';
 import type { Wiki, WikiTreeNode } from '@/lib/api/wiki';
+import { WikiStatus } from '@/types/wiki';
 import type { BurndownData } from '@/lib/api/report';
 
 const { Option } = Select;
@@ -315,7 +316,7 @@ export default function ProjectDetailPage() {
           <div className="flex items-center gap-2">
             <FolderOutlined style={{ color: '#faad14' }} />
             <span className="text-white">{wiki.title}</span>
-            {!wiki.isPublished && (
+            {wiki.status === 'DRAFT' && (
               <Tag color="warning" className="text-xs">未发布</Tag>
             )}
           </div>
@@ -329,8 +330,8 @@ export default function ProjectDetailPage() {
     // 构建树形结构
     wikis.forEach((wiki) => {
       const node = wikiMap.get(wiki.id);
-      if (node && wiki.parentDocId) {
-        const parent = wikiMap.get(wiki.parentDocId);
+      if (node && wiki.parentId) {
+        const parent = wikiMap.get(wiki.parentId);
         if (parent) {
           parent.children?.push(node);
         }
@@ -339,7 +340,7 @@ export default function ProjectDetailPage() {
 
     // 收集根节点（没有父节点的节点）
     wikis.forEach((wiki) => {
-      if (!wiki.parentDocId) {
+      if (!wiki.parentId) {
         const node = wikiMap.get(wiki.id);
         if (node) {
           tree.push(node);
@@ -1034,9 +1035,7 @@ export default function ProjectDetailPage() {
       await createWiki(Number(projectId), {
         title: values.title,
         content: values.content || '',
-        summary: values.summary,
-        isPublished: values.isPublished ?? false,
-        tags: values.tags ? values.tags.split(',').map((t: string) => t.trim()) : [],
+        status: values.isPublished ? WikiStatus.PUBLISHED : WikiStatus.DRAFT,
       });
 
       message.success('Wiki 文档创建成功');

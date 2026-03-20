@@ -1,0 +1,105 @@
+.container {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.header {
+  background: #fafafa;
+}
+
+.titleRow {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+
+.title {
+  margin: 0 !important;
+}
+
+.stats {
+  display: flex;
+  gap: 8px;
+}
+
+.diffContainer {
+  overflow: hidden;
+}
+
+.diffLines {
+  font-family: 'SFMono-Regular', Consolas, 'Liberation Mono', Menlo, monospace;
+  font-size: 13px;
+  line-height: 1.6;
+  overflow-x: auto;
+}
+
+.diffLine {
+  display: flex;
+  padding: 2px 8px;
+  border-radius: 2px;
+}
+
+.lineNumber {
+  display: inline-block;
+  width: 40px;
+  color: #8c8c8c;
+  text-align: right;
+  padding-right: 8px;
+  user-select: none;
+  flex-shrink: 0;
+}
+
+.linePrefix {
+  display: inline-block;
+  width: 16px;
+  text-align: center;
+  flex-shrink: 0;
+}
+
+.lineContent {
+  flex: 1;
+  white-space: pre-wrap;
+  word-break: break-all;
+}
+
+.added {
+  background: #f6ffed;
+}
+
+.added .linePrefix {
+  color: #52c41a;
+}
+
+.added .lineContent {
+  background: #f6ffed;
+}
+
+.removed {
+  background: #fff1f0;
+}
+
+.removed .linePrefix {
+  color: #ff4d4f;
+}
+
+.removed .lineContent {
+  background: #fff1f0;
+}
+
+.unchanged {
+  background: #fff;
+}
+
+.unchanged .linePrefix,
+.unchanged .lineContent {
+  color: #8c8c8c;
+}
+
+.actions {
+  display: flex;
+  justify-content: flex-end;
+  padding: 8px 0;
+}
