@@ -529,6 +529,28 @@ export default function ProjectDetailPage() {
     return map[type] || type;
   };
 
+  // 获取问题优先级文本
+  const getIssuePriorityText = (priority?: string) => {
+    const map: Record<string, string> = {
+      LOW: '低',
+      MEDIUM: '中',
+      HIGH: '高',
+      URGENT: '紧急',
+    };
+    return priority ? map[priority] || priority : '-';
+  };
+
+  // 获取问题严重程度文本
+  const getIssueSeverityText = (severity: string) => {
+    const map: Record<string, string> = {
+      LOW: '低',
+      NORMAL: '一般',
+      HIGH: '高',
+      CRITICAL: '严重',
+    };
+    return map[severity] || severity;
+  };
+
   // 获取问题严重程度颜色
   const getIssueSeverityColor = (severity: string) => {
     const map: Record<string, string> = {
@@ -1573,24 +1595,30 @@ export default function ProjectDetailPage() {
                 dataIndex: 'priority',
                 key: 'priority',
                 width: 90,
-                render: (priority?: string) => (
-                  <span className="text-gray-300">{priority || '-'}</span>
-                ),
+                render: (priority?: string) => {
+                  const priorityColor: Record<string, string> = {
+                    LOW: 'green',
+                    MEDIUM: 'orange',
+                    HIGH: 'red',
+                    URGENT: 'purple',
+                  };
+                  return (
+                    <Tag color={priorityColor[priority || ''] || 'default'}>
+                      {getIssuePriorityText(priority)}
+                    </Tag>
+                  );
+                },
               },
               {
                 title: '严重程度',
                 dataIndex: 'severity',
                 key: 'severity',
                 width: 100,
-                render: (severity: string) => {
-                  const severityColor: Record<string, string> = {
-                    CRITICAL: 'red',
-                    HIGH: 'orange',
-                    NORMAL: 'blue',
-                    LOW: 'gray',
-                  };
-                  return <Tag color={severityColor[severity] || 'default'}>{severity}</Tag>;
-                },
+                render: (severity: string) => (
+                  <Tag color={getIssueSeverityColor(severity)}>
+                    {getIssueSeverityText(severity)}
+                  </Tag>
+                ),
               },
               {
                 title: '负责人',
@@ -2570,12 +2598,8 @@ export default function ProjectDetailPage() {
                 #{selectedIssue.id} {selectedIssue.title}
               </h3>
               <div className="flex items-center gap-2 mb-3">
-                <Tag color={
-                  selectedIssue.severity === 'CRITICAL' ? 'red' :
-                  selectedIssue.severity === 'HIGH' ? 'orange' :
-                  selectedIssue.severity === 'NORMAL' ? 'blue' : 'gray'
-                }>
-                  {selectedIssue.severity}
+                <Tag color={getIssueSeverityColor(selectedIssue.severity)}>
+                  {getIssueSeverityText(selectedIssue.severity)}
                 </Tag>
                 <Tag color="processing">
                   {selectedIssue.status === 'TODO' && '待办'}
@@ -2613,7 +2637,7 @@ export default function ProjectDetailPage() {
                 </div>
                 <div>
                   <span className="text-gray-500">优先级：</span>
-                  {selectedIssue.priority || '-'}
+                  {getIssuePriorityText(selectedIssue.priority)}
                 </div>
                 {selectedIssue.dueDate && (
                   <div>
