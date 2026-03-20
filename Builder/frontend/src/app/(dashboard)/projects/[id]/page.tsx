@@ -792,7 +792,7 @@ export default function ProjectDetailPage() {
       okType: 'danger',
       onOk: async () => {
         try {
-          await deleteStory(Number(projectId), story.id);
+          await deleteStory(story.id);
           message.success('用户故事已删除');
           // 刷新用户故事列表
           await fetchStories(Number(projectId), storiesPage);
@@ -817,7 +817,8 @@ export default function ProjectDetailPage() {
           await deleteTask(Number(projectId), task.id);
           message.success('任务已删除');
           // 刷新任务列表
-          await fetchTasks(Number(projectId), tasksPage);
+          const tasksResult = await getTasks(Number(projectId));
+          setTasks(tasksResult.list || []);
         } catch (error: unknown) {
           const errorMessage = error instanceof Error ? error.message : '删除失败，请稍后重试';
           message.error(errorMessage);
@@ -839,7 +840,8 @@ export default function ProjectDetailPage() {
           await deleteIssue(Number(projectId), issue.id);
           message.success('问题已删除');
           // 刷新问题列表
-          await fetchIssues(Number(projectId), issuesPage);
+          const issuesResult = await getIssues(Number(projectId));
+          setIssues(issuesResult || []);
         } catch (error: unknown) {
           const errorMessage = error instanceof Error ? error.message : '删除失败，请稍后重试';
           message.error(errorMessage);
