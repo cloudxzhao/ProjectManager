@@ -716,6 +716,7 @@ export default function ProjectDetailPage() {
           priority: storyDetail.priority,
           assigneeId: storyDetail.assigneeId,
           storyPoints: storyDetail.storyPoints,
+          epicId: storyDetail.epicId,
         });
         setStoryEditOpen(true);
       }
@@ -864,6 +865,7 @@ export default function ProjectDetailPage() {
         priority: values.priority,
         assigneeId: values.assigneeId,
         storyPoints: values.storyPoints,
+        epicId: values.epicId,
       });
 
       message.success('用户故事更新成功');
@@ -2822,13 +2824,24 @@ export default function ProjectDetailPage() {
 
             <Form.Item
               name="userStoryId"
-              label="关联用户故事 ID"
+              label="关联用户故事"
             >
-              <Input
-                type="number"
-                placeholder="输入用户故事 ID（可选）"
+              <Select
+                placeholder="请选择关联用户故事（可选）"
+                allowClear
+                showSearch
+                loading={storiesLoading}
                 className="bg-gray-700/50 border-gray-600 text-white"
-              />
+                filterOption={(input, option) =>
+                  String(option?.children ?? '').toLowerCase().includes(input.toLowerCase())
+                }
+              >
+                {storiesList.map((story) => (
+                  <Select.Option key={story.id} value={story.id}>
+                    {story.title}
+                  </Select.Option>
+                ))}
+              </Select>
             </Form.Item>
           </Form>
         </div>
