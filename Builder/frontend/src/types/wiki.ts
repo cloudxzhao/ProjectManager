@@ -66,6 +66,7 @@ export interface CreateWikiDto {
   parentId?: number;
   title: string;
   content?: string;
+  summary?: string;
   status?: WikiStatus;
 }
 

@@ -5,7 +5,7 @@ import { Card, Input, Select, Button, Avatar, Tag, Empty, Spin, Pagination, Moda
 import { BookOutlined, PlusOutlined, SearchOutlined, EditOutlined, DeleteOutlined, EyeOutlined, FolderOutlined, FileTextOutlined } from '@ant-design/icons';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { getWikis, getWiki, deleteWiki, type Wiki } from '@/lib/api/wiki';
+import { getWikis, getWiki, deleteWiki, createWiki, updateWiki, type Wiki } from '@/lib/api/wiki';
 import { getAuthorizedProjects } from '@/lib/api/project';
 import type { Project } from '@/lib/api/project';
 import { WikiStatus } from '@/types/wiki';
@@ -50,7 +50,6 @@ const WikiCard: React.FC<WikiCardProps> = ({ wiki, project, onView, onEdit, onDe
         boxShadow: '0 10px 30px rgba(0, 0, 0, 0.5)',
       }}
       bodyStyle={{ padding: 0 }}
-      onClick={() => onView(wiki)}
       onMouseEnter={(e) => {
         e.currentTarget.style.transform = 'translateY(-5px)';
         e.currentTarget.style.boxShadow = '0 15px 40px rgba(0, 0, 0, 0.6)';
@@ -142,13 +141,13 @@ const WikiCard: React.FC<WikiCardProps> = ({ wiki, project, onView, onEdit, onDe
       {/* 底部项目信息 */}
       {project && (
         <div
-          className="px-5 py-3 border-t"
+          className="px-5 py-3 border-t flex items-center justify-between"
           style={{
             background: 'rgba(0,0,0,0.2)',
             borderColor: 'rgba(255, 255, 255, 0.08)',
           }}
         >
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-2" onClick={() => onView(wiki)} style={{ cursor: 'pointer' }}>
             <div
               className="w-5 h-5 rounded flex items-center justify-center text-xs"
               style={{
@@ -160,6 +159,23 @@ const WikiCard: React.FC<WikiCardProps> = ({ wiki, project, onView, onEdit, onDe
             <span className="text-xs font-medium" style={{ color: '#a0a6b5' }}>
               {project.name}
             </span>
+          </div>
+          <div className="flex items-center gap-1" onClick={(e) => e.stopPropagation()}>
+            <Button
+              type="text"
+              size="small"
+              icon={<EditOutlined />}
+              onClick={() => onEdit(wiki)}
+              style={{ color: '#3a8dff', padding: '4px 8px' }}
+            />
+            <Button
+              type="text"
+              size="small"
+              danger
+              icon={<DeleteOutlined />}
+              onClick={() => onDelete(wiki)}
+              style={{ color: '#f85149', padding: '4px 8px' }}
+            />
           </div>
         </div>
       )}
@@ -183,6 +199,12 @@ export default function WikiPage() {
   // 详情抽屉
   const [detailOpen, setDetailOpen] = useState(false);
   const [selectedWiki, setSelectedWiki] = useState<Wiki | null>(null);
+
+  // 新建/编辑抽屉
+  const [formOpen, setFormOpen] = useState(false);
+  const [formLoading, setFormLoading] = useState(false);
+  const [editingWiki, setEditingWiki] = useState<Wiki | null>(null);
+  const [form] = Form.useForm();
 
   // 加载项目列表
   useEffect(() => {
@@ -253,10 +275,67 @@ export default function WikiPage() {
     setDetailOpen(true);
   };
 
+  // 处理新建
+  const handleCreate = () => {
+    setEditingWiki(null);
+    form.resetFields();
+    // 如果已选择项目，默认选中
+    if (selectedProject) {
+      form.setFieldsValue({ projectId: selectedProject });
+    }
+    setFormOpen(true);
+  };
+
   // 处理编辑
   const handleEdit = (wiki: Wiki) => {
-    // 跳转到项目详情页的 Wiki 页签
-    router.push(`/projects/${wiki.projectId}?tab=wiki&wikiId=${wiki.id}`);
+    setEditingWiki(wiki);
+    form.setFieldsValue({
+      title: wiki.title,
+      summary: wiki.summary,
+      content: wiki.content,
+      status: wiki.status,
+    });
+    setFormOpen(true);
+  };
+
+  // 处理表单提交
+  const handleFormSubmit = async (values: any) => {
+    setFormLoading(true);
+    try {
+      if (editingWiki) {
+        // 编辑模式
+        await updateWiki(editingWiki.projectId, editingWiki.id, {
+          title: values.title,
+          summary: values.summary,
+          content: values.content,
+          status: values.status,
+          changeLog: values.changeLog,
+        });
+        message.success('文档更新成功');
+      } else {
+        // 新建模式
+        if (!values.projectId) {
+          message.error('请选择项目');
+          return;
+        }
+        await createWiki(values.projectId, {
+          title: values.title,
+          summary: values.summary,
+          content: values.content,
+          status: values.status,
+        });
+        message.success('文档创建成功');
+      }
+      setFormOpen(false);
+      form.resetFields();
+      // 刷新列表 - 重新触发 useEffect
+      setSelectedProject(selectedProject); // 触发 useEffect
+    } catch (error: unknown) {
+      const errorMessage = error instanceof Error ? error.message : '操作失败，请稍后重试';
+      message.error(errorMessage);
+    } finally {
+      setFormLoading(false);
+    }
   };
 
   // 处理删除
@@ -272,6 +351,7 @@ export default function WikiPage() {
           await deleteWiki(wiki.projectId, wiki.id);
           message.success('删除成功');
           setWikiList(prev => prev.filter(w => w.id !== wiki.id));
+          setTotal(prev => prev - 1);
         } catch (error) {
           console.error('删除失败:', error);
           message.error('删除失败');
@@ -308,6 +388,20 @@ export default function WikiPage() {
             查看和管理所有项目的 Wiki 文档
           </Text>
         </div>
+        <Button
+          type="primary"
+          icon={<PlusOutlined />}
+          onClick={handleCreate}
+          style={{
+            background: '#ff8c42',
+            border: 'none',
+            borderRadius: '6px',
+            padding: '10px 20px',
+            fontWeight: 'bold',
+          }}
+        >
+          新建文档
+        </Button>
       </div>
 
       {/* 筛选栏 */}
@@ -483,6 +577,200 @@ export default function WikiPage() {
             </div>
           </div>
         )}
+      </Drawer>
+
+      {/* 新建/编辑表单抽屉 */}
+      <Drawer
+        title={editingWiki ? '编辑 Wiki 文档' : '新建 Wiki 文档'}
+        placement="right"
+        width={720}
+        open={formOpen}
+        onClose={() => setFormOpen(false)}
+        styles={{
+          header: {
+            background: '#161b22',
+            borderBottom: '1px solid rgba(255,255,255,0.05)',
+            padding: '20px 24px',
+          },
+          body: {
+            background: '#161b22',
+            color: '#f0f6fc',
+            padding: '24px',
+          },
+          footer: {
+            background: '#161b22',
+            borderTop: '1px solid rgba(255,255,255,0.05)',
+          },
+        }}
+        footer={
+          <div style={{ display: 'flex', gap: '12px', justifyContent: 'flex-end' }}>
+            <Button
+              onClick={() => setFormOpen(false)}
+              style={{
+                background: 'transparent',
+                border: '1px solid #30363d',
+                color: '#c9d1d9',
+                borderRadius: '6px',
+                padding: '8px 16px',
+              }}
+            >
+              取消
+            </Button>
+            <Button
+              type="primary"
+              onClick={() => form.submit()}
+              loading={formLoading}
+              style={{
+                background: '#ff8c42',
+                border: 'none',
+                borderRadius: '6px',
+                padding: '8px 24px',
+                fontWeight: 'bold',
+              }}
+            >
+              {editingWiki ? '保存更改' : '创建文档'}
+            </Button>
+          </div>
+        }
+      >
+        <div style={{ height: '100%', overflowY: 'auto' }}>
+          <Form
+            form={form}
+            layout="vertical"
+            onFinish={handleFormSubmit}
+            size="large"
+            initialValues={{
+              status: 'PUBLISHED',
+            }}
+          >
+            {!editingWiki && (
+              <Form.Item
+                name="projectId"
+                label="选择项目"
+                labelCol={{ style: { color: '#8b949e', fontSize: '13px' } }}
+                rules={[{ required: true, message: '请选择项目' }]}
+              >
+                <Select
+                  placeholder="请选择项目"
+                  style={{
+                    background: 'rgba(255,255,255,0.05)',
+                    border: '1px solid rgba(255,255,255,0.1)',
+                    color: '#f0f6fc',
+                    borderRadius: '6px',
+                    padding: '0 10px',
+                  }}
+                  options={projects.map(p => ({
+                    label: p.name,
+                    value: p.id,
+                  }))}
+                  dropdownStyle={{
+                    background: '#161b22',
+                    color: '#f0f6fc',
+                  }}
+                />
+              </Form.Item>
+            )}
+
+            <Form.Item
+              name="title"
+              label="标题"
+              labelCol={{ style: { color: '#8b949e', fontSize: '13px' } }}
+              rules={[{ required: true, message: '请输入 Wiki 标题' }]}
+            >
+              <Input
+                placeholder="请输入标题"
+                style={{
+                  background: 'rgba(255,255,255,0.05)',
+                  border: '1px solid rgba(255,255,255,0.1)',
+                  color: '#f0f6fc',
+                  borderRadius: '6px',
+                  padding: '10px',
+                }}
+              />
+            </Form.Item>
+
+            <Form.Item
+              name="summary"
+              label="摘要"
+              labelCol={{ style: { color: '#8b949e', fontSize: '13px' } }}
+            >
+              <TextArea
+                rows={3}
+                placeholder="输入文档摘要（可选）..."
+                style={{
+                  background: 'rgba(255,255,255,0.05)',
+                  border: '1px solid rgba(255,255,255,0.1)',
+                  color: '#f0f6fc',
+                  borderRadius: '6px',
+                  padding: '10px',
+                }}
+              />
+            </Form.Item>
+
+            <Form.Item
+              name="content"
+              label="内容"
+              labelCol={{ style: { color: '#8b949e', fontSize: '13px' } }}
+              rules={[{ required: true, message: '请输入 Wiki 内容' }]}
+            >
+              <TextArea
+                rows={12}
+                placeholder="输入 Wiki 内容（支持 Markdown）..."
+                style={{
+                  background: 'rgba(255,255,255,0.05)',
+                  border: '1px solid rgba(255,255,255,0.1)',
+                  color: '#f0f6fc',
+                  borderRadius: '6px',
+                  padding: '10px',
+                  minHeight: '250px',
+                }}
+              />
+            </Form.Item>
+
+            <Form.Item
+              name="status"
+              label="状态"
+              labelCol={{ style: { color: '#8b949e', fontSize: '13px' } }}
+            >
+              <Select
+                style={{
+                  background: 'rgba(255,255,255,0.05)',
+                  border: '1px solid rgba(255,255,255,0.1)',
+                  color: '#f0f6fc',
+                  borderRadius: '6px',
+                }}
+                dropdownStyle={{
+                  background: '#161b22',
+                  color: '#f0f6fc',
+                }}
+              >
+                <Select.Option value="DRAFT">草稿</Select.Option>
+                <Select.Option value="PUBLISHED">已发布</Select.Option>
+                <Select.Option value="ARCHIVED">已归档</Select.Option>
+              </Select>
+            </Form.Item>
+
+            {editingWiki && (
+              <Form.Item
+                name="changeLog"
+                label="变更日志"
+                labelCol={{ style: { color: '#8b949e', fontSize: '13px' } }}
+              >
+                <TextArea
+                  rows={2}
+                  placeholder="简要描述本次更改的内容（可选）"
+                  style={{
+                    background: 'rgba(255,255,255,0.05)',
+                    border: '1px solid rgba(255,255,255,0.1)',
+                    color: '#f0f6fc',
+                    borderRadius: '6px',
+                    padding: '10px',
+                  }}
+                />
+              </Form.Item>
+            )}
+          </Form>
+        </div>
       </Drawer>
     </div>
   );
