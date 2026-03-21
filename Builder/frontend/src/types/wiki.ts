@@ -18,6 +18,7 @@ export enum WikiChangeType {
 export interface Wiki {
   id: number;
   projectId: number;
+  projectName?: string; // 用于全局列表展示
   parentId?: number;
   title: string;
   content: string;
@@ -72,6 +73,7 @@ export interface CreateWikiDto {
 export interface UpdateWikiDto {
   title?: string;
   content?: string;
+  summary?: string;
   status?: WikiStatus;
   changeLog?: string;
 }

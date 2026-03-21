@@ -1,16 +1,30 @@
 .container {
-  background: #fff;
+  background: transparent;
   border-radius: 8px;
 }
 
 .editorContainer {
-  border: 1px solid #d9d9d9;
+  border: 1px solid rgba(255, 255, 255, 0.1);
   border-radius: 6px;
   overflow: hidden;
+  background: #161b22;
 }
 
 .tabs :global(.ant-tabs-nav) {
   margin-bottom: 0;
+  background: rgba(255, 255, 255, 0.03);
+}
+
+.tabs :global(.ant-tabs-tab) {
+  color: #8b949e;
+}
+
+.tabs :global(.ant-tabs-tab-active) {
+  color: #f97316;
+}
+
+.tabs :global(.ant-tabs-ink-bar) {
+  background: #f97316;
 }
 
 .textarea {
@@ -19,6 +33,8 @@
   font-family: 'SFMono-Regular', Consolas, 'Liberation Mono', Menlo, monospace;
   font-size: 14px;
   resize: none;
+  background: #161b22;
+  color: #f0f6fc;
 }
 
 .textarea:focus {
@@ -30,25 +46,29 @@
   min-height: 350px;
   max-height: 600px;
   overflow-y: auto;
-  background: #fafafa;
+  background: rgba(255, 255, 255, 0.02);
+  color: #c9d1d9;
 }
 
 .preview h1 {
   font-size: 28px;
   margin: 24px 0 16px;
   font-weight: 600;
+  color: #f0f6fc;
 }
 
 .preview h2 {
   font-size: 22px;
   margin: 20px 0 14px;
   font-weight: 600;
+  color: #f0f6fc;
 }
 
 .preview h3 {
   font-size: 18px;
   margin: 16px 0 12px;
   font-weight: 600;
+  color: #f0f6fc;
 }
 
 .preview p {
@@ -57,17 +77,19 @@
 }
 
 .preview pre {
-  background: #f6f8fa;
+  background: #0d1117;
   padding: 16px;
   border-radius: 6px;
   overflow-x: auto;
+  border: 1px solid rgba(255, 255, 255, 0.1);
 }
 
 .preview code {
-  background: #f6f8fa;
+  background: rgba(255, 255, 255, 0.05);
   padding: 2px 6px;
   border-radius: 3px;
   font-family: 'SFMono-Regular', Consolas, 'Liberation Mono', Menlo, monospace;
+  color: #f0f6fc;
 }
 
 .preview pre code {
@@ -82,12 +104,13 @@
 }
 
 .preview blockquote {
-  border-left: 4px solid #1890ff;
+  border-left: 4px solid #f97316;
   margin: 16px 0;
   padding: 8px 16px;
-  background: #f0f5ff;
+  background: rgba(249, 115, 22, 0.1);
+  color: #c9d1d9;
 }
 
 .preview a {
-  color: #1890ff;
+  color: #3a8dff;
 }

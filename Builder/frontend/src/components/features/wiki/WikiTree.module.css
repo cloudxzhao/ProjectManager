@@ -2,15 +2,16 @@
   display: flex;
   flex-direction: column;
   height: 100%;
-  background: #fff;
-  border-radius: 8px;
+  background: transparent;
 }
 
 .header {
   display: flex;
   gap: 8px;
   padding: 12px;
-  border-bottom: 1px solid #f0f0f0;
+  background: rgba(255, 255, 255, 0.03);
+  border-radius: 8px;
+  margin-bottom: 8px;
 }
 
 .search {
@@ -32,7 +33,8 @@
   align-items: center;
   justify-content: space-between;
   width: 100%;
-  padding: 4px 0;
+  padding: 6px 8px;
+  border-radius: 6px;
 }
 
 .nodeTitle {
@@ -47,11 +49,13 @@
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
+  color: #e5e7eb;
 }
 
 .nodeActions {
   display: none;
   flex-shrink: 0;
+  gap: 4px;
 }
 
 .treeNode:hover .nodeActions {
@@ -59,24 +63,24 @@
 }
 
 .treeNode:hover {
-  background: #f5f5f5;
-  border-radius: 4px;
-  margin: 0 -4px;
-  padding: 4px;
+  background: rgba(255, 255, 255, 0.05);
 }
 
-/* Tree component overrides */
+/* Tree component overrides - Dark theme */
 :global(.ant-tree) {
   background: transparent;
+  color: #e5e7eb;
 }
 
 :global(.ant-tree-node-content-wrapper) {
-  padding: 4px 8px;
-  border-radius: 4px;
+  padding: 6px 8px;
+  border-radius: 6px;
+  color: #9ca3af;
 }
 
 :global(.ant-tree-node-selected .ant-tree-node-content-wrapper) {
-  background: #e6f7ff;
+  background: rgba(249, 115, 22, 0.15);
+  color: #f97316;
 }
 
 :global(.ant-tree-treenode) {
@@ -86,8 +90,13 @@
 :global(.ant-tree-switcher) {
   width: 20px;
   height: 20px;
+  color: #9ca3af;
 }
 
 :global(.ant-tree-node-content-wrapper) {
   flex: auto;
+}
+
+:global(.ant-tree-indent-unit) {
+  border-left: 1px solid rgba(255, 255, 255, 0.1);
 }

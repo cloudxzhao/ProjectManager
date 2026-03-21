@@ -1,5 +1,5 @@
 .container {
-  background: #fff;
+  background: transparent;
   border-radius: 8px;
 }
 
@@ -15,10 +15,11 @@
   margin: 0 !important;
   flex: 1;
   min-width: 200px;
+  color: #f0f6fc !important;
 }
 
 .viewCount {
-  color: #8c8c8c;
+  color: #8b949e;
   font-size: 14px;
 }
 
@@ -28,33 +29,38 @@
 
 .summary {
   padding: 12px;
-  background: #fafafa;
-  border-radius: 4px;
+  background: rgba(255, 255, 255, 0.03);
+  border-radius: 6px;
   margin-bottom: 16px;
+  color: #8b949e;
 }
 
 .content {
   min-height: 200px;
   line-height: 1.8;
   font-size: 15px;
+  color: #c9d1d9;
 }
 
 .content h1 {
   font-size: 28px;
   margin: 24px 0 16px;
   font-weight: 600;
+  color: #f0f6fc;
 }
 
 .content h2 {
   font-size: 22px;
   margin: 20px 0 14px;
   font-weight: 600;
+  color: #f0f6fc;
 }
 
 .content h3 {
   font-size: 18px;
   margin: 16px 0 12px;
   font-weight: 600;
+  color: #f0f6fc;
 }
 
 .content h4,
@@ -63,6 +69,7 @@
   font-size: 16px;
   margin: 14px 0 10px;
   font-weight: 600;
+  color: #f0f6fc;
 }
 
 .content p {
@@ -80,19 +87,21 @@
 }
 
 .content pre {
-  background: #f6f8fa;
+  background: #161b22;
   padding: 16px;
   border-radius: 6px;
   overflow-x: auto;
   margin: 16px 0;
+  border: 1px solid rgba(255, 255, 255, 0.1);
 }
 
 .content code {
-  background: #f6f8fa;
+  background: rgba(255, 255, 255, 0.05);
   padding: 2px 6px;
   border-radius: 3px;
   font-family: 'SFMono-Regular', Consolas, 'Liberation Mono', Menlo, monospace;
   font-size: 13px;
+  color: #f0f6fc;
 }
 
 .content pre code {
@@ -101,14 +110,15 @@
 }
 
 .content blockquote {
-  border-left: 4px solid #1890ff;
+  border-left: 4px solid #f97316;
   margin: 16px 0;
   padding: 8px 16px;
-  background: #f0f5ff;
+  background: rgba(249, 115, 22, 0.1);
+  color: #c9d1d9;
 }
 
 .content a {
-  color: #1890ff;
+  color: #3a8dff;
   text-decoration: none;
 }
 
@@ -124,19 +134,20 @@
 
 .content th,
 .content td {
-  border: 1px solid #d9d9d9;
+  border: 1px solid rgba(255, 255, 255, 0.1);
   padding: 8px 12px;
   text-align: left;
+  color: #c9d1d9;
 }
 
 .content th {
-  background: #fafafa;
+  background: rgba(255, 255, 255, 0.03);
   font-weight: 600;
 }
 
 .content hr {
   border: none;
-  border-top: 1px solid #d9d9d9;
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
   margin: 24px 0;
 }
 
@@ -148,9 +159,10 @@
 .footer {
   margin-top: 24px;
   padding-top: 16px;
-  border-top: 1px solid #f0f0f0;
+  border-top: 1px solid rgba(255, 255, 255, 0.08);
 }
 
 .meta {
   font-size: 13px;
+  color: #8b949e;
 }
