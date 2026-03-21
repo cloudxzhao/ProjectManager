@@ -8,6 +8,7 @@ import com.projecthub.module.project.entity.ProjectMember;
 import com.projecthub.module.project.entity.ProjectMember.ProjectMemberRole;
 import com.projecthub.module.project.repository.ProjectMemberRepository;
 import com.projecthub.module.project.repository.ProjectRepository;
+import com.projecthub.module.wiki.dto.WikiDetailVO;
 import com.projecthub.module.wiki.dto.WikiVO;
 import com.projecthub.module.wiki.entity.WikiDocument;
 import com.projecthub.module.wiki.entity.WikiHistory;
@@ -153,7 +154,7 @@ class WikiServiceTest {
     WikiDocument document = createTestDocument("测试文档", "内容", null);
 
     // When
-    WikiVO result = wikiService.getDocument(document.getId());
+    WikiDetailVO result = wikiService.getDocument(document.getId());
 
     // Then
     assertNotNull(result);
@@ -754,7 +755,7 @@ class WikiServiceTest {
             .parentId(parentId)
             .title(title)
             .content(content)
-            .position(0)
+            .orderNum(0)
             .build();
     return wikiRepository.save(document);
   }

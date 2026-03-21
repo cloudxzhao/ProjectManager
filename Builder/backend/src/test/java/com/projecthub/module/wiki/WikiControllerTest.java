@@ -492,7 +492,7 @@ class WikiControllerTest {
             .parentId(parentId)
             .title(title)
             .content(content)
-            .position(0)
+            .orderNum(0)
             .build();
     return wikiRepository.save(doc);
   }

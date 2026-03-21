@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { Card, Input, Select, Button, Avatar, Tag, Empty, Spin, Pagination, Modal, Form, Drawer, message, Typography, Space, Divider } from 'antd';
 import { BookOutlined, PlusOutlined, SearchOutlined, EditOutlined, DeleteOutlined, EyeOutlined, FolderOutlined, FileTextOutlined } from '@ant-design/icons';
 import Link from 'next/link';
@@ -9,6 +9,7 @@ import { getWikis, getWiki, deleteWiki, createWiki, updateWiki, type Wiki } from
 import { getAuthorizedProjects } from '@/lib/api/project';
 import type { Project } from '@/lib/api/project';
 import { WikiStatus } from '@/types/wiki';
+import MDEditor from '@uiw/react-md-editor';
 
 const { Option } = Select;
 const { TextArea } = Input;
@@ -205,6 +206,8 @@ export default function WikiPage() {
   const [formLoading, setFormLoading] = useState(false);
   const [editingWiki, setEditingWiki] = useState<Wiki | null>(null);
   const [form] = Form.useForm();
+  const [markdownContent, setMarkdownContent] = useState('');
+  const editorRef = useRef<HTMLDivElement>(null);
 
   // 加载项目列表
   useEffect(() => {
@@ -279,6 +282,7 @@ export default function WikiPage() {
   const handleCreate = () => {
     setEditingWiki(null);
     form.resetFields();
+    setMarkdownContent('');
     // 如果已选择项目，默认选中
     if (selectedProject) {
       form.setFieldsValue({ projectId: selectedProject });
@@ -295,6 +299,7 @@ export default function WikiPage() {
       content: wiki.content,
       status: wiki.status,
     });
+    setMarkdownContent(wiki.content || '');
     setFormOpen(true);
   };
 
@@ -307,7 +312,7 @@ export default function WikiPage() {
         await updateWiki(editingWiki.projectId, editingWiki.id, {
           title: values.title,
           summary: values.summary,
-          content: values.content,
+          content: markdownContent,
           status: values.status,
           changeLog: values.changeLog,
         });
@@ -321,12 +326,13 @@ export default function WikiPage() {
         await createWiki(values.projectId, {
           title: values.title,
           summary: values.summary,
-          content: values.content,
+          content: markdownContent,
           status: values.status,
         });
         message.success('文档创建成功');
       }
       setFormOpen(false);
+      setMarkdownContent('');
       form.resetFields();
       // 刷新列表 - 重新触发 useEffect
       setSelectedProject(selectedProject); // 触发 useEffect
@@ -708,23 +714,35 @@ export default function WikiPage() {
             </Form.Item>
 
             <Form.Item
-              name="content"
               label="内容"
+              required
+              style={{ marginBottom: 0 }}
               labelCol={{ style: { color: '#8b949e', fontSize: '13px' } }}
               rules={[{ required: true, message: '请输入 Wiki 内容' }]}
             >
-              <TextArea
-                rows={12}
-                placeholder="输入 Wiki 内容（支持 Markdown）..."
-                style={{
-                  background: 'rgba(255,255,255,0.05)',
-                  border: '1px solid rgba(255,255,255,0.1)',
-                  color: '#f0f6fc',
-                  borderRadius: '6px',
-                  padding: '10px',
-                  minHeight: '250px',
-                }}
-              />
+              <div ref={editorRef} data-color-mode="dark">
+                <MDEditor
+                  value={markdownContent}
+                  onChange={(val) => setMarkdownContent(val || '')}
+                  height={400}
+                  preview="live"
+                  hideToolbar={false}
+                  enableScroll={true}
+                  style={{
+                    borderRadius: '6px',
+                    overflow: 'hidden',
+                    border: '1px solid rgba(255,255,255,0.1)',
+                  }}
+                  textareaProps={{
+                    placeholder: '输入 Markdown 内容（支持实时预览）...',
+                  }}
+                  previewOptions={{
+                    style: {
+                      color: '#c9d1d9',
+                    },
+                  }}
+                />
+              </div>
             </Form.Item>
 
             <Form.Item

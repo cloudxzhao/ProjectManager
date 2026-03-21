@@ -498,8 +498,8 @@ class WikiStructureTest {
       WikiVO result = wikiService.createDocument(testProject.getId(), request);
 
       // Then
-      assertNotNull(result.getPosition());
-      assertEquals(0, result.getPosition()); // 默认 position 为 0
+      assertNotNull(result.getOrderNum());
+      assertEquals(0, result.getOrderNum()); // 默认 orderNum 为 0
     }
 
     @Test
@@ -731,7 +731,7 @@ class WikiStructureTest {
             .parentId(parentId)
             .title(title)
             .content(content)
-            .position(0)
+            .orderNum(0)
             .build();
     return wikiRepository.save(doc);
   }

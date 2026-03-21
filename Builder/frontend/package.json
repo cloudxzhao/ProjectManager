@@ -19,6 +19,7 @@
     "@types/node": "^25.4.0",
     "@types/react": "^19.2.14",
     "@types/react-dom": "^19.2.3",
+    "@uiw/react-md-editor": "^4.0.11",
     "antd": "^6.3.2",
     "autoprefixer": "^10.4.27",
     "axios": "^1.13.6",
