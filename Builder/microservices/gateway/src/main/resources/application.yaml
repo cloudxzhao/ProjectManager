@@ -1,0 +1,208 @@
+server:
+  port: 8080
+  # 响应压缩配置
+  compression:
+    enabled: true
+    min-response-size: 1KB
+    mime-types: application/json,text/html,text/plain,text/css,application/javascript,text/xml,application/xml
+
+spring:
+  application:
+    name: gateway-service
+
+  profiles:
+    active: dev
+
+  config:
+    import: "optional:nacos:gateway-service.yaml"
+
+  main:
+    allow-bean-definition-overriding: true
+    web-application-type: reactive
+
+  cloud:
+    nacos:
+      discovery:
+        server-addr: ${NACOS_SERVER:localhost:8848}
+        namespace: ${NACOS_NAMESPACE:}
+        group: DEFAULT_GROUP
+        enabled: true
+        register-enabled: false
+      config:
+        server-addr: ${NACOS_SERVER:localhost:8848}
+        namespace: ${NACOS_NAMESPACE:}
+        group: DEFAULT_GROUP
+        file-extension: yaml
+        shared-configs:
+          - data-id: common.yaml
+            group: DEFAULT_GROUP
+            refresh: true
+        import-check:
+          enabled: false
+
+    sentinel:
+      transport:
+        dashboard: ${SENTINEL_DASHBOARD:localhost:8080}
+        port: 8719
+      enabled: true
+      filter:
+        enabled: true
+
+    gateway:
+      discovery:
+        locator:
+          enabled: false
+          lower-case-service-id: true
+
+      routes:
+        # 认证服务路由
+        - id: auth-service
+          uri: ${AUTH_SERVICE_URL:http://localhost:8081}
+          predicates:
+            - Path=/api/v1/auth/**
+          filters:
+            - StripPrefix=0
+
+        # 用户服务路由
+        - id: user-service
+          uri: ${USER_SERVICE_URL:http://localhost:8082}
+          predicates:
+            - Path=/api/v1/users/**
+          filters:
+            - StripPrefix=0
+
+        # 项目服务路由
+        - id: project-service
+          uri: ${PROJECT_SERVICE_URL:http://localhost:8083}
+          predicates:
+            - Path=/api/v1/projects/**
+          filters:
+            - StripPrefix=0
+
+        # 任务服务路由
+        - id: task-service
+          uri: ${TASK_SERVICE_URL:http://localhost:8084}
+          predicates:
+            - Path=/api/v1/tasks/**
+          filters:
+            - StripPrefix=0
+
+        # 故事服务路由
+        - id: story-service
+          uri: ${STORY_SERVICE_URL:http://localhost:8085}
+          predicates:
+            - Path=/api/v1/stories/**,/api/v1/epics/**
+          filters:
+            - StripPrefix=0
+
+        # 问题服务路由
+        - id: issue-service
+          uri: ${ISSUE_SERVICE_URL:http://localhost:8086}
+          predicates:
+            - Path=/api/v1/issues/**
+          filters:
+            - StripPrefix=0
+
+        # Wiki 服务路由
+        - id: wiki-service
+          uri: ${WIKI_SERVICE_URL:http://localhost:8087}
+          predicates:
+            - Path=/api/v1/wiki/**
+          filters:
+            - StripPrefix=0
+
+        # 通知服务路由
+        - id: notification-service
+          uri: ${NOTIFICATION_SERVICE_URL:http://localhost:8088}
+          predicates:
+            - Path=/api/v1/notifications/**,/api/v1/messages/**
+          filters:
+            - StripPrefix=0
+
+      # 全局跨域配置
+      globalcors:
+        cors-configurations:
+          '[/**]':
+            allowedOriginPatterns: "*"
+            allowedMethods:
+              - GET
+              - POST
+              - PUT
+              - DELETE
+              - OPTIONS
+            allowedHeaders: "*"
+            allowCredentials: true
+            maxAge: 3600
+
+      # HTTP 客户端配置
+      httpclient:
+        connect-timeout: 5000
+        response-timeout: 30s
+
+      # 默认过滤器
+      default-filters:
+        - name: Retry
+          args:
+            retries: 3
+            statuses: BAD_GATEWAY,SERVICE_UNAVAILABLE
+            methods: GET
+            backoff:
+              firstBackoff: 100ms
+              maxBackoff: 500ms
+              factor: 2
+
+# JWT 配置
+jwt:
+  secret: ${JWT_SECRET:projecthub-secret-key-must-be-at-least-256-bits-long-for-hs256}
+  expiration: 7200000
+  header: Authorization
+  prefix: "Bearer "
+
+# 公开路径（无需认证）
+security:
+  ignore:
+    urls:
+      - /api/v1/auth/login
+      - /api/v1/auth/register
+      - /api/v1/auth/refresh
+      - /api/v1/auth/forgot-password
+      - /api/v1/auth/reset-password
+      - /actuator/**
+      - /swagger-ui/**
+      - /v3/api-docs/**
+
+# Sentinel 限流熔断规则
+sentinel:
+  default-flow-count: 100
+  default-interval-sec: 1
+  default-burst: 200
+  default-control-behavior: 0
+  default-queue-timeout-ms: 0
+  circuit-breaker:
+    min-request-amount: 10
+    slow-ratio-threshold: 0.8
+    slow-rt-ms: 5000
+    error-ratio-threshold: 0.5
+    error-amount: 10
+    sleep-window-ms: 30000
+    strategy: 0
+
+# 日志配置
+logging:
+  level:
+    com.projecthub.gateway: DEBUG
+    org.springframework.cloud.gateway: DEBUG
+    reactor.netty.http.client: DEBUG
+    com.alibaba.csp.sentinel: INFO
+
+# Actuator 端点
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,gateway
+  endpoint:
+    health:
+      show-details: always
+    gateway:
+      enabled: true

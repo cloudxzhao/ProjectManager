@@ -1,0 +1,139 @@
+# =======================================================
+# 监控与追踪配置模板
+# 所有微服务都应添加此配置
+# =======================================================
+
+management:
+  # 端点暴露配置
+  endpoints:
+    web:
+      exposure:
+        include: health,info,metrics,prometheus,logfile,threaddump,heapdump
+    jmx:
+      exposure:
+        exclude: "*"
+
+  # 健康检查配置
+  endpoint:
+    health:
+      show-details: when_authorized
+      probes:
+        enabled: true
+      group:
+        liveness:
+          include: livenessState
+        readiness:
+          include: readinessState,db,redis,rabbit
+
+  # 指标配置
+  metrics:
+    enable:
+      all: true
+    tags:
+      application: ${spring.application.name}
+      service: ${spring.application.name}
+    distribution:
+      percentiles-histogram:
+        http:
+          server:
+            requests: true
+        http.client.requests: true
+
+  # Prometheus 配置
+  prometheus:
+    metrics:
+      export:
+        enabled: true
+        step: 30s
+
+  # 日志文件端点
+  info:
+    env:
+      enabled: true
+
+# =======================================================
+# SkyWalking Agent 配置
+# 通过环境变量或 JVM 参数覆盖
+# =======================================================
+skywalking:
+  agent:
+    # 服务名称（默认使用 spring.application.name）
+    service_name: ${SW_AGENT_NAME:${spring.application.name}}
+    # 认证 Token（生产环境应配置）
+    authentication: ${SW_AGENT_AUTHENTICATION:}
+    # 命名空间
+    namespace: ${SW_NAMESPACE:ProjectHub}
+    # 实例名称
+    instance_name: ${SW_AGENT_INSTANCE_NAME:${spring.application.name}-${server.port}}
+
+  # Collector 配置
+  collector:
+    backend_service: ${SW_AGENT_COLLECTOR_BACKEND_SERVICES:oap:11800}
+
+  # 日志配置
+  logging:
+    level: info
+    output: console
+
+  # 插件配置
+  plugin:
+    # 排除的插件（按需配置）
+    exclude: ${SW_AGENT_PLUGIN_EXCLUDE:}
+    # 追踪配置
+    trace:
+      ignore_suffix: ${SW_PLUGIN_TRACE_IGNORE_SUFFIX:.css,.js,.jpg,.jpeg,.png,.gif,.ico,.svg,.woff,.woff2,.ttf,.eot}
+
+  # 采样配置
+  sample:
+    n_per_3_secs: ${SW_SAMPLE_N_PER_3_SECS:60}
+
+# =======================================================
+# 健康检查指示器配置
+# =======================================================
+spring:
+  cloud:
+    # 服务健康检查
+    client:
+      config:
+        default:
+          connectTimeout: 5000
+          readTimeout: 5000
+
+# 数据库健康检查
+management:
+  health:
+    db:
+      enabled: true
+    redis:
+      enabled: true
+    rabbit:
+      enabled: true
+    livenessstate:
+      enabled: true
+    readinessstate:
+      enabled: true
+
+# =======================================================
+# 日志配置（包含 TraceId）
+# =======================================================
+logging:
+  level:
+    root: INFO
+    com.projecthub: DEBUG
+    org.springframework.web: INFO
+    org.apache.skywalking: INFO
+  pattern:
+    console: "%d{yyyy-MM-dd HH:mm:ss.SSS} [%thread] [%X{traceId:-},%X{spanId:-}] %-5level ${spring.application.name} - %logger{36} - %msg%n"
+    file: "%d{yyyy-MM-dd HH:mm:ss.SSS} [%thread] [%X{traceId:-},%X{spanId:-}] %-5level ${spring.application.name} - %logger{36} - %msg%n"
+  file:
+    name: logs/${spring.application.name}.log
+    max-size: 100MB
+    max-history: 30
+
+# =======================================================
+# 启动时打印配置信息
+# =======================================================
+projecthub:
+  monitor:
+    enabled: true
+    print-config-on-startup: true

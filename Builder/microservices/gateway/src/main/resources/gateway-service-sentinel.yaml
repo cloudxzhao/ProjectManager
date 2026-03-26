@@ -1,0 +1,76 @@
+# Gateway Sentinel 限流规则配置
+# 数据 ID: gateway-service-sentinel.yaml
+# Group: DEFAULT_GROUP
+
+---
+# 限流规则
+sentinel:
+  flow:
+    rules:
+      # 认证服务限流
+      - resource: auth-api
+        count: 100
+        grade: 1
+        limitApp: default
+        strategy: 0
+        controlBehavior: 0
+        burst: 200
+        intervalSec: 1
+
+      # 用户服务限流
+      - resource: user-api
+        count: 100
+        grade: 1
+        limitApp: default
+        strategy: 0
+        controlBehavior: 0
+        burst: 200
+        intervalSec: 1
+
+      # 项目服务限流
+      - resource: project-api
+        count: 100
+        grade: 1
+        limitApp: default
+        strategy: 0
+        controlBehavior: 0
+        burst: 200
+        intervalSec: 1
+
+      # 任务服务限流
+      - resource: task-api
+        count: 100
+        grade: 1
+        limitApp: default
+        strategy: 0
+        controlBehavior: 0
+        burst: 200
+        intervalSec: 1
+
+  # 熔断降级规则
+  degrade:
+    rules:
+      # 慢调用熔断
+      - resource: /*
+        count: 0.8
+        grade: 0
+        timeWindow: 30
+        slowRatioThreshold: 0.8
+        minRequestAmount: 10
+        statIntervalMs: 10000
+
+      # 异常比例熔断
+      - resource: /*
+        count: 0.5
+        grade: 1
+        timeWindow: 30
+        minRequestAmount: 10
+        statIntervalMs: 10000
+
+      # 异常数熔断
+      - resource: /*
+        count: 10
+        grade: 2
+        timeWindow: 30
+        minRequestAmount: 10
+        statIntervalMs: 10000

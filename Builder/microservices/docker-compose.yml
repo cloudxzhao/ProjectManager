@@ -1,0 +1,204 @@
+version: '3.8'
+
+# ProjectHub 微服务基础设施
+# 使用方式: docker-compose up -d
+
+services:
+  # ==================== Nacos (注册中心 + 配置中心) ====================
+  nacos:
+    image: nacos/nacos-server:v2.2.3
+    container_name: projecthub-nacos
+    environment:
+      - MODE=standalone
+      - PREFER_HOST_MODE=hostname
+      - SPRING_DATASOURCE_PLATFORM=mysql
+      - MYSQL_SERVICE_HOST=nacos-mysql
+      - MYSQL_SERVICE_PORT=3306
+      - MYSQL_SERVICE_DB_NAME=nacos_config
+      - MYSQL_SERVICE_USER=nacos
+      - MYSQL_SERVICE_PASSWORD=nacos123
+      - JVM_XMS=512m
+      - JVM_XMX=512m
+      - JVM_XMN=256m
+    ports:
+      - "8848:8848"
+      - "9848:9848"
+      - "9849:9849"
+    volumes:
+      - ./nacos/logs:/home/nacos/logs
+    depends_on:
+      nacos-mysql:
+        condition: service_healthy
+    networks:
+      - projecthub-network
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8848/nacos/v1/console/health/liveness"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 60s
+    restart: unless-stopped
+
+  # Nacos MySQL 数据库
+  nacos-mysql:
+    image: mysql:8.0
+    container_name: projecthub-nacos-mysql
+    environment:
+      - MYSQL_ROOT_PASSWORD=root123
+      - MYSQL_DATABASE=nacos_config
+      - MYSQL_USER=nacos
+      - MYSQL_PASSWORD=nacos123
+    ports:
+      - "3307:3306"
+    volumes:
+      - ./mysql/nacos-data:/var/lib/mysql
+      - ./init-scripts/nacos-mysql-init.sql:/docker-entrypoint-initdb.d/nacos-mysql-init.sql
+    networks:
+      - projecthub-network
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-u", "root", "-proot123"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
+    restart: unless-stopped
+
+  # ==================== RabbitMQ (消息队列) ====================
+  rabbitmq:
+    image: rabbitmq:3.12-management
+    container_name: projecthub-rabbitmq
+    environment:
+      - RABBITMQ_DEFAULT_USER=projecthub
+      - RABBITMQ_DEFAULT_PASS=projecthub123
+      - RABBITMQ_DEFAULT_VHOST=projecthub
+    ports:
+      - "5672:5672"    # AMQP 端口
+      - "15672:15672"  # 管理界面端口
+    volumes:
+      - ./rabbitmq/data:/var/lib/rabbitmq
+      - ./rabbitmq/logs:/var/log/rabbitmq
+      - ./rabbitmq/enabled_plugins:/etc/rabbitmq/enabled_plugins
+    networks:
+      - projecthub-network
+    healthcheck:
+      test: ["CMD", "rabbitmqctl", "status"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 60s
+    restart: unless-stopped
+
+  # ==================== Redis (缓存) ====================
+  redis:
+    image: redis:7.2-alpine
+    container_name: projecthub-redis
+    command: redis-server --appendonly yes --requirepass projecthub123
+    ports:
+      - "6379:6379"
+    volumes:
+      - ./redis/data:/data
+    networks:
+      - projecthub-network
+    healthcheck:
+      test: ["CMD", "redis-cli", "-a", "projecthub123", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    restart: unless-stopped
+
+  # ==================== SkyWalking (链路追踪) ====================
+  skywalking-oap:
+    image: apache/skywalking-oap-server:9.2.0
+    container_name: projecthub-skywalking-oap
+    environment:
+      - SW_STORAGE=elasticsearch
+      - SW_STORAGE_ES_CLUSTER_NODES=skywalking-es:9200
+      - SW_HEALTH_CHECKER=default
+      - TZ=Asia/Shanghai
+    ports:
+      - "11800:11800"  # gRPC 端口
+      - "12800:12800"  # HTTP 端口
+    volumes:
+      - ./skywalking/config:/skywalking/config
+    depends_on:
+      skywalking-es:
+        condition: service_healthy
+    networks:
+      - projecthub-network
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:12800/internal/liveness"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 60s
+    restart: unless-stopped
+
+  skywalking-ui:
+    image: apache/skywalking-ui:9.2.0
+    container_name: projecthub-skywalking-ui
+    environment:
+      - SW_OAP_ADDRESS=http://skywalking-oap:12800
+      - SW_ZIPKIN_ADDRESS=http://skywalking-oap:9412
+      - TZ=Asia/Shanghai
+    ports:
+      - "8081:8080"
+    depends_on:
+      skywalking-oap:
+        condition: service_healthy
+    networks:
+      - projecthub-network
+    restart: unless-stopped
+
+  # SkyWalking Elasticsearch
+  skywalking-es:
+    image: elasticsearch:8.10.2
+    container_name: projecthub-skywalking-es
+    environment:
+      - discovery.type=single-node
+      - ES_JAVA_OPTS=-Xms512m -Xmx512m
+      - xpack.security.enabled=false
+    ports:
+      - "9200:9200"
+      - "9300:9300"
+    volumes:
+      - ./elasticsearch/data:/usr/share/elasticsearch/data
+    networks:
+      - projecthub-network
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f http://localhost:9200/_cluster/health || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 60s
+    restart: unless-stopped
+
+  # ==================== Seata (分布式事务) ====================
+  seata-server:
+    image: seataio/seata-server:1.5.2
+    container_name: projecthub-seata
+    environment:
+      - SEATA_IP=seata-server
+      - SEATA_PORT=8091
+      - STORE_MODE=db
+      - SEATA_CONFIG_NAME=file:/seata-server/resources/application.yml
+    ports:
+      - "8091:8091"
+      - "7091:7091"
+    volumes:
+      - ./seata/config/application.yml:/seata-server/resources/application.yml
+    depends_on:
+      - nacos
+    networks:
+      - projecthub-network
+    restart: unless-stopped
+
+networks:
+  projecthub-network:
+    driver: bridge
+    name: projecthub-network
+
+volumes:
+  mysql-data:
+  redis-data:
+  rabbitmq-data:
+  elasticsearch-data:

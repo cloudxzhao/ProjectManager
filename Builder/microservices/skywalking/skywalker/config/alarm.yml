@@ -1,0 +1,145 @@
+# SkyWalking 告警规则配置
+# 路径：Builder/microservices/skywalking/config/alarm.yml
+
+rules:
+  # ========== 服务级别告警 ==========
+
+  # 服务响应时间告警 - P1 级
+  service_resp_time_p1:
+    metrics-name: service_resp_time
+    expression: avg(service_resp_time > 5000)
+    period: 10
+    count: 3
+    silence: 300
+    message: "[P1] 服务 {name} 平均响应时间超过 5 秒 (当前值：{value}ms)"
+
+  # 服务响应时间告警 - P2 级
+  service_resp_time_p2:
+    metrics-name: service_resp_time
+    expression: avg(service_resp_time > 1000)
+    period: 10
+    count: 5
+    silence: 300
+    message: "[P2] 服务 {name} 平均响应时间超过 1 秒 (当前值：{value}ms)"
+
+  # 服务成功率告警
+  service_sla:
+    metrics-name: service_sla
+    expression: service_sla < 90
+    period: 10
+    count: 3
+    silence: 300
+    message: "[P1] 服务 {name} 成功率低于 90% (当前值：{value}%)"
+
+  # 服务实例下线告警
+  service_instance_num:
+    metrics-name: service_instance_num
+    expression: count(service_instance_num == 0)
+    period: 10
+    count: 1
+    silence: 300
+    message: "[P0] 服务 {name} 所有实例已下线"
+
+  # 服务实例数减少告警
+  service_instance_decrease:
+    metrics-name: service_instance_num
+    expression: service_instance_num < 2
+    period: 10
+    count: 3
+    silence: 300
+    message: "[P2] 服务 {name} 实例数少于 2 (当前值：{value})"
+
+  # ========== JVM 级别告警 ==========
+
+  # JVM GC 频繁告警
+  jvm_gc_count:
+    metrics-name: jvm_gc_count
+    expression: jvm_gc_count > 100
+    period: 10
+    count: 5
+    silence: 600
+    message: "[P2] 服务 {name} JVM GC 过于频繁 (当前值：{value} 次/分钟)"
+
+  # JVM 内存使用率告警
+  jvm_memory_used:
+    metrics-name: jvm_memory_used
+    expression: jvm_memory_used > 90
+    period: 10
+    count: 3
+    silence: 300
+    message: "[P1] 服务 {name} JVM 内存使用率超过 90% (当前值：{value}%)"
+
+  # JVM CPU 使用率告警
+  jvm_cpu_used:
+    metrics-name: process_cpu_usage
+    expression: process_cpu_usage > 80
+    period: 10
+    count: 5
+    silence: 300
+    message: "[P2] 服务 {name} CPU 使用率超过 80% (当前值：{value}%)"
+
+  # ========== 数据库级别告警 ==========
+
+  # 数据库连接池使用率告警
+  datasource_connection_used:
+    metrics-name: datasource_connection_used
+    expression: datasource_connection_used > 80
+    period: 10
+    count: 3
+    silence: 300
+    message: "[P2] 服务 {name} 数据库连接池使用率超过 80%"
+
+  # 数据库慢查询告警
+  database_slow_query:
+    metrics-name: database_slow_query
+    expression: sum(database_slow_query > 1000) > 10
+    period: 10
+    count: 3
+    silence: 300
+    message: "[P2] 服务 {name} 慢查询 (超过 1 秒) 数量超过 10 个"
+
+  # ========== 消息队列告警 ==========
+
+  # RabbitMQ 队列堆积告警
+  rabbitmq_queue_size:
+    metrics-name: rabbitmq_queue_size
+    expression: rabbitmq_queue_size > 1000
+    period: 10
+    count: 3
+    silence: 300
+    message: "[P2] RabbitMQ 队列 {name} 消息堆积超过 1000 条"
+
+  # ========== 接口级别告警 ==========
+
+  # 接口响应时间告警
+  endpoint_resp_time:
+    metrics-name: endpoint_resp_time
+    expression: p99(endpoint_resp_time > 3000)
+    period: 10
+    count: 5
+    silence: 300
+    message: "[P2] 接口 {name} P99 响应时间超过 3 秒"
+
+  # 接口错误率告警
+  endpoint_error_rate:
+    metrics-name: endpoint_error_rate
+    expression: avg(endpoint_error_rate > 5)
+    period: 10
+    count: 3
+    silence: 300
+    message: "[P1] 接口 {name} 错误率超过 5%"
+
+# ========== 告警通知配置 ==========
+hooks:
+  # Webhook 通知（可选，用于对接钉钉/企业微信/Slack 等）
+  webhook:
+    - http://notification-service:9528/api/v1/notifications/skywalking
+
+  # 钉钉机器人（可选）
+  dingtalk:
+    webhook: https://oapi.dingtalk.com/robot/send?access_token=xxx
+    secret: xxx
+
+  # 企业微信机器人（可选）
+  wechat:
+    webhook: https://qyapi.weixin.qq.com/cgi-bin/webhook/send?key=xxx
